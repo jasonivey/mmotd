@@ -1,0 +1,6 @@
+* linguist-vendored
+*.cpp linguist-language=cpp
+*.h linguist-language=cpp
+*.inl linguist-language=cpp
+Makefile linguist-language=make
+CMakeLists.txt linguist-language=cmake
