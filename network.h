@@ -1,82 +1,64 @@
+// vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
-#include <algorithm>
 #include <array>
-#include <cstdint>
-#include <iostream>
-#include <string>
-#include <stdexcept>
-#include <vector>
-#include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
-#include <boost/numeric/conversion/cast.hpp>
+#include <cstdint>
+#include <string>
+#include <unordered_map>
+#include <vector>
+#include <iosfwd>
 
 struct MacAddress {
+    friend std::ostream &operator<<(std::ostream &out, const MacAddress &mac_address);
+
     MacAddress() = default;
-    MacAddress(const std::uint8_t *buffer, size_t buffer_size) {
-        Initialize(buffer, buffer_size);
-    }
-    MacAddress(const std::string &input_str) {
-        using namespace std;
-        typedef vector<string> split_vector_type;
-        split_vector_type mac_addr_parts;
-        boost::split(mac_addr_parts, input_str, boost::is_any_of(" :."), boost::token_compress_on);
-        if (mac_addr_parts.size() == 1) {
-            // it didn't split at all -- it better be 2 characters for a total of 12!
-            mac_addr_parts.clear();
-            auto part = string{};
-            for (auto ch : input_str) {
-                part.push_back(ch);
-                if (part.size() == 2) {
-                    mac_addr_parts.push_back(part);
-                    part.clear();
-                }
-            }
-        }
-        if (mac_addr_parts.size() != MAC_ADDRESS_SIZE) {
-            throw std::runtime_error("mac address is not the correct length");
-        }
-        std::vector<std::uint8_t> mac_addr;
-        for (const auto &part : mac_addr_parts) {
-            if (boost::all(part, boost::is_xdigit()) && part.size() <= 2) {
-                char *end = nullptr;
-                auto value = strtoul(&part[0], &end, 16);
-                mac_addr.push_back(boost::numeric_cast<uint8_t>(value));
-            } else {
-                throw std::runtime_error("invalid character found in mac address string");
-            }
-        }
-        memcpy(&data_[0], &mac_addr[0], MAC_ADDRESS_SIZE);
-    }
+    MacAddress(const std::uint8_t *buffer, size_t buffer_size);
+    MacAddress(const std::string &input_str);
+
+    explicit operator bool() const { return !IsZero(); }
+    std::string to_string() const;
 
 private:
-    void Initialize(const std::uint8_t *buffer, size_t buffer_size) {
-        if (buffer_size != MAC_ADDRESS_SIZE) {
-            throw std::runtime_error("invalid size of mac address");
-        } else if (buffer != nullptr) {
-            memcpy(&data_[0], buffer, MAC_ADDRESS_SIZE);
-        } else {
-            memset(&data_[0], 0, MAC_ADDRESS_SIZE);
-        }
-    }
+    bool IsZero() const;
 
     static const size_t MAC_ADDRESS_SIZE = 6;
     std::array<std::uint8_t, MAC_ADDRESS_SIZE> data_;
 };
 
+inline std::string to_string(const MacAddress &mac_address) { return mac_address.to_string(); }
+
+using IpAddress = boost::asio::ip::address;
+using IpAddresses = std::vector<IpAddress>;
+
+std::string to_string(const IpAddresses &ip_addresses);
+
 struct NetworkDevice {
     std::string interface_name;
     MacAddress mac_address;
-    boost::asio::ip::address ip_address;
+    IpAddresses ip_addresses;
+
+    std::string to_string() const;
 };
 
-typedef std::vector<NetworkDevice> NetworkDevices;
+inline std::string to_string(const NetworkDevice &network_device) { return network_device.to_string(); }
+
+using NetworkDevices = std::unordered_map<std::string, NetworkDevice>;
 
 class NetworkInfo {
+    friend std::ostream &operator<<(std::ostream &out, const NetworkInfo &network_info);
 public:
     NetworkInfo() = default;
+    bool TryDiscovery();
 
-    bool QueryForNetworkInfo();
+    std::string to_string() const;
 
 private:
     NetworkDevices network_devices_;
 };
+
+std::string to_string(const NetworkDevices &network_devices);
+inline std::string to_string(const NetworkInfo &network_info) { return network_info.to_string(); }
+
+std::ostream &operator<<(std::ostream &out, const NetworkDevices &network_devices);
+std::ostream &operator<<(std::ostream &out, const NetworkDevice &network_device);
+std::ostream &operator<<(std::ostream &out, const IpAddresses &ip_addresses);
