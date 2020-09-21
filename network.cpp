@@ -113,7 +113,7 @@ string NetworkDevice::to_string() const {
     if (ip_addresses.empty()) {
         str += format("{} : no ip address\n", spaces);
     } else {
-        for (auto i = 0; i < ip_addresses.size(); ++i) {
+        for (auto i = size_t{0}; i < ip_addresses.size(); ++i) {
             if (i == 1) {
                 str += format("{} : {} {}\n", spaces, ip_addresses[i].to_string(), ip_addresses[i].is_v4() ? "(ipv4)" : "(ipv6)");
             } else {
@@ -297,7 +297,7 @@ ostream &operator<<(ostream &out, const IpAddresses &ip_addresses) {
     if (ip_addresses.empty()) {
         out << "\n";
     }
-    for (auto i = 1; i < ip_addresses.size(); ++i) {
+    for (auto i = size_t{1}; i < ip_addresses.size(); ++i) {
         if (i == 1) {
             out << ip_addresses[i] << "\n";
         } else if (i + 1 == ip_addresses.size()) {

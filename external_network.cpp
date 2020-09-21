@@ -1,70 +1,55 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "external_network.h"
+#include "http_request.h"
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-
+#include <json/json.h>
 #include <iostream>
+#include <sstream>
 #include <tuple>
-#include <fmt/format.h>
 
 using boost::asio::ip::make_address;
-using namespace fmt;
 using namespace std;
 
 string ExternalNetwork::to_string() const {
     return ip_address_.to_string();
 }
 
-static tuple<bool, IpAddress>  DiscoverExternalIpAddress() {
-    static constexpr size_t BUFFER_SIZE = max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1;
-    array<char, BUFFER_SIZE> buffer = {0};
-
-    int socket_handle = socket(AF_INET, SOCK_DGRAM, 0);
-    if (socket_handle == -1) {
-        cerr << format("ERROR: unable to open a socket handle, errno: {}\n", errno);
-        return make_tuple(false, IpAddress{});
+IpAddress ExternalNetwork::ParseHttpResult(const string &response) {
+    auto builder = Json::CharReaderBuilder{};
+    builder["collectComments"] = false;
+    auto value = Json::Value{};
+    auto errs = string{};
+    auto input_str_stream = istringstream{response};
+    auto input_stream = istream{input_str_stream.rdbuf()};
+    bool status = Json::parseFromStream(builder, input_stream, &value, &errs);
+    if (!status) {
+        if (!errs.empty()) {
+            cerr << "ERROR: converting HTTP response from ipinfo to JSON. " << errs << "\n";
+        } else {
+            cerr << "ERROR: converting HTTP response from ipinfo to JSON\n";
+        }
+        return IpAddress{};
+    } else if (value.empty()) {
+        cerr << "ERROR: converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty\n";
     }
 
-    const char* GOOGLE_DNS_IP = "8.8.8.8";
-    static constexpr uint16_t DNS_PORT = 53;
-
-    struct sockaddr_in serv;
-    memset(&serv, 0, sizeof(serv));
-    serv.sin_family = AF_INET;
-    serv.sin_addr.s_addr = inet_addr(GOOGLE_DNS_IP);
-    serv.sin_port = htons(DNS_PORT);
-
-    int err = connect(socket_handle, reinterpret_cast<const sockaddr*>(&serv), sizeof(serv));
-    if (err == -1) {
-        cerr << format("ERROR: connecting to {}:{}, errno: {}\n", GOOGLE_DNS_IP, DNS_PORT, errno);
-        return make_tuple(false, IpAddress{});
+    if (value.isObject() && value.isMember("ip") && value["ip"].isString()) {
+        return make_address(value["ip"].asString());
     }
-
-    struct sockaddr_in name;
-    socklen_t namelen = sizeof(name);
-    err = getsockname(socket_handle, reinterpret_cast<sockaddr *>(&name), &namelen);
-    if (err == -1) {
-        cerr << format("ERROR: get socket name after connecting to {}:{}, errno: {}\n", GOOGLE_DNS_IP, DNS_PORT, errno);
-        return make_tuple(false, IpAddress{});
-    }
-
-    const char *ip_str = inet_ntop(AF_INET, &name.sin_addr, buffer.data(), BUFFER_SIZE);
-    if (ip_str == nullptr) {
-        cerr << format("ERROR: inet_ntop failed after connecting to {}:{}, errno: {}\n", GOOGLE_DNS_IP, DNS_PORT, errno);
-        return make_tuple(false, IpAddress{});
-    }
-    auto ip_address = make_address(ip_str);
-    close(socket_handle);
-    return make_tuple(true, ip_address);
+    return IpAddress{};
 }
 
 bool ExternalNetwork::TryDiscovery() {
-    const auto [success, ip_address] = DiscoverExternalIpAddress();
-    if (success) {
-        ip_address_= ip_address;
+    auto request = HttpRequest{"ipinfo.io"};
+    const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
+    if (response.empty()) {
+        cerr << "ERROR: querying 'http://ipinfo.io/json' failed\n";
+        return false;
     }
-    return success;
+    const auto ip_address = ParseHttpResult(response);
+    if (!ip_address.is_unspecified()) {
+        ip_address_ = ip_address;
+    }
+    return !ip_address.is_unspecified();
 }
+

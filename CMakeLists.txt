@@ -1,34 +1,45 @@
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.10)
 
 if (APPLE)
     set(CMAKE_C_COMPILER "clang")
     set(CMAKE_CXX_COMPILER "clang++")
 endif()
 
-project (mmotd-binary)
-add_executable(mmotd main.cpp external_network.cpp network.cpp lastlog.cpp)
+add_compile_options(-Wall -Werror -Wpedantic -Wextra -Wformat=2 -fPIC)
+
+project (mmotd)
+add_executable(mmotd main.cpp http_request.cpp external_network.cpp network.cpp lastlog.cpp)
 
 find_package(Boost REQUIRED COMPONENTS system filesystem)
-find_package(fmt)
+find_package(fmt REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(JSONCPP REQUIRED jsoncpp)
 
-include_directories(${Boost_INCLUDE_DIRS})
+set_target_properties(mmotd PROPERTIES
+                      C_STANDARD 11
+                      C_STANDARD_REQUIRED on
+                      C_EXTENSIONS off
+                      CXX_STANDARD 17
+                      CXX_STANDARD_REQUIRED on
+                      CXX_EXTENSIONS off)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c18 -Wall -Werror")
-set(CMAKE_C_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -O0 -g -ggdb3")
-set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -O2 -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -DNDEBUG")
-set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -DNDEBUG -g -ggdb3")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -Wall -Werror")
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG -O0 -g -ggdb3")
-set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -O2 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -DNDEBUG")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -DNDEBUG -g -ggdb3")
+target_include_directories(mmotd SYSTEM PUBLIC ${Boost_INCLUDE_DIRS} PUBLIC ${JSONCPP_INCLUDE_DIRS})
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+    string(APPEND CMAKE_CXX_FLAGS " -stdlib=libc++")
 endif()
+
+message("build type: ${CMAKE_BUILD_TYPE}")
+
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+    add_definitions(-DDEBUG -D_DEBUG)
+    string(APPEND CMAKE_CXX_FLAGS " -Og -g3 -ggdb3")
+    string(APPEND CMAKE_C_FLAGS " -Og -g3 -ggdb3")
+else ()
+    string(APPEND CMAKE_CXX_FLAGS " -O2")
+    string(APPEND CMAKE_C_FLAGS " -O2")
+endif ()
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-target_link_libraries(mmotd fmt::fmt ${Boost_LIBRARIES})
+target_link_libraries(mmotd ${Boost_LIBRARIES} fmt::fmt ${JSONCPP_LINK_LIBRARIES})
