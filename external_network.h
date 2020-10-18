@@ -14,7 +14,7 @@ public:
     std::string to_string() const;
 
 private:
-    IpAddress ParseHttpResult(const std::string &response);
+    IpAddress ParseJsonResponse(const std::string &response);
 
     IpAddress ip_address_;
 };

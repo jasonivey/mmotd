@@ -2,14 +2,31 @@
 #include "lastlog.h"
 #include "network.h"
 #include "external_network.h"
+#include "system.h"
+#include "options.h"
+#include "logging.h"
 #include <iostream>
 #include <cstdlib>
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-    (void)argc; (void)argv;
+    Logging::InitializeLogging("/Users/jasoni/dev/mmotd/mmotd-logging.ini");
 
+    auto app_options = AppOptions::Initialize(argc, argv);
+    if (!app_options) {
+        return EXIT_FAILURE;
+    }
+    const Options &options = app_options->GetOptions();
+    (void)options;
+
+    auto system_information = SystemInformation{};
+    if (!system_information.TryDiscovery()) {
+        cerr << "ERROR: unable to query for system information\n";
+        return EXIT_FAILURE;
+    } else {
+        cout << "System Information: \n" << system_information << endl;
+    }
     auto last_log = LastLog{};
     auto last_login_data = LastLoginData{};
     if (!last_log.GetLastLoginRecord(last_login_data)) {

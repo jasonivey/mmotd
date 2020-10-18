@@ -2,8 +2,8 @@
 #include "external_network.h"
 #include "http_request.h"
 
+#include <boost/log/trivial.hpp>
 #include <json/json.h>
-#include <iostream>
 #include <sstream>
 #include <tuple>
 
@@ -14,23 +14,22 @@ string ExternalNetwork::to_string() const {
     return ip_address_.to_string();
 }
 
-IpAddress ExternalNetwork::ParseHttpResult(const string &response) {
+IpAddress ExternalNetwork::ParseJsonResponse(const string &response) {
     auto builder = Json::CharReaderBuilder{};
     builder["collectComments"] = false;
     auto value = Json::Value{};
     auto errs = string{};
     auto input_str_stream = istringstream{response};
     auto input_stream = istream{input_str_stream.rdbuf()};
-    bool status = Json::parseFromStream(builder, input_stream, &value, &errs);
-    if (!status) {
+    if (!Json::parseFromStream(builder, input_stream, &value, &errs)) {
         if (!errs.empty()) {
-            cerr << "ERROR: converting HTTP response from ipinfo to JSON. " << errs << "\n";
+            BOOST_LOG_TRIVIAL(error) << "converting HTTP response from ipinfo to JSON. " << errs;
         } else {
-            cerr << "ERROR: converting HTTP response from ipinfo to JSON\n";
+            BOOST_LOG_TRIVIAL(error) << "converting HTTP response from ipinfo to JSON";
         }
         return IpAddress{};
     } else if (value.empty()) {
-        cerr << "ERROR: converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty\n";
+        BOOST_LOG_TRIVIAL(error) << "converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty";
     }
 
     if (value.isObject() && value.isMember("ip") && value["ip"].isString()) {
@@ -40,13 +39,14 @@ IpAddress ExternalNetwork::ParseHttpResult(const string &response) {
 }
 
 bool ExternalNetwork::TryDiscovery() {
-    auto request = HttpRequest{"ipinfo.io"};
-    const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
+    auto request = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"};
+    //const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
+    const auto response = request.MakeRequest("/json");
     if (response.empty()) {
-        cerr << "ERROR: querying 'http://ipinfo.io/json' failed\n";
+        BOOST_LOG_TRIVIAL(error) << "querying 'http://ipinfo.io/json' failed";
         return false;
     }
-    const auto ip_address = ParseHttpResult(response);
+    const auto ip_address = ParseJsonResponse(response);
     if (!ip_address.is_unspecified()) {
         ip_address_ = ip_address;
     }

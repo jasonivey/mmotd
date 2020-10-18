@@ -20,12 +20,13 @@
     #include <fmt/format.h>
     using fmt::format;
 #endif
+#include <boost/log/trivial.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <iostream>
 #include <iostream>
 #include <stdexcept>
 #include <string>
-#include <tuple>
+#include <optional>
 #include <vector>
 
 using boost::asio::ip::make_address;
@@ -114,11 +115,7 @@ string NetworkDevice::to_string() const {
         str += format("{} : no ip address\n", spaces);
     } else {
         for (auto i = size_t{0}; i < ip_addresses.size(); ++i) {
-            if (i == 1) {
-                str += format("{} : {} {}\n", spaces, ip_addresses[i].to_string(), ip_addresses[i].is_v4() ? "(ipv4)" : "(ipv6)");
-            } else {
-                str += format("{} : {} {}\n", spaces, ip_addresses[i].to_string(), ip_addresses[i].is_v4() ? "(ipv4)" : "(ipv6)");
-            }
+            str += format("{} : {} {}\n", spaces, ip_addresses[i].to_string(), ip_addresses[i].is_v4() ? "(ipv4)" : "(ipv6)");
         }
     }
     return str;
@@ -127,7 +124,7 @@ string NetworkDevice::to_string() const {
 string to_string(const IpAddresses &ip_addresses) {
     auto str = string{};
     for (const auto &ip_address : ip_addresses) {
-        str += ip_address.to_string() + "\n";
+        str += ip_address.to_string();
     }
     str.resize(str.size() - 1);
     return str;
@@ -136,7 +133,7 @@ string to_string(const IpAddresses &ip_addresses) {
 #if defined(__linux__)
 
 //bool get_mac_address(char* mac_addr, const char* if_name = "eth0")
-static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
+static optional<NetworkDevices> DiscoverNetworkDevices() {
 {
 #if 0
     struct ifreq ifinfo;
@@ -153,16 +150,16 @@ static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
         return false;
     }
 #endif
-    return make_tuple(false, NetworkDevices{});
+    return optional<NetworkDevices>{};
 }
 
 #elif defined(__APPLE__)
 
-static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
+static optional<NetworkDevices> DiscoverNetworkDevices() {
     struct ifaddrs* addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
-        cerr << format("ERROR: getifaddrs failed, errno: {}\n", errno);
-        return make_tuple(false, NetworkDevices{});
+        BOOST_LOG_TRIVIAL(error) << format("ERROR: getifaddrs failed, errno: {}", errno);
+        return optional<NetworkDevices>{};
     }
 
     auto network_devices = NetworkDevices{};
@@ -179,7 +176,7 @@ static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
             const auto ntoa_str = string(link_ntoa(sock_addr));
             const auto index = ntoa_str.find(':');
             if (index == string::npos) {
-                cerr << format("WARN: {} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx\n", interface_name, ntoa_str);
+                BOOST_LOG_TRIVIAL(warning) << format("{} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx", interface_name, ntoa_str);
                 continue;
             }
             auto iter = network_devices.find(interface_name);
@@ -191,8 +188,8 @@ static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
             }
             auto mac_address = ntoa_str.substr(index + 1);
             if (static_cast<bool>(network_device->mac_address)) {
-                cerr << format("WARN: {} with mac address {} is being replaced with {}\n",
-                               interface_name, to_string(network_device->mac_address), mac_address);
+                BOOST_LOG_TRIVIAL(warning) << format("{} with mac address {} is being replaced with {}",
+                                                     interface_name, to_string(network_device->mac_address), mac_address);
             }
             network_device->mac_address = MacAddress(mac_address);
         }
@@ -202,11 +199,6 @@ static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
             buffer.fill(0);
             if (address_family == AF_INET) {
                 const auto *sock_addr = reinterpret_cast<struct sockaddr_in *>(ptr->ifa_addr);
-                //auto retptr = inet_ntoa(sock_addr->sin_addr);
-                //if (retptr == nullptr) {
-                //    cerr << format("ERROR: {} calling inet_ntop, errno: {}\n", interface_name, errno);
-                //    continue;
-                //}
                 if (inet_ntop(AF_INET, &sock_addr->sin_addr, buffer.data(), INET_ADDRSTRLEN)) {
                     ip_str.assign(buffer.data());
                 }
@@ -217,7 +209,7 @@ static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
                 }
             }
             const auto family_name = address_family == AF_INET ? string{"ipv4"} : string{"ipv6"};
-            cerr << format("INFO: {} found ip {} for family {}\n", interface_name, ip_str, family_name);
+            BOOST_LOG_TRIVIAL(info) << format("{} found ip {} for family {}", interface_name, ip_str, family_name);
             auto iter = network_devices.find(interface_name);
             NetworkDevice *network_device = iter == end(network_devices) ? nullptr : &(iter->second);
             if (iter == end(network_devices)) {
@@ -227,13 +219,13 @@ static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
             }
             auto ip_address = make_address(ip_str);
             if (ip_address.is_unspecified()) {
-                cerr << format("INFO: {} with ip address {} is unspecified\n", interface_name, ip_address.to_string());
+                BOOST_LOG_TRIVIAL(info) << format("{} with ip address {} is unspecified", interface_name, ip_address.to_string());
             } else if (ip_address.is_loopback()) {
-                cerr << format("INFO: {} with ip address {} is loopback device\n", interface_name, ip_address.to_string());
+                BOOST_LOG_TRIVIAL(info) << format("{} with ip address {} is loopback device", interface_name, ip_address.to_string());
             } else {
-                cerr << format("INFO: {} with ip address {} is multicast device={}\n",
-                               interface_name, ip_address.to_string(),
-                               ip_address.is_multicast() ? "yes" : "no");
+                BOOST_LOG_TRIVIAL(info) << format("{} with ip address {} is multicast device={}",
+                                                  interface_name, ip_address.to_string(),
+                                                  ip_address.is_multicast() ? "yes" : "no");
                 network_device->ip_addresses.push_back(ip_address);
             }
         }
@@ -260,18 +252,18 @@ static tuple<bool, NetworkDevices> DiscoverNetworkDevices() {
         }
         return true;
     });
-    return make_tuple(true, cleaned_network_devices);
+    return make_optional(cleaned_network_devices);
 }
 #else
 #   error no definition for get_mac_address() on this platform!
 #endif
 
 bool NetworkInfo::TryDiscovery() {
-    const auto [success, devices] = DiscoverNetworkDevices();
-    if (success) {
-        network_devices_ = devices;
+    const auto devices = DiscoverNetworkDevices();
+    if (devices) {
+        network_devices_ = *devices;
     }
-    return success;
+    return static_cast<bool>(devices);
 }
 
 ostream &operator<<(ostream &out, const NetworkInfo &network_info) {
@@ -301,7 +293,7 @@ ostream &operator<<(ostream &out, const IpAddresses &ip_addresses) {
         if (i == 1) {
             out << ip_addresses[i] << "\n";
         } else if (i + 1 == ip_addresses.size()) {
-            out << format("               : {}", ip_addresses[i].to_string());
+            out << format("               : {}\n", ip_addresses[i].to_string());
         } else {
             out << format("               : {}\n", ip_addresses[i].to_string());
         }

@@ -1,0 +1,23 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"locale": "cpp",
+			"*.ipp": "cpp",
+			"string_view": "cpp",
+			"iosfwd": "cpp"
+		},
+		"cmake.cmakePath": "/usr/local/bin/cmake",
+		"C_Cpp.default.compilerPath": "/usr/local/opt/llvm/bin/clang++",
+		"cmake.cpptools.compilerPath": "/usr/local/opt/llvm/bin/clang++",
+		"cmake.cpptools.intelliSenseMode": "clang-x64",
+		"cmake.reconfigureOnChange": true,
+		"cmake.default.env": {
+			"CMAKE_BUILD_TYPE": "Debug"
+		}
+	}
+}
