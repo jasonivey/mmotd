@@ -1,0 +1,4 @@
+[submodule "external/certify"]
+	path = external/certify
+	url = https://github.com/djarek/certify.git
+	branch = master
