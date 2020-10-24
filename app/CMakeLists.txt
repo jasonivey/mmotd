@@ -8,7 +8,11 @@ set (MMOTD_TARGET_NAME mmotd_info)
 
 project (mmotd-info)
 
-add_executable (${MMOTD_TARGET_NAME} src/main.cpp)
+add_executable (
+    ${MMOTD_TARGET_NAME}
+    src/cli_app_options_creator.cpp
+    src/main.cpp
+    )
 
 find_library(FWCoreFoundation NAMES CoreFoundation)
 find_library(FWSecurity NAMES Security)
@@ -39,4 +43,5 @@ target_link_libraries(
     PRIVATE ${OPENSSL_CRYPTO_LIBRARY}
     PRIVATE ${OPENSSL_SSL_LIBRARY}
     PRIVATE ZLIB::ZLIB
+    PRIVATE CLI11::CLI11
     )

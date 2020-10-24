@@ -21,7 +21,7 @@ set_target_properties(
     CXX_EXTENSIONS off
     )
 
-find_package(Boost COMPONENTS program_options log_setup log REQUIRED)
+find_package(Boost COMPONENTS log_setup log REQUIRED)
 find_package(fmt REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(OpenSSL REQUIRED)
@@ -39,8 +39,6 @@ if (GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
                         RESULT_VARIABLE GIT_SUBMOD_RESULT)
         if (NOT GIT_SUBMOD_RESULT EQUAL "0")
             message(FATAL_ERROR "git submodule update --init failed with '${GIT_SUBMOD_RESULT}', please checkout submodules")
-        else ()
-            set(SUBMODULE_INCLUDE_DIRS, "${CMAKE_SOURCE_DIR}/external/certify/include")
         endif ()
     endif ()
 endif ()

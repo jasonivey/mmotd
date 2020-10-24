@@ -3,22 +3,36 @@
 #include "network.h"
 #include "external_network.h"
 #include "system.h"
-#include "options.h"
+#include "app_options.h"
 #include "logging.h"
+
+#include "cli_app_options_creator.h"
+#include "app_options.h"
+
+#include <fmt/format.h>
+#include <boost/algorithm/string.hpp>
+#include <boost/log/trivial.hpp>
 #include <iostream>
 #include <cstdlib>
 
+using fmt::format;
 using namespace std;
 
-int main(int argc, char *argv[]) {
-    Logging::InitializeLogging("/Users/jasoni/dev/mmotd/mmotd-logging.ini");
+static const AppOptions *load_app_options(const int argc, char **argv) {
+    const auto *app_options_creator = CliAppOptionsCreator::ParseCommandLine(argc, argv);
+    if (app_options_creator->IsAppFinished()) {
+        return nullptr;
+    }
+    return AppOptions::Initialize(*app_options_creator);
+}
 
-    auto app_options = AppOptions::Initialize(argc, argv);
-    if (!app_options) {
+int main(int argc, char *argv[]) {
+    Logging::DefaultInitializeLogging();
+
+    const AppOptions *app_options = load_app_options(argc, argv);
+    if (app_options == nullptr) {
         return EXIT_FAILURE;
     }
-    const Options &options = app_options->GetOptions();
-    (void)options;
 
     auto system_information = SystemInformation{};
     if (!system_information.TryDiscovery()) {

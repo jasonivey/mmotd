@@ -10,13 +10,14 @@ project (mmotd-library)
 
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
+    src/app_options.cpp
+    src/app_options_creator.cpp
     src/external_network.cpp
     src/http_request.cpp
     src/http_secure_request.cpp
     src/lastlog.cpp
     src/logging.cpp
     src/network.cpp
-    src/options.cpp
     src/system.cpp
     )
 

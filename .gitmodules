@@ -2,3 +2,7 @@
 	path = external/certify
 	url = https://github.com/djarek/certify.git
 	branch = master
+[submodule "external/CLI11"]
+	path = external/CLI11
+	url = https://github.com/CLIUtils/CLI11.git
+	branch = master

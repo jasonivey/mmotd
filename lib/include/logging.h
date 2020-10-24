@@ -5,7 +5,9 @@
 
 namespace Logging {
 
+void DefaultInitializeLogging();
 void InitializeLogging(const std::string &ini_file);
+void UpdateSeverityFilter(int severity);
 
 }
 
