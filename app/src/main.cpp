@@ -5,9 +5,10 @@
 #include "system.h"
 #include "app_options.h"
 #include "logging.h"
+#include "app_options.h"
 
 #include "cli_app_options_creator.h"
-#include "app_options.h"
+#include "color.h"
 
 #include <fmt/format.h>
 #include <boost/algorithm/string.hpp>
@@ -36,30 +37,30 @@ int main(int argc, char *argv[]) {
 
     auto system_information = SystemInformation{};
     if (!system_information.TryDiscovery()) {
-        cerr << "ERROR: unable to query for system information\n";
+        color::PrintError("unable to query for system information\n");
         return EXIT_FAILURE;
     } else {
-        cout << "System Information: \n" << system_information << endl;
+        color::PrintInfo(format("system information:\n{}\n", to_string(system_information)));
     }
     auto last_log = LastLog{};
     auto last_login_data = LastLoginData{};
     if (!last_log.GetLastLoginRecord(last_login_data)) {
-        cerr << "ERROR: unable to query for the last login record\n";
+        color::PrintError("unable to query for the last login record\n");
         return EXIT_FAILURE;
     }
     auto network_info = NetworkInfo{};
     if (!network_info.TryDiscovery()) {
-        cerr << "ERROR: unable to query for IP and mac address\n";
+        color::PrintError("unable to query for IP and mac address\n");
         return EXIT_FAILURE;
     } else {
-        cout << "Network Info: \n" << to_string(network_info) << endl;
+        color::PrintInfo(format("network info::\n{}\n", to_string(network_info)));
     }
     auto external_network = ExternalNetwork{};
     if (!external_network.TryDiscovery()) {
-        cerr << "ERROR: unable to query for external IP address\n";
+        color::PrintError("unable to query for external IP address\n");
         return EXIT_FAILURE;
     } else {
-        cout << "External IP: " << to_string(external_network) << endl;
+        color::PrintInfo(format("external ip:\n{}\n", to_string(external_network)));
     }
     return EXIT_SUCCESS;
 }

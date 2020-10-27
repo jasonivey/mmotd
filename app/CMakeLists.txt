@@ -11,6 +11,7 @@ project (mmotd-info)
 add_executable (
     ${MMOTD_TARGET_NAME}
     src/cli_app_options_creator.cpp
+    src/color.cpp
     src/main.cpp
     )
 

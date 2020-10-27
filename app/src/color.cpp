@@ -1,13 +1,16 @@
-#include "colorized-output.h"
+// vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "color.h"
 
+#include <boost/log/trivial.hpp>
 #include <fmt/format.h>
 
 #include <algorithm>
 #include <array>
 #include <iterator>
 #include <regex>
+#include <optional>
 #include <ostream>
-
+#include <cstdio>
 #include <iostream>
 
 constexpr const char *StyleReset = "StyleReset";
@@ -116,16 +119,35 @@ static constexpr array<ColorMap, 42> gColorMap = {
     ColorMap{static_cast<int>(color::bg_style::bright_white), BgBrightWhite}
 };
 
-int GetCodeForBeginTag(const string &tag) {
-    auto i = find_if(begin(gColorMap), end(gColorMap), [&tag](const auto &color_map) {
-        return tag == color_map.name;
+template<typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
+const ColorMap *FindColorMap(T code) {
+    auto i = find_if(begin(gColorMap), end(gColorMap), [code](const auto &color_map) {
+        return static_cast<int>(code) == color_map.raw_code;
     });
-    return i != end(gColorMap) ? i->raw_code : -1;
+    return i != end(gColorMap) ? &(*i) : nullptr;
+}
+
+const ColorMap *FindColorMap(const char *name) {
+    auto i = find_if(begin(gColorMap), end(gColorMap), [name](const auto &color_map) {
+        return strcmp(color_map.name, name) == 0;
+    });
+    return i != end(gColorMap) ? &(*i) : nullptr;
+}
+
+template<typename T>
+optional<const char *> GetTagNameForCode(T code) {
+    const auto *color_map = FindColorMap(code);
+    return color_map == nullptr ? nullopt : make_optional(color_map->name);
+}
+
+optional<int> GetCodeForTagName(const string &tag) {
+    const auto *color_map = FindColorMap(tag.c_str());
+    return color_map == nullptr ? nullopt : make_optional(color_map->raw_code);
 }
 
 string replace_begin_tag(const string &tag) {
-    auto code = GetCodeForBeginTag(tag);
-    return code == -1 ? string{} : format("\033[{}m", code);
+    auto code = GetCodeForTagName(tag);
+    return code.has_value() ? format("\033[{}m", *code) : string();
 }
 
 string replace_end_tag(const string &tag) {
@@ -165,36 +187,102 @@ string replace_tags(string input, T begin_replace_func, U end_replace_func) {
     return replace_end_tags(replace_begin_tags(input, begin_replace_func), end_replace_func);
 }
 
+void PrintErrorInternal(ostream &out, std::string msg, bool tee_to_log) {
+    auto str_msg = string{msg};
+    auto colorized_msg = color::make_stylized_string(str_msg, color::fg_style::bright_white);
+    auto colorized_prefix = color::make_stylized_string("ERROR: ", color::fg_style::red, color::style_modifier::bold);
+    out << colorized_prefix << colorized_msg;
+    if (msg.back() != '\n') {
+        out << "\n";
+    }
+    if (tee_to_log) {
+        BOOST_LOG_TRIVIAL(error) << msg;
+    }
+}
+
+void PrintErrorInternal(ostream &out, const char *msg, bool tee_to_log) {
+    auto colorized_msg = color::make_stylized_string(msg, color::fg_style::bright_white);
+    auto colorized_prefix = color::make_stylized_string("ERROR: ", color::fg_style::red, color::style_modifier::bold);
+    out << colorized_prefix << colorized_msg;
+    if (msg[strlen(msg) - 1] != '\n') {
+        out << "\n";
+    }
+    if (tee_to_log) {
+        BOOST_LOG_TRIVIAL(error) << msg;
+    }
+}
+
+void PrintErrorInternal(ostream &out, std::string_view msg, bool tee_to_log) {
+    auto str_msg = string{msg};
+    auto colorized_msg = color::make_stylized_string(str_msg, color::fg_style::bright_white);
+    auto colorized_prefix = color::make_stylized_string("ERROR: ", color::fg_style::red, color::style_modifier::bold);
+    out << colorized_prefix << colorized_msg;
+    if (msg.back() != '\n') {
+        out << "\n";
+    }
+    if (tee_to_log) {
+        BOOST_LOG_TRIVIAL(error) << msg;
+    }
+}
+
+void PrintInfoInternal(ostream &out, string msg, bool tee_to_log) {
+    auto colorized_msg = color::make_stylized_string(msg, color::fg_style::bright_white);
+    auto colorized_prefix = color::make_stylized_string("INFO: ", color::fg_style::green, color::style_modifier::bold);
+    out << colorized_prefix << colorized_msg;
+    if (msg.back() != '\n') {
+        out << "\n";
+    }
+    if (tee_to_log) {
+        BOOST_LOG_TRIVIAL(info) << msg;
+    }
+}
+
+void PrintInfoInternal(ostream &out, const char *msg, bool tee_to_log) {
+    auto colorized_msg = color::make_stylized_string(msg, color::fg_style::bright_white);
+    auto colorized_prefix = color::make_stylized_string("INFO: ", color::fg_style::green, color::style_modifier::bold);
+    out << colorized_prefix << colorized_msg;
+    if (msg[strlen(msg) - 1] != '\n') {
+        out << "\n";
+    }
+    if (tee_to_log) {
+        BOOST_LOG_TRIVIAL(info) << msg;
+    }
+}
+
+void PrintInfoInternal(ostream &out, std::string_view msg, bool tee_to_log) {
+    auto str_msg = string{msg};
+    auto colorized_msg = color::make_stylized_string(str_msg, color::fg_style::bright_white);
+    auto colorized_prefix = color::make_stylized_string("INFO: ", color::fg_style::green, color::style_modifier::bold);
+    out << colorized_prefix << colorized_msg;
+    if (msg.back() != '\n') {
+        out << "\n";
+    }
+    if (tee_to_log) {
+        BOOST_LOG_TRIVIAL(info) << msg;
+    }
+}
+
 }
 
 string color::StyleWrapper::AddStyle() const {
     auto wrapped_str = str_;
-    if (style_.GetForegroundStyle() != fg_style::standard) {
-        auto foreground = style_.GetForegroundStyle();
-        auto i = find_if(begin(gColorMap), end(gColorMap), [foreground](const auto &color_map) {
-            return foreground == static_cast<fg_style>(color_map.raw_code);
-        });
-        if (i != end(gColorMap)) {
-            wrapped_str = format("<{0}>{1}</{0}>", i->name, wrapped_str);
-        }
+
+    auto foreground = style_.GetForegroundStyle();
+    auto foreground_name = GetTagNameForCode(foreground);
+    if (foreground_name && foreground != fg_style::standard) {
+        wrapped_str = format("<{0}>{1}</{0}>", *foreground_name, wrapped_str);
     }
-    if (style_.GetBackgroundStyle() != bg_style::standard) {
-        auto background = style_.GetBackgroundStyle();
-        auto i = find_if(begin(gColorMap), end(gColorMap), [background](const auto &color_map) {
-            return background == static_cast<bg_style>(color_map.raw_code);
-        });
-        if (i != end(gColorMap)) {
-            wrapped_str = format("<{0}>{1}</{0}>", i->name, wrapped_str);
-        }
+
+    auto style_modifier = style_.GetStyleModifier();
+    auto style_modifier_name = GetTagNameForCode(style_modifier);
+    if (style_modifier_name && style_modifier != style_modifier::none) {
+        wrapped_str = format("<{0}>{1}</{0}>", *style_modifier_name, wrapped_str);
     }
-    if (style_.GetStyleModifier() != style_modifier::none) {
-        auto modifier = style_.GetStyleModifier();
-        auto i = find_if(begin(gColorMap), end(gColorMap), [modifier](const auto &color_map) {
-            return modifier == static_cast<style_modifier>(color_map.raw_code);
-        });
-        if (i != end(gColorMap)) {
-            wrapped_str = format("<{0}>{1}</{0}>", i->name, wrapped_str);
-        }
+
+    auto background = style_.GetBackgroundStyle();
+    auto background_name = GetTagNameForCode(background);
+    if (background_name && background != bg_style::standard) {
+        wrapped_str = format("<{0}>{1}</{0}>", *background_name, wrapped_str);
     }
     return wrapped_str;
 }
@@ -209,6 +297,54 @@ ostream &operator<<(ostream &out, const color::StyleWrapper &style_wrapper) {
     return out;
 }
 
+void color::PrintError(ostream &output_stream, const char *msg, bool tee_to_log) {
+    PrintErrorInternal(output_stream, msg, tee_to_log);
+}
+
+void color::PrintError(ostream &output_stream, string msg, bool tee_to_log) {
+    PrintErrorInternal(output_stream, msg, tee_to_log);
+}
+
+void color::PrintError(ostream &output_stream, std::string_view msg, bool tee_to_log) {
+    PrintErrorInternal(output_stream, msg, tee_to_log);
+}
+
+void color::PrintError(const char *msg, bool tee_to_log) {
+    PrintErrorInternal(cerr, msg, tee_to_log);
+}
+
+void color::PrintError(string msg, bool tee_to_log) {
+    PrintErrorInternal(cerr, msg, tee_to_log);
+}
+
+void color::PrintError(std::string_view msg, bool tee_to_log) {
+    PrintErrorInternal(cerr, msg, tee_to_log);
+}
+
+void color::PrintInfo(ostream &output_stream, const char *msg, bool tee_to_log) {
+    PrintInfoInternal(output_stream, msg, tee_to_log);
+}
+
+void color::PrintInfo(ostream &output_stream, string msg, bool tee_to_log) {
+    PrintInfoInternal(output_stream, msg, tee_to_log);
+}
+
+void color::PrintInfo(ostream &output_stream, std::string_view msg, bool tee_to_log) {
+    PrintInfoInternal(output_stream, msg, tee_to_log);
+}
+
+void color::PrintInfo(const char *msg, bool tee_to_log) {
+    PrintInfoInternal(cout, msg, tee_to_log);
+}
+
+void color::PrintInfo(string msg, bool tee_to_log) {
+    PrintInfoInternal(cout, msg, tee_to_log);
+}
+
+void color::PrintInfo(std::string_view msg, bool tee_to_log) {
+    PrintInfoInternal(cout, msg, tee_to_log);
+}
+
 /*
 printf("\033[%d;%dm%s\033[0m\n", fg, bg, GetOutputStr(fg, bg).c_str());
 
@@ -218,28 +354,3 @@ printf("\033[%d;%dm%s\033[0m\n", fg, bg, GetOutputStr(fg, bg).c_str());
 
 PS1='\e[33;1m\u@\h: \e[31m\W\e[0m\$ '
 */
-
-string color::apply_background_foreground(string input, const char *background, const char *foreground) {
-    if (background == nullptr && foreground == nullptr) {
-        return input;
-    } else if (background != nullptr && foreground != nullptr) {
-        return format("<{0}><{1}>{2}</{1}></{0}>", background, foreground, input);
-    } else if (background != nullptr) {
-        return format("<{0}>{1}</{0}>", background, input);
-    } else {
-        return format("<{0}>{1}</{0}>", foreground, input);
-    }
-}
-
-string color::apply_background(string input, const char *background) {
-    return color::apply_background_foreground(input, background, nullptr);
-}
-
-string color::apply_foreground(string input, const char *foreground) {
-    return color::apply_background_foreground(input, nullptr, foreground);
-}
-
-
-string color::to_colorized_string(string input) {
-    return string{};
-}
