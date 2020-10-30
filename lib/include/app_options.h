@@ -17,6 +17,7 @@ struct Options {
     std::string to_string() const;
 
     int verbose = 0;
+    std::optional<std::string> output_config_path;
     std::optional<std::string> log_config_path;
     std::string config_path;
     boost::tribool last_login = boost::indeterminate;
@@ -37,6 +38,10 @@ struct Options {
     boost::tribool quote = boost::indeterminate;
 
     void SetVerbose(std::int64_t count) { verbose = static_cast<int>(count); }
+    bool SetOutputConfigPath(const std::vector<std::string> &paths) {
+        if (!paths.empty()) { output_config_path = paths.front(); }
+        return true;
+    }
     bool SetLogConfigPath(const std::vector<std::string> &paths) {
         if (!paths.empty()) { log_config_path = paths.front(); }
         return true;

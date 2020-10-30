@@ -21,6 +21,7 @@ private:
 
     void Parse(const int argc, char **argv);
 
+    void AddOptionsToSubCommand(CLI::App &app);
     void AddOptionDeclarations(CLI::App &app);
 
     CliAppOptionsCreator() = default;

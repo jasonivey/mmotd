@@ -1,0 +1,50 @@
+# modified message of the day
+
+# display last login
+last-login=false
+
+# display computer name
+computer-name=false
+
+# display host name
+host-name=false
+
+# display public ip address
+public-ip=false
+
+# display unread mail
+unread-mail=false
+
+# display system load
+system-load=false
+
+# display processor count
+processor-count=false
+
+# display disk usage
+disk-usage=false
+
+# display users logged in count
+users-count=false
+
+# display memory usage
+memory-usage=false
+
+# display swap usage
+swap-usage=false
+
+# display active network interfaces (ip and mac address)
+active-network-interfaces=false
+
+# display greeting using user name, OS name, release and kernel
+greeting=false
+
+# display the system information header with date and time
+header=false
+
+# display the system information sub-header with location, weather, sunrise and sunset
+sub-header=false
+
+# display a random quote
+random-quote=false
+# 
