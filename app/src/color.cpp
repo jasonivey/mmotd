@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "color.h"
+#include "app/include/color.h"
 
 #include <boost/log/trivial.hpp>
 #include <fmt/format.h>
@@ -150,7 +150,7 @@ string replace_begin_tag(const string &tag) {
     return code.has_value() ? format("\033[{}m", *code) : string();
 }
 
-string replace_end_tag(const string &tag) {
+string replace_end_tag(const string &) {
     return "\033[0m";
 }
 

@@ -1,4 +1,5 @@
-#include "lastlog.h"
+#include "lib/include/lastlog.h"
+
 #include <cassert>
 #include <utmpx.h>
 #include <ctime>
@@ -6,6 +7,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <pwd.h>
+#include <string.h>
 
 /*
 struct utmpx {

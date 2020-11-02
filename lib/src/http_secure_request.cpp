@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "http_request.h"
+#include "lib/include/http_request.h"
 
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
@@ -74,9 +74,9 @@ optional<string> HttpRequest::TryMakeSecureRequest(string path) {
     // end::ctx_setup_source[]
     auto stream = connect(ctx, ssl_ctx, host_);
     auto response = get(*stream, host_, path);
-    
+
     auto response_str = response.body();
-    BOOST_LOG_TRIVIAL(info) << fmt::format("response from {}:{}{}\n{}", host_, port_, path, response_str);    
+    BOOST_LOG_TRIVIAL(info) << fmt::format("response from {}:{}{}\n{}", host_, port_, path, response_str);
 
     boost::system::error_code ec;
     stream->shutdown(ec);

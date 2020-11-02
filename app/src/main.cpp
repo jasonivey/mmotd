@@ -1,14 +1,14 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "lastlog.h"
-#include "network.h"
-#include "external_network.h"
-#include "system.h"
-#include "app_options.h"
-#include "logging.h"
-#include "app_options.h"
+#include "lib/include/lastlog.h"
+#include "lib/include/network.h"
+#include "lib/include/external_network.h"
+#include "lib/include/system.h"
+#include "lib/include/app_options.h"
+#include "lib/include/app_options.h"
 
-#include "cli_app_options_creator.h"
-#include "color.h"
+#include "app/include/cli_app_options_creator.h"
+#include "app/include/logging.h"
+#include "app/include/color.h"
 
 #include <fmt/format.h>
 #include <boost/algorithm/string.hpp>

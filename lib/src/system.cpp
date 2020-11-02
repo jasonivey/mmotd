@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "system.h"
+#include "lib/include/system.h"
 
 #include <stdexcept>
 #include <sys/utsname.h>
@@ -10,6 +10,7 @@
 #include <iostream>
 #include <optional>
 #include <iostream>
+#include <sstream>
 
 using namespace fmt;
 using namespace std;
