@@ -1,7 +1,7 @@
 [submodule "external/certify"]
 	path = external/certify
 	url = https://github.com/djarek/certify.git
-	branch = master
+	branch = bb7b58c260ad75f1287ffddee9671ff7019e7524
 [submodule "external/CLI11"]
 	path = external/CLI11
 	url = https://github.com/CLIUtils/CLI11.git
@@ -9,8 +9,8 @@
 [submodule "external/jsoncpp"]
 	path = external/jsoncpp
 	url = https://github.com/open-source-parsers/jsoncpp.git
-	branch = master
+	branch = 1.9.4
 [submodule "external/fmt"]
 	path = external/fmt
 	url = https://github.com/fmtlib/fmt.git
-	branch = master
+	branch = 7.1.1
