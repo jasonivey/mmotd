@@ -2,9 +2,11 @@
 #include "lib/include/lastlog.h"
 #include "lib/include/network.h"
 #include "lib/include/external_network.h"
-#include "lib/include/system.h"
+#include "lib/include/posix_system_information.h"
 #include "lib/include/app_options.h"
-#include "lib/include/app_options.h"
+
+#include "view/include/computer_information_provider.h"
+#include "view/include/computer_information_provider_factory.h"
 
 #include "app/include/cli_app_options_creator.h"
 #include "app/include/logging.h"
@@ -35,7 +37,10 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    auto system_information = SystemInformation{};
+    auto computer_information_providers = mmotd::GetComputerInformationProviders();
+    (void)computer_information_providers;
+
+    auto system_information = PosixSystemInformation{};
     if (!system_information.TryDiscovery()) {
         color::PrintError("unable to query for system information\n");
         return EXIT_FAILURE;

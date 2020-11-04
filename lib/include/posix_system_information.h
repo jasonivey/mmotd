@@ -48,10 +48,10 @@ struct KernelDetails {
     EndianType endian = EndianType::unknown;
 };
 
-class SystemInformation {
-    friend std::ostream &operator<<(std::ostream &out, const SystemInformation &system_information);
+class PosixSystemInformation {
+    friend std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);
 public:
-    SystemInformation() = default;
+    PosixSystemInformation() = default;
 
     std::string to_string() const;
     bool TryDiscovery();
@@ -66,7 +66,7 @@ std::string to_string(KernelType kernel_type);
 std::string to_string(const KernelRelease &kernel_release);
 std::string to_string(const KernelVersion &kernel_version);
 std::string to_string(const KernelDetails &kernel_details);
-std::string to_string(const SystemInformation &system_information);
+std::string to_string(const PosixSystemInformation &system_information);
 
 
 std::ostream &operator<<(std::ostream &out, const ArchitectureType &architecture);
@@ -75,4 +75,4 @@ std::ostream &operator<<(std::ostream &out, const KernelType &kernel_type);
 std::ostream &operator<<(std::ostream &out, const KernelRelease &kernel_release);
 std::ostream &operator<<(std::ostream &out, const KernelVersion &kernel_version);
 std::ostream &operator<<(std::ostream &out, const KernelDetails &kernel_details);
-std::ostream &operator<<(std::ostream &out, const SystemInformation &system_information);
+std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);

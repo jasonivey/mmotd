@@ -13,16 +13,14 @@ project (mmotd_view)
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/active_network_interfaces.cpp
-    src/component.cpp
+    src/computer_information_provider.cpp
     src/computer_name.cpp
-    src/computer_information.cpp
     src/disk_usage.cpp
-    src/factory.cpp
+    src/computer_information_provider_factory.cpp
     src/greeting.cpp
     src/header.cpp
     src/host_name.cpp
     src/last_login.cpp
-    src/mediator.cpp
     src/memory_usage.cpp
     src/processor_count.cpp
     src/public_ip.cpp

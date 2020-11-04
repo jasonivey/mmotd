@@ -23,23 +23,25 @@ using namespace std;
 struct CoreLoggerSwitch {
     CoreLoggerSwitch(bool turn_off_logging = true) :
         logging_off_(turn_off_logging) {
-        cout << format("INFO: CoreLoggerSwitch ctor turning logging {}\n", !logging_off_ ? "on" : "off");
+        //cout << format("INFO: CoreLoggerSwitch ctor turning logging {}\n", !logging_off_ ? "on" : "off");
         logging::core::get()->set_logging_enabled(!logging_off_);
     }
     ~CoreLoggerSwitch() {
-        cout << format("INFO: CoreLoggerSwitch dtor turning logging {}\n", logging_off_ ? "on" : "off");
+        //cout << format("INFO: CoreLoggerSwitch dtor turning logging {}\n", logging_off_ ? "on" : "off");
         logging::core::get()->set_logging_enabled(logging_off_);
     }
 private:
     bool logging_off_ = true;
 };
 
+template <typename... Args> inline void unused(Args&&...) {}
+
 static void SetupLoggingFromFile(const string &ini_file) {
     assert (filesystem::exists(ini_file));
-    cout << format("INFO: loading logging settings from {}\n", ini_file);
+    //cout << format("INFO: loading logging settings from {}\n", ini_file);
 
     auto ini_stream = ifstream(ini_file);
-    auto core_logger_switch = CoreLoggerSwitch{}; (void) core_logger_switch;
+    unused(CoreLoggerSwitch{});
     logging::core::get()->remove_all_sinks();
     logging::init_from_stream(ini_stream);
     logging::add_common_attributes();
@@ -47,7 +49,7 @@ static void SetupLoggingFromFile(const string &ini_file) {
 }
 
 void Logging::DefaultInitializeLogging() {
-    cout << "INFO: loading logging settings from hard-coded definitions\n";
+    //cout << "INFO: loading logging settings from hard-coded definitions\n";
 
     logging::settings setts;
     setts["Core"]["Filter"] = "%Severity% >= debug";
@@ -84,7 +86,7 @@ void Logging::InitializeLogging(const string &ini_file) {
 
 void Logging::UpdateSeverityFilter(int verbosity) {
     using namespace logging::trivial;
-    auto core_logger_switch = CoreLoggerSwitch{}; (void) core_logger_switch;
+    unused(CoreLoggerSwitch{});
     auto error_log_level = static_cast<int>(error);
     auto new_log_level = static_cast<severity_level>(std::max(error_log_level - verbosity, 0));
     auto filter_str = format("%Severity% >= {}", to_string(new_log_level));

@@ -19,7 +19,8 @@ add_library (
     src/http_secure_request.cpp
     src/lastlog.cpp
     src/network.cpp
-    src/system.cpp
+    src/posix_sysctl_information.cpp
+    src/posix_system_information.cpp
     )
 
 include (common)
