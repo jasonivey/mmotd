@@ -98,7 +98,11 @@
 			"ios": "cpp",
 			"stack": "cpp",
 			"filesystem": "cpp",
-			"__memory": "cpp"
+			"__memory": "cpp",
+			"format": "cpp",
+			"forward_list": "cpp",
+			"regex": "cpp",
+			"shared_mutex": "cpp"
 		},
 		"cmake.cmakePath": "/usr/local/bin/cmake",
 		"C_Cpp.default.compilerPath": "/usr/local/opt/llvm/bin/clang++",

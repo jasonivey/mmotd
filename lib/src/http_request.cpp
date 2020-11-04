@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "http_request.h"
+#include "lib/include/http_request.h"
 
 #include <boost/exception/all.hpp>
 #include <boost/system/error_code.hpp>
@@ -181,6 +181,6 @@ optional<string> HttpRequest::TryMakeSecureRequest(string path) {
         if(ec)
             throw beast::system_error{ec};
 
-        // If we get here then the connection is closed gracefully    
+        // If we get here then the connection is closed gracefully
 }
 #endif

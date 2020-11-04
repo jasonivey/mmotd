@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "app_options.h"
-#include "app_options_creator.h"
+#include "lib/include/app_options.h"
+#include "lib/include/app_options_creator.h"
 
 #include <boost/algorithm/string.hpp>
 #include <boost/log/trivial.hpp>

@@ -1,14 +1,16 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "lastlog.h"
-#include "network.h"
-#include "external_network.h"
-#include "system.h"
-#include "app_options.h"
-#include "logging.h"
-#include "app_options.h"
+#include "lib/include/lastlog.h"
+#include "lib/include/network.h"
+#include "lib/include/external_network.h"
+#include "lib/include/posix_system_information.h"
+#include "lib/include/app_options.h"
 
-#include "cli_app_options_creator.h"
-#include "color.h"
+#include "view/include/computer_information_provider.h"
+#include "view/include/computer_information_provider_factory.h"
+
+#include "app/include/cli_app_options_creator.h"
+#include "app/include/logging.h"
+#include "app/include/color.h"
 
 #include <fmt/format.h>
 #include <boost/algorithm/string.hpp>
@@ -35,7 +37,10 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    auto system_information = SystemInformation{};
+    auto computer_information_providers = mmotd::GetComputerInformationProviders();
+    (void)computer_information_providers;
+
+    auto system_information = PosixSystemInformation{};
     if (!system_information.TryDiscovery()) {
         color::PrintError("unable to query for system information\n");
         return EXIT_FAILURE;

@@ -1,6 +1,9 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "external_network.h"
-#include "http_request.h"
+#include "lib/include/external_network.h"
+#include "lib/include/http_request.h"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
 
 #include <boost/log/trivial.hpp>
 #include <json/json.h>
@@ -52,4 +55,4 @@ bool ExternalNetwork::TryDiscovery() {
     }
     return !ip_address.is_unspecified();
 }
-
+#pragma GCC diagnostic pop

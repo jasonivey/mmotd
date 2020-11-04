@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "system.h"
+#include "lib/include/posix_system_information.h"
 
 #include <stdexcept>
 #include <sys/utsname.h>
@@ -10,6 +10,7 @@
 #include <iostream>
 #include <optional>
 #include <iostream>
+#include <sstream>
 
 using namespace fmt;
 using namespace std;
@@ -49,7 +50,7 @@ static optional<KernelDetails> GetKernelDetails() {
     return to_kernel_details(sys_name, node_name, release, version, machine);
 }
 
-bool SystemInformation::TryDiscovery() {
+bool PosixSystemInformation::TryDiscovery() {
     const auto kernel_details = GetKernelDetails();
     if (kernel_details) {
         kernel_details_ = *kernel_details;
@@ -59,7 +60,7 @@ bool SystemInformation::TryDiscovery() {
 }
 
 
-ostream &operator<<(ostream &out, const SystemInformation &system_information) {
+ostream &operator<<(ostream &out, const PosixSystemInformation &system_information) {
     out << system_information.kernel_details_;
     return out;
 }
@@ -126,11 +127,11 @@ ostream &operator<<(ostream &out, const KernelDetails &kernel_details) {
     return out;
 }
 
-string SystemInformation::to_string() const {
+string PosixSystemInformation::to_string() const {
     return ::to_string(kernel_details_);
 }
 
-string to_string(const SystemInformation &system_information) {
+string to_string(const PosixSystemInformation &system_information) {
     return system_information.to_string();
 }
 
