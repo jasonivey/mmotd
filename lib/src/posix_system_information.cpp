@@ -9,7 +9,6 @@
 #include <fmt/format.h>
 #include <iostream>
 #include <optional>
-#include <iostream>
 #include <sstream>
 
 using namespace fmt;
@@ -58,7 +57,6 @@ bool PosixSystemInformation::TryDiscovery() {
     }
     return false;
 }
-
 
 ostream &operator<<(ostream &out, const PosixSystemInformation &system_information) {
     out << system_information.kernel_details_;
@@ -117,11 +115,11 @@ string to_string(const KernelDetails &kernel_details) {
 }
 
 ostream &operator<<(ostream &out, const KernelDetails &kernel_details) {
-    //out << format("kernel type: {}\n", to_string(kernel_details.kernel));
+    // out << format("kernel type: {}\n", to_string(kernel_details.kernel));
     out << kernel_details.kernel << "\n";
     out << kernel_details.kernel_version;
     out << format("host name: {}\n", to_string(kernel_details.host_name));
-    //out << format("architecture: {}\n", to_string(kernel_details.architecture));
+    // out << format("architecture: {}\n", to_string(kernel_details.architecture));
     out << kernel_details.architecture << "\n";
     out << kernel_details.endian << "\n";
     return out;
@@ -200,7 +198,7 @@ static ArchitectureType to_architecture_type(const std::string &type_str) {
         return ArchitectureType::arm;
     else if (boost::iequals(type_str, "ia64"))
         return ArchitectureType::itanium;
-    else if(boost::iequals(type_str, "i686"))
+    else if (boost::iequals(type_str, "i686"))
         return ArchitectureType::x86;
     else
         return ArchitectureType::unknown;
@@ -208,7 +206,7 @@ static ArchitectureType to_architecture_type(const std::string &type_str) {
 
 static EndianType to_endian_type() {
     const std::uint16_t test = 0xFF00;
-    const auto result = *static_cast<const std::uint8_t*>(static_cast<const void*>(&test));
+    const auto result = *static_cast<const std::uint8_t *>(static_cast<const void *>(&test));
 
     if (result == 0xFF)
         return EndianType::big;
@@ -274,4 +272,3 @@ static KernelDetails to_kernel_details(const string &kernel_type,
     kernel_details.endian = to_endian_type();
     return kernel_details;
 }
-

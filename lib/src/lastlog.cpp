@@ -1,30 +1,30 @@
 #include "lib/include/lastlog.h"
 
 #include <cassert>
-#include <utmpx.h>
 #include <ctime>
-#include <string>
 #include <iostream>
-#include <unistd.h>
 #include <pwd.h>
 #include <string.h>
+#include <string>
+#include <unistd.h>
+#include <utmpx.h>
 
 /*
 struct utmpx {
-	char ut_user[_UTX_USERSIZE];	// login namegc
-	char ut_id[_UTX_IDSIZE];	// idgc
-	char ut_line[_UTX_LINESIZE];	// tty namegc
-	pid_t ut_pid;			// process id creating the entrygc
-	short ut_type;			// type of this entrygc
-	struct timeval ut_tv;		// time entry was createdgc
-	char ut_host[_UTX_HOSTSIZE];	// host namegc
-	__uint32_t ut_pad[16];		// reserved for future usegc
+    char ut_user[_UTX_USERSIZE];	// login namegc
+    char ut_id[_UTX_IDSIZE];	// idgc
+    char ut_line[_UTX_LINESIZE];	// tty namegc
+    pid_t ut_pid;			// process id creating the entrygc
+    short ut_type;			// type of this entrygc
+    struct timeval ut_tv;		// time entry was createdgc
+    char ut_host[_UTX_HOSTSIZE];	// host namegc
+    __uint32_t ut_pad[16];		// reserved for future usegc
 };
 */
 
 using namespace std;
 
-static UserLoginLogoutTransaction CreateTransaction(const struct utmpx* utmpx_ptr) {
+static UserLoginLogoutTransaction CreateTransaction(const struct utmpx *utmpx_ptr) {
     assert(utmpx_ptr != nullptr);
     auto user = string{strlen(utmpx_ptr->ut_user) > 0 ? utmpx_ptr->ut_user : ""};
     auto id = string{strlen(utmpx_ptr->ut_id) > 0 ? utmpx_ptr->ut_id : ""};
@@ -37,7 +37,8 @@ static UserLoginLogoutTransaction CreateTransaction(const struct utmpx* utmpx_pt
     return UserLoginLogoutTransaction{user, id, tty, pid, type, seconds, useconds, host};
 }
 
-static const LastLoginData CreateLastLogin(const struct lastlogx *login_record, pid_t user_id, const string &user_name) {
+static const LastLoginData
+CreateLastLogin(const struct lastlogx *login_record, pid_t user_id, const string &user_name) {
     assert(login_record != nullptr);
     time_t seconds = login_record->ll_tv.tv_sec;
     int32_t useconds = login_record->ll_tv.tv_usec;
@@ -107,17 +108,16 @@ ostream &operator<<(ostream &out, const LastLoginData &record) {
     return out;
 }
 
-static void DbgDumpUserLoginLogoutTransaction(const UserLoginLogoutTransaction &transaction)  {
+static void DbgDumpUserLoginLogoutTransaction(const UserLoginLogoutTransaction &transaction) {
     cout << transaction;
 }
-
 
 static void DbgDumpLastLoginRecord(const LastLoginData &record) {
     cout << record;
 }
 
 bool LastLog::GetNextRecord(UserLoginLogoutTransaction &) {
-    //char * ctime(const time_t *clock);
+    // char * ctime(const time_t *clock);
     struct utmpx *utmpx_ptr = getutxent_wtmp();
     if (utmpx_ptr == nullptr) {
         cerr << "ERROR: getutxent_wtmp did not return a record\n";
@@ -153,4 +153,3 @@ bool LastLog::GetLastLoginRecord(LastLoginData &) {
     DbgDumpLastLoginRecord(lastlogin_record);
     return true;
 }
-

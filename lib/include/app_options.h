@@ -1,12 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 
+#include <boost/logic/tribool.hpp>
 #include <cstdint>
 #include <iosfwd>
 #include <optional>
 #include <string>
 #include <vector>
-#include <boost/logic/tribool.hpp>
 
 class AppOptionsCreator;
 
@@ -39,11 +39,15 @@ struct Options {
 
     void SetVerbose(std::int64_t count) { verbose = static_cast<int>(count); }
     bool SetOutputConfigPath(const std::vector<std::string> &paths) {
-        if (!paths.empty()) { output_config_path = paths.front(); }
+        if (!paths.empty()) {
+            output_config_path = paths.front();
+        }
         return true;
     }
     bool SetLogConfigPath(const std::vector<std::string> &paths) {
-        if (!paths.empty()) { log_config_path = paths.front(); }
+        if (!paths.empty()) {
+            log_config_path = paths.front();
+        }
         return true;
     }
     void SetLastLogin(int value) { last_login = value == -1 ? false : true; }

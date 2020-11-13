@@ -7,8 +7,9 @@
 
 class PosixSysctlInformation {
     friend std::ostream &operator<<(std::ostream &out, const PosixSysctlInformation &sysctl_info);
+
 public:
-    PosixSysctlInformation () = default;
+    PosixSysctlInformation() = default;
 
     std::string to_string() const;
     bool TryDiscovery();

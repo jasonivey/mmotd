@@ -16,4 +16,4 @@ bool RegisterComputerInformationProvider(ComputerInformationProviderCreator &&cr
 using ComputerInformationProviders = std::vector<ComputerInformationProviderPtr>;
 ComputerInformationProviders GetComputerInformationProviders();
 
-}
+} // namespace mmotd

@@ -1,10 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 
-#include "lib/include/app_options_creator.h"
 #include "lib/include/app_options.h"
+#include "lib/include/app_options_creator.h"
 
-namespace CLI { class App; }
+namespace CLI {
+class App;
+}
 
 class CliAppOptionsCreator : public AppOptionsCreator {
 public:

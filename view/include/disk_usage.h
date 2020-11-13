@@ -9,14 +9,14 @@ class DiskUsage : public ComputerInformationProvider {
 public:
     DiskUsage() = default;
     virtual ~DiskUsage() = default;
-    DiskUsage(const DiskUsage& other) = default;
-    DiskUsage(DiskUsage&& other) noexcept = default;
-    DiskUsage& operator=(const DiskUsage& other) = default;
-    DiskUsage& operator=(DiskUsage&& other) noexcept = default;
+    DiskUsage(const DiskUsage &other) = default;
+    DiskUsage(DiskUsage &&other) noexcept = default;
+    DiskUsage &operator=(const DiskUsage &other) = default;
+    DiskUsage &operator=(DiskUsage &&other) noexcept = default;
 
 protected:
     std::optional<std::string> QueryInformation() override;
     std::string GetName() const override;
 };
 
-}
+} // namespace mmotd

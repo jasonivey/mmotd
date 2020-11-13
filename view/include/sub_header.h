@@ -9,14 +9,14 @@ class SubHeader : public ComputerInformationProvider {
 public:
     SubHeader() = default;
     virtual ~SubHeader() = default;
-    SubHeader(const SubHeader& other) = default;
-    SubHeader(SubHeader&& other) noexcept = default;
-    SubHeader& operator=(const SubHeader& other) = default;
-    SubHeader& operator=(SubHeader&& other) noexcept = default;
+    SubHeader(const SubHeader &other) = default;
+    SubHeader(SubHeader &&other) noexcept = default;
+    SubHeader &operator=(const SubHeader &other) = default;
+    SubHeader &operator=(SubHeader &&other) noexcept = default;
 
 protected:
     std::optional<std::string> QueryInformation() override;
     std::string GetName() const override;
 };
 
-}
+} // namespace mmotd

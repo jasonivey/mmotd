@@ -21,18 +21,13 @@ enum class EndianType {
     unknown,
 };
 
-enum class KernelType {
-    unknown,
-    linux,
-    darwin
-};
+enum class KernelType { unknown, linux, darwin };
 
 struct KernelRelease {
     std::optional<uint32_t> major;
     std::optional<uint32_t> minor;
     std::optional<uint32_t> patch;
     std::optional<uint32_t> build;
-
 };
 
 struct KernelVersion {
@@ -50,6 +45,7 @@ struct KernelDetails {
 
 class PosixSystemInformation {
     friend std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);
+
 public:
     PosixSystemInformation() = default;
 
@@ -67,7 +63,6 @@ std::string to_string(const KernelRelease &kernel_release);
 std::string to_string(const KernelVersion &kernel_version);
 std::string to_string(const KernelDetails &kernel_details);
 std::string to_string(const PosixSystemInformation &system_information);
-
 
 std::ostream &operator<<(std::ostream &out, const ArchitectureType &architecture);
 std::ostream &operator<<(std::ostream &out, const EndianType &endian);

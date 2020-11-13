@@ -3,10 +3,10 @@
 #include <array>
 #include <boost/asio/ip/address.hpp>
 #include <cstdint>
+#include <iosfwd>
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <iosfwd>
 
 struct MacAddress {
     friend std::ostream &operator<<(std::ostream &out, const MacAddress &mac_address);
@@ -25,7 +25,9 @@ private:
     std::array<std::uint8_t, MAC_ADDRESS_SIZE> data_;
 };
 
-inline std::string to_string(const MacAddress &mac_address) { return mac_address.to_string(); }
+inline std::string to_string(const MacAddress &mac_address) {
+    return mac_address.to_string();
+}
 
 using IpAddress = boost::asio::ip::address;
 using IpAddresses = std::vector<IpAddress>;
@@ -40,12 +42,15 @@ struct NetworkDevice {
     std::string to_string() const;
 };
 
-inline std::string to_string(const NetworkDevice &network_device) { return network_device.to_string(); }
+inline std::string to_string(const NetworkDevice &network_device) {
+    return network_device.to_string();
+}
 
 using NetworkDevices = std::unordered_map<std::string, NetworkDevice>;
 
 class NetworkInfo {
     friend std::ostream &operator<<(std::ostream &out, const NetworkInfo &network_info);
+
 public:
     NetworkInfo() = default;
     bool TryDiscovery();
@@ -57,7 +62,9 @@ private:
 };
 
 std::string to_string(const NetworkDevices &network_devices);
-inline std::string to_string(const NetworkInfo &network_info) { return network_info.to_string(); }
+inline std::string to_string(const NetworkInfo &network_info) {
+    return network_info.to_string();
+}
 
 std::ostream &operator<<(std::ostream &out, const NetworkDevices &network_devices);
 std::ostream &operator<<(std::ostream &out, const NetworkDevice &network_device);

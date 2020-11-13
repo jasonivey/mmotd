@@ -9,14 +9,14 @@ class Header : public ComputerInformationProvider {
 public:
     Header() = default;
     virtual ~Header() = default;
-    Header(const Header& other) = default;
-    Header(Header&& other) noexcept = default;
-    Header& operator=(const Header& other) = default;
-    Header& operator=(Header&& other) noexcept = default;
+    Header(const Header &other) = default;
+    Header(Header &&other) noexcept = default;
+    Header &operator=(const Header &other) = default;
+    Header &operator=(Header &&other) noexcept = default;
 
 protected:
     std::optional<std::string> QueryInformation() override;
     std::string GetName() const override;
 };
 
-}
+} // namespace mmotd

@@ -32,7 +32,8 @@ IpAddress ExternalNetwork::ParseJsonResponse(const string &response) {
         }
         return IpAddress{};
     } else if (value.empty()) {
-        BOOST_LOG_TRIVIAL(error) << "converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty";
+        BOOST_LOG_TRIVIAL(error)
+            << "converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty";
     }
 
     if (value.isObject() && value.isMember("ip") && value["ip"].isString()) {
@@ -43,7 +44,7 @@ IpAddress ExternalNetwork::ParseJsonResponse(const string &response) {
 
 bool ExternalNetwork::TryDiscovery() {
     auto request = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"};
-    //const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
+    // const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
     const auto response = request.MakeRequest("/json");
     if (response.empty()) {
         BOOST_LOG_TRIVIAL(error) << "querying 'http://ipinfo.io/json' failed";

@@ -1,9 +1,9 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include <iosfwd>
 #include <ostream>
 #include <string>
 #include <string_view>
-#include <iosfwd>
 
 namespace color {
 
@@ -29,57 +29,57 @@ void PrintInfo(std::string_view message, bool tee_to_log = true);
 //       added by style_modifier, fg_style and bg_style.
 //
 enum class style_modifier : int {
-    reset          = 0, // resets the styles by removing all changes
-    bold           = 1, // makes the characters thicker
-    dim            = 2, // makes the text faint
-    italic         = 3, // does nothing
-    underline      = 4, // underlines the text
-    blink          = 5, // does nothing
-    rblink         = 6, // does nothing
-    reversed       = 7, // reverses the background and foreground colors
-    conceal        = 8, // does nothing
-    crossed        = 9, // crosses through the text
-    none           = 10
+    reset = 0,     // resets the styles by removing all changes
+    bold = 1,      // makes the characters thicker
+    dim = 2,       // makes the text faint
+    italic = 3,    // does nothing
+    underline = 4, // underlines the text
+    blink = 5,     // does nothing
+    rblink = 6,    // does nothing
+    reversed = 7,  // reverses the background and foreground colors
+    conceal = 8,   // does nothing
+    crossed = 9,   // crosses through the text
+    none = 10
 };
 
 enum class fg_style : int {
-    black          = 30,
-    red            = 31,
-    green          = 32,
-    yellow         = 33,
-    blue           = 34,
-    magenta        = 35,
-    cyan           = 36,
-    white          = 37,
-    standard       = 39,
-    bright_black   = 90,
-    bright_red     = 91,
-    bright_green   = 92,
-    bright_yellow  = 93,
-    bright_blue    = 94,
+    black = 30,
+    red = 31,
+    green = 32,
+    yellow = 33,
+    blue = 34,
+    magenta = 35,
+    cyan = 36,
+    white = 37,
+    standard = 39,
+    bright_black = 90,
+    bright_red = 91,
+    bright_green = 92,
+    bright_yellow = 93,
+    bright_blue = 94,
     bright_magenta = 95,
-    bright_cyan    = 96,
-    bright_white   = 97
+    bright_cyan = 96,
+    bright_white = 97
 };
 
 enum class bg_style : int {
-    black          = 40,
-    red            = 41,
-    green          = 42,
-    yellow         = 43,
-    blue           = 44,
-    magenta        = 45,
-    cyan           = 46,
-    white          = 47,
-    standard       = 49,
-    bright_black   = 100,
-    bright_red     = 101,
-    bright_green   = 102,
-    bright_yellow  = 103,
-    bright_blue    = 104,
+    black = 40,
+    red = 41,
+    green = 42,
+    yellow = 43,
+    blue = 44,
+    magenta = 45,
+    cyan = 46,
+    white = 47,
+    standard = 49,
+    bright_black = 100,
+    bright_red = 101,
+    bright_green = 102,
+    bright_yellow = 103,
+    bright_blue = 104,
     bright_magenta = 105,
-    bright_cyan    = 106,
-    bright_white   = 107
+    bright_cyan = 106,
+    bright_white = 107
 };
 
 // Style object: a container for the foreground color, background color and misc modifiers
@@ -195,8 +195,10 @@ inline constexpr Style make_style(bg_style background) {
     return Style{fg_style::standard, style_modifier::none, background};
 }
 
-// make_style_wrapper: creates an object which is able to encode/decode a string with color markers or console escape sequences
-inline StyleWrapper make_style_wrapper(std::string str, fg_style foreground, style_modifier modifier, bg_style background) {
+// make_style_wrapper: creates an object which is able to encode/decode a string with color markers or console escape
+// sequences
+inline StyleWrapper
+make_style_wrapper(std::string str, fg_style foreground, style_modifier modifier, bg_style background) {
     return StyleWrapper(str, make_style(foreground, modifier, background));
 }
 
@@ -224,7 +226,8 @@ inline StyleWrapper make_style_wrapper(std::string str, bg_style background) {
     return StyleWrapper(str, make_style(fg_style::standard, style_modifier::none, background));
 }
 
-inline std::string make_stylized_string(std::string str, fg_style foreground, style_modifier modifier, bg_style background) {
+inline std::string
+make_stylized_string(std::string str, fg_style foreground, style_modifier modifier, bg_style background) {
     return StyleWrapper(str, make_style(foreground, modifier, background)).to_string();
 }
 
@@ -252,4 +255,4 @@ inline std::string make_stylized_string(std::string str, bg_style background) {
     return StyleWrapper(str, make_style(fg_style::standard, style_modifier::none, background)).to_string();
 }
 
-}
+} // namespace color

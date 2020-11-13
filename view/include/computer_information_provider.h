@@ -11,10 +11,10 @@ class ComputerInformationProvider {
 public:
     ComputerInformationProvider() = default;
     virtual ~ComputerInformationProvider() = default;
-    ComputerInformationProvider(const ComputerInformationProvider& other) = default;
-    ComputerInformationProvider(ComputerInformationProvider&& other) noexcept = default;
-    ComputerInformationProvider& operator=(const ComputerInformationProvider& other) = default;
-    ComputerInformationProvider& operator=(ComputerInformationProvider&& other) noexcept = default;
+    ComputerInformationProvider(const ComputerInformationProvider &other) = default;
+    ComputerInformationProvider(ComputerInformationProvider &&other) noexcept = default;
+    ComputerInformationProvider &operator=(const ComputerInformationProvider &other) = default;
+    ComputerInformationProvider &operator=(ComputerInformationProvider &&other) noexcept = default;
 
     std::optional<std::string> GetComputerInformation();
     std::string GetInformationName() const;
@@ -24,4 +24,4 @@ protected:
     virtual std::string GetName() const = 0;
 };
 
-}
+} // namespace mmotd

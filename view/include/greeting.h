@@ -9,14 +9,14 @@ class Greeting : public ComputerInformationProvider {
 public:
     Greeting() = default;
     virtual ~Greeting() = default;
-    Greeting(const Greeting& other) = default;
-    Greeting(Greeting&& other) noexcept = default;
-    Greeting& operator=(const Greeting& other) = default;
-    Greeting& operator=(Greeting&& other) noexcept = default;
+    Greeting(const Greeting &other) = default;
+    Greeting(Greeting &&other) noexcept = default;
+    Greeting &operator=(const Greeting &other) = default;
+    Greeting &operator=(Greeting &&other) noexcept = default;
 
 protected:
     std::optional<std::string> QueryInformation() override;
     std::string GetName() const override;
 };
 
-}
+} // namespace mmotd

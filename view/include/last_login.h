@@ -9,14 +9,14 @@ class LastLogin : public ComputerInformationProvider {
 public:
     LastLogin() = default;
     virtual ~LastLogin() = default;
-    LastLogin(const LastLogin& other) = default;
-    LastLogin(LastLogin&& other) noexcept = default;
-    LastLogin& operator=(const LastLogin& other) = default;
-    LastLogin& operator=(LastLogin&& other) noexcept = default;
+    LastLogin(const LastLogin &other) = default;
+    LastLogin(LastLogin &&other) noexcept = default;
+    LastLogin &operator=(const LastLogin &other) = default;
+    LastLogin &operator=(LastLogin &&other) noexcept = default;
 
 protected:
     std::optional<std::string> QueryInformation() override;
     std::string GetName() const override;
 };
 
-}
+} // namespace mmotd
