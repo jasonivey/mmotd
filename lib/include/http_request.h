@@ -4,10 +4,7 @@
 #include <optional>
 #include <string>
 
-enum class HttpProtocol {
-    HTTP,
-    HTTPS
-};
+enum class HttpProtocol { HTTP, HTTPS };
 
 class HttpRequest {
 public:

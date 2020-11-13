@@ -19,4 +19,6 @@ private:
     IpAddress ip_address_;
 };
 
-inline std::string to_string(const ExternalNetwork &external_network) { return external_network.to_string(); }
+inline std::string to_string(const ExternalNetwork &external_network) {
+    return external_network.to_string();
+}

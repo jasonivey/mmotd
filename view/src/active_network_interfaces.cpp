@@ -4,9 +4,8 @@
 
 using namespace std;
 
-static const bool factory_registered = mmotd::RegisterComputerInformationProvider([](){
-    return make_unique<mmotd::ActiveNetworkInterfaces>();
-});
+static const bool factory_registered =
+    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::ActiveNetworkInterfaces>(); });
 
 optional<string> mmotd::ActiveNetworkInterfaces::QueryInformation() {
     return nullopt;

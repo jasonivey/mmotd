@@ -9,14 +9,14 @@ class ActiveNetworkInterfaces : public ComputerInformationProvider {
 public:
     ActiveNetworkInterfaces() = default;
     virtual ~ActiveNetworkInterfaces() = default;
-    ActiveNetworkInterfaces(const ActiveNetworkInterfaces& other) = default;
-    ActiveNetworkInterfaces(ActiveNetworkInterfaces&& other) noexcept = default;
-    ActiveNetworkInterfaces& operator=(const ActiveNetworkInterfaces& other) = default;
-    ActiveNetworkInterfaces& operator=(ActiveNetworkInterfaces&& other) noexcept = default;
+    ActiveNetworkInterfaces(const ActiveNetworkInterfaces &other) = default;
+    ActiveNetworkInterfaces(ActiveNetworkInterfaces &&other) noexcept = default;
+    ActiveNetworkInterfaces &operator=(const ActiveNetworkInterfaces &other) = default;
+    ActiveNetworkInterfaces &operator=(ActiveNetworkInterfaces &&other) noexcept = default;
 
 protected:
     std::optional<std::string> QueryInformation() override;
     std::string GetName() const override;
 };
 
-}
+} // namespace mmotd

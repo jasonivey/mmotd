@@ -1,32 +1,31 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "lib/include/http_request.h"
 
-#include <boost/exception/all.hpp>
-#include <boost/system/error_code.hpp>
-#include <boost/beast/http/error.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/version.hpp>
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/http/error.hpp>
+#include <boost/beast/version.hpp>
+#include <boost/exception/all.hpp>
 #include <boost/log/trivial.hpp>
-#include <fmt/format.h>
+#include <boost/system/error_code.hpp>
 #include <cstdlib>
+#include <fmt/format.h>
 #include <string>
 
-namespace beast = boost::beast;     // from <boost/beast.hpp>
-namespace http = beast::http;       // from <boost/beast/http.hpp>
-namespace net = boost::asio;        // from <boost/asio.hpp>
-using tcp = net::ip::tcp;           // from <boost/asio/ip/tcp.hpp>
+namespace beast = boost::beast; // from <boost/beast.hpp>
+namespace http = beast::http;   // from <boost/beast/http.hpp>
+namespace net = boost::asio;    // from <boost/asio.hpp>
+using tcp = net::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
 using namespace std;
 
 HttpRequest::HttpRequest(HttpProtocol protocol, string host, string port) :
-    protocol_(protocol),
-	host_(host),
-	port_(port.empty() ? (protocol_ == HttpProtocol::HTTPS ? "443" : "80") : port) {}
+    protocol_(protocol), host_(host), port_(port.empty() ? (protocol_ == HttpProtocol::HTTPS ? "443" : "80") : port) {
+}
 
 string HttpRequest::MakeRequest(string path) {
-	try {
+    try {
         auto response = optional<string>{};
         if (protocol_ == HttpProtocol::HTTPS) {
             response = TryMakeSecureRequest(path);
@@ -34,7 +33,7 @@ string HttpRequest::MakeRequest(string path) {
             response = TryMakeRequest(path);
         }
         return response == nullopt ? string{} : *response;
-	} catch (const exception &ex) {
+    } catch (const exception &ex) {
         BOOST_LOG_TRIVIAL(error) << "exception " << ex.what();
         return string{};
     }
@@ -79,20 +78,29 @@ optional<string> HttpRequest::TryMakeRequest(std::string path) {
         http::read(stream, buffer, response);
     } catch (boost::system::error_code &ec) {
         if (ec == http::error::end_of_stream) {
-            BOOST_LOG_TRIVIAL(info) << fmt::format("ignoring 'http::error::end_of_stream' during http read of {}:{}{}, {}", host_, port_, path, ec.message());
+            BOOST_LOG_TRIVIAL(info) << fmt::format(
+                "ignoring 'http::error::end_of_stream' during http read of {}:{}{}, {}",
+                host_,
+                port_,
+                path,
+                ec.message());
             ec = boost::system::error_code{};
         } else {
-            BOOST_LOG_TRIVIAL(error) << fmt::format("during http read of {}:{}{}, {}", host_, port_, path, ec.message());
+            BOOST_LOG_TRIVIAL(error)
+                << fmt::format("during http read of {}:{}{}, {}", host_, port_, path, ec.message());
             return nullopt;
         }
     } catch (boost::exception &ex) {
-        BOOST_LOG_TRIVIAL(error) << fmt::format("during http read of {}:{}{}, {}", host_, port_, path, boost::diagnostic_information(ex));
+        BOOST_LOG_TRIVIAL(error)
+            << fmt::format("during http read of {}:{}{}, {}", host_, port_, path, boost::diagnostic_information(ex));
     } catch (std::exception &ex) {
         BOOST_LOG_TRIVIAL(error) << fmt::format("during http read of {}:{}{}, {}", host_, port_, path, ex.what());
     }
 
     if (response.result() != http::status::ok) {
-        BOOST_LOG_TRIVIAL(error) << fmt::format("http status: {}, {}", response.result_int(), response.reason().to_string());
+        BOOST_LOG_TRIVIAL(error) << fmt::format("http status: {}, {}",
+                                                response.result_int(),
+                                                response.reason().to_string());
         return nullopt;
     }
 

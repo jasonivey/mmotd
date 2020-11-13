@@ -9,14 +9,14 @@ class SystemLoad : public ComputerInformationProvider {
 public:
     SystemLoad() = default;
     virtual ~SystemLoad() = default;
-    SystemLoad(const SystemLoad& other) = default;
-    SystemLoad(SystemLoad&& other) noexcept = default;
-    SystemLoad& operator=(const SystemLoad& other) = default;
-    SystemLoad& operator=(SystemLoad&& other) noexcept = default;
+    SystemLoad(const SystemLoad &other) = default;
+    SystemLoad(SystemLoad &&other) noexcept = default;
+    SystemLoad &operator=(const SystemLoad &other) = default;
+    SystemLoad &operator=(SystemLoad &&other) noexcept = default;
 
 protected:
     std::optional<std::string> QueryInformation() override;
     std::string GetName() const override;
 };
 
-}
+} // namespace mmotd

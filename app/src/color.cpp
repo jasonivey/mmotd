@@ -6,12 +6,12 @@
 
 #include <algorithm>
 #include <array>
-#include <iterator>
-#include <regex>
-#include <optional>
-#include <ostream>
 #include <cstdio>
 #include <iostream>
+#include <iterator>
+#include <optional>
+#include <ostream>
+#include <regex>
 
 constexpr const char *StyleReset = "StyleReset";
 constexpr const char *StyleBold = "StyleBold";
@@ -23,7 +23,6 @@ constexpr const char *StyleRblink = "StyleRblink";
 constexpr const char *StyleReversed = "StyleReversed";
 constexpr const char *StyleConceal = "StyleConceal";
 constexpr const char *StyleCrossed = "StyleCrossed";
-
 
 constexpr const char *FgBlack = "FgBlack";
 constexpr const char *FgRed = "FgRed";
@@ -116,8 +115,7 @@ static constexpr array<ColorMap, 42> gColorMap = {
     ColorMap{static_cast<int>(color::bg_style::bright_blue), BgBrightBlue},
     ColorMap{static_cast<int>(color::bg_style::bright_magenta), BgBrightMagenta},
     ColorMap{static_cast<int>(color::bg_style::bright_cyan), BgBrightCyan},
-    ColorMap{static_cast<int>(color::bg_style::bright_white), BgBrightWhite}
-};
+    ColorMap{static_cast<int>(color::bg_style::bright_white), BgBrightWhite}};
 
 template<typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
 const ColorMap *FindColorMap(T code) {
@@ -262,7 +260,7 @@ void PrintInfoInternal(ostream &out, std::string_view msg, bool tee_to_log) {
     }
 }
 
-}
+} // namespace
 
 string color::StyleWrapper::AddStyle() const {
     auto wrapped_str = str_;

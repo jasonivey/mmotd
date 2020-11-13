@@ -9,7 +9,7 @@
 //#include <fmt/format.h>
 #include <ostream>
 
-//using namespace fmt;
+// using namespace fmt;
 using namespace std;
 
 ostream &operator<<(ostream &out, const PosixSysctlInformation &sysctl_info) {

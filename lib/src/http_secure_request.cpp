@@ -26,18 +26,18 @@ using stream_ptr = std::unique_ptr<ssl_stream>;
 using namespace std;
 
 namespace {
-tcp::resolver::results_type resolve(asio::io_context& ctx, std::string const& hostname) {
+tcp::resolver::results_type resolve(asio::io_context &ctx, std::string const &hostname) {
     auto resolver = tcp::resolver{ctx};
     return resolver.resolve(hostname, "https");
 }
 
-tcp::socket connect(asio::io_context& ctx, std::string const& hostname) {
+tcp::socket connect(asio::io_context &ctx, std::string const &hostname) {
     auto socket = tcp::socket{ctx};
     asio::connect(socket, resolve(ctx, hostname));
     return socket;
 }
 
- stream_ptr connect(asio::io_context& ctx, ssl::context& ssl_ctx, std::string const& hostname) {
+stream_ptr connect(asio::io_context &ctx, ssl::context &ssl_ctx, std::string const &hostname) {
     auto stream = boost::make_unique<ssl_stream>(connect(ctx, hostname), ssl_ctx);
     // tag::stream_setup_source[]
     boost::certify::set_server_hostname(*stream, hostname);
@@ -48,7 +48,7 @@ tcp::socket connect(asio::io_context& ctx, std::string const& hostname) {
     return stream;
 }
 
-http::response<http::string_body> get(ssl_stream& stream, boost::string_view hostname, boost::string_view uri) {
+http::response<http::string_body> get(ssl_stream &stream, boost::string_view hostname, boost::string_view uri) {
     http::request<http::empty_body> request;
     request.method(http::verb::get);
     request.target(uri);
@@ -62,7 +62,7 @@ http::response<http::string_body> get(ssl_stream& stream, boost::string_view hos
 
     return response;
 }
-}
+} // namespace
 
 optional<string> HttpRequest::TryMakeSecureRequest(string path) {
     asio::io_context ctx;

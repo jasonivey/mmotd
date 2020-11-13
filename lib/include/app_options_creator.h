@@ -14,5 +14,5 @@ public:
     virtual bool IsAppFinished() const = 0;
 
 private:
-    //virtual void AddOption(const Option &option) = 0;
+    // virtual void AddOption(const Option &option) = 0;
 };
