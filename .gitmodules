@@ -6,11 +6,3 @@
 	path = external/CLI11
 	url = https://github.com/CLIUtils/CLI11.git
 	branch = master
-[submodule "external/jsoncpp"]
-	path = external/jsoncpp
-	url = https://github.com/open-source-parsers/jsoncpp.git
-	branch = 1.9.4
-[submodule "external/fmt"]
-	path = external/fmt
-	url = https://github.com/fmtlib/fmt.git
-	branch = 7.1.1

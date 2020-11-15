@@ -37,7 +37,6 @@ target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
     PRIVATE ${Boost_INCLUDE_DIRS}
     PRIVATE ${OPENSSL_INCLUDE_DIR}
-    PRIVATE ${JSONCPP_INCLUDE_DIRS}
     PRIVATE ${CMAKE_SOURCE_DIR}/external/certify/include
     )
 

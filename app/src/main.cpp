@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         color::PrintError("unable to query for external IP address\n");
         return EXIT_FAILURE;
     } else {
-        color::PrintInfo(format("external ip:\n{}\n", to_string(external_network)));
+        color::PrintInfo(format("external ip: {}\n", to_string(external_network)));
     }
     return EXIT_SUCCESS;
 }

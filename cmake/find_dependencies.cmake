@@ -12,6 +12,7 @@ if (APPLE)
 endif ()
 find_package(ZLIB 1.2.11 REQUIRED)
 
+find_package(fmt)
 set (Boost_USE_STATIC_LIBS off)
 set (Boost_USE_MULTITHREADED on)
 set (Boost_USE_STATIC_RUNTIME off)
@@ -42,13 +43,5 @@ if (GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     endif ()
 endif ()
 
-option(JSONCPP_WITH_TESTS "" OFF)
-option(JSONCPP_WITH_POST_BUILD_UNITTEST "" OFF)
-option(JSONCPP_WITH_CMAKE_PACKAGE "" OFF)
-option(BUILD_SHARED_LIBS "" OFF)
-
-#-Wno-deprecated-declarations
-add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/external/jsoncpp)
 add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/external/CLI11)
-add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/external/fmt)
 

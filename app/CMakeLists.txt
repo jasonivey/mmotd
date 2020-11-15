@@ -47,8 +47,7 @@ target_link_libraries(
     ${MMOTD_TARGET_NAME}
     PRIVATE ${FWCoreFoundation}
     PRIVATE ${FWSecurity}
-    PRIVATE fmt::fmt
-    PRIVATE jsoncpp_static
+    PRIVATE fmt::fmt-header-only
     PRIVATE ${OPENSSL_CRYPTO_LIBRARY}
     PRIVATE ${OPENSSL_SSL_LIBRARY}
     PRIVATE ZLIB::ZLIB

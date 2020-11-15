@@ -6,6 +6,8 @@
 #pragma GCC diagnostic ignored "-Wdeprecated"
 
 #include <boost/log/trivial.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
 #include <json/json.h>
 #include <sstream>
 #include <tuple>
@@ -17,27 +19,35 @@ string ExternalNetwork::to_string() const {
     return ip_address_.to_string();
 }
 
+#if 0
+static void walk_ptree(const pt::ptree &tree, size_t indent) {
+    const string data = tree.data();
+    cout << fmt::format("{}data: \"{}\"\n", string(indent, ' '), data);
+    for (auto i = begin(tree); i != end(tree); ++i) {
+        const auto &child = *i;
+        cout << fmt::format("{}child: \"{}\"\n", string(indent, ' '), child.first);
+        walk_ptree(child.second, indent + 2);
+    }
+}
+#endif
+
 IpAddress ExternalNetwork::ParseJsonResponse(const string &response) {
-    auto builder = Json::CharReaderBuilder{};
-    builder["collectComments"] = false;
-    auto value = Json::Value{};
-    auto errs = string{};
+    namespace pt = boost::property_tree;
     auto input_str_stream = istringstream{response};
     auto input_stream = istream{input_str_stream.rdbuf()};
-    if (!Json::parseFromStream(builder, input_stream, &value, &errs)) {
-        if (!errs.empty()) {
-            BOOST_LOG_TRIVIAL(error) << "converting HTTP response from ipinfo to JSON. " << errs;
-        } else {
-            BOOST_LOG_TRIVIAL(error) << "converting HTTP response from ipinfo to JSON";
-        }
-        return IpAddress{};
-    } else if (value.empty()) {
+    auto tree = pt::ptree{};
+    pt::read_json(input_stream, tree);
+
+    //walk_ptree(tree, 2);
+    if (tree.empty()) {
         BOOST_LOG_TRIVIAL(error)
             << "converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty";
-    }
-
-    if (value.isObject() && value.isMember("ip") && value["ip"].isString()) {
-        return make_address(value["ip"].asString());
+    } else {
+        auto ip_address_value = tree.get_optional<string>("ip");
+        if (ip_address_value) {
+            BOOST_LOG_TRIVIAL(info) << "found ip address in json response body=" << *ip_address_value << "\n";
+            return make_address(*ip_address_value);
+        }
     }
     return IpAddress{};
 }
