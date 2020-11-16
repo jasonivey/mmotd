@@ -2,10 +2,10 @@
 #include "lib/include/external_network.h"
 #include "lib/include/http_request.h"
 
-#include <plog/Log.h>
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <json/json.h>
+#include <plog/Log.h>
 #include <sstream>
 #include <tuple>
 
@@ -35,7 +35,7 @@ IpAddress ExternalNetwork::ParseJsonResponse(const string &response) {
     auto tree = pt::ptree{};
     pt::read_json(input_stream, tree);
 
-    //walk_ptree(tree, 2);
+    // walk_ptree(tree, 2);
     if (tree.empty()) {
         PLOG_ERROR << "http response is empty after converting to json";
     } else {

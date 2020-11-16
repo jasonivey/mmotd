@@ -6,13 +6,13 @@
 #include <algorithm>
 #include <any>
 #include <boost/algorithm/string.hpp>
-#include <plog/Log.h>
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
 #include <functional>
 #include <iterator>
 #include <memory>
+#include <plog/Log.h>
 #include <sstream>
 #include <stdexcept>
 

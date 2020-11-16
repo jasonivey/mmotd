@@ -13,11 +13,11 @@
 
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
-#include <fmt/format.h>
-#include <plog/Log.h>
 #include <boost/numeric/conversion/cast.hpp>
+#include <fmt/format.h>
 #include <iostream>
 #include <optional>
+#include <plog/Log.h>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -131,13 +131,13 @@ string to_string(const IpAddresses &ip_addresses) {
 
 // bool get_mac_address(char* mac_addr, const char* if_name = "eth0")
 static optional<NetworkDevices> DiscoverNetworkDevices() {
-    //struct ifreq ifinfo;
-    //strcpy(ifinfo.ifr_name, if_name);
-    //int sd = socket(AF_INET, SOCK_DGRAM, 0);
-    //int result = ioctl(sd, SIOCGIFHWADDR, &ifinfo);
-    //close(sd);
+    // struct ifreq ifinfo;
+    // strcpy(ifinfo.ifr_name, if_name);
+    // int sd = socket(AF_INET, SOCK_DGRAM, 0);
+    // int result = ioctl(sd, SIOCGIFHWADDR, &ifinfo);
+    // close(sd);
 
-    //if ((result == 0) && (ifinfo.ifr_hwaddr.sa_family == 1)) {
+    // if ((result == 0) && (ifinfo.ifr_hwaddr.sa_family == 1)) {
     //    memcpy(mac_addr, ifinfo.ifr_hwaddr.sa_data, IFHWADDRLEN);
     //    return true;
     //} else {
@@ -169,10 +169,9 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
             const auto ntoa_str = string(link_ntoa(sock_addr));
             const auto index = ntoa_str.find(':');
             if (index == string::npos) {
-                PLOG_WARNING
-                    << format("{} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx",
-                              interface_name,
-                              ntoa_str);
+                PLOG_WARNING << format("{} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx",
+                                       interface_name,
+                                       ntoa_str);
                 continue;
             }
             auto iter = network_devices.find(interface_name);
@@ -185,9 +184,9 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
             auto mac_address = ntoa_str.substr(index + 1);
             if (static_cast<bool>(network_device->mac_address)) {
                 PLOG_WARNING << format("{} with mac address {} is being replaced with {}",
-                                                     interface_name,
-                                                     to_string(network_device->mac_address),
-                                                     mac_address);
+                                       interface_name,
+                                       to_string(network_device->mac_address),
+                                       mac_address);
             }
             network_device->mac_address = MacAddress(mac_address);
         } else if (address_family == AF_INET || address_family == AF_INET6) {
@@ -215,18 +214,14 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
             }
             auto ip_address = make_address(ip_str);
             if (ip_address.is_unspecified()) {
-                PLOG_INFO << format("{} with ip address {} is unspecified",
-                                                  interface_name,
-                                                  ip_address.to_string());
+                PLOG_INFO << format("{} with ip address {} is unspecified", interface_name, ip_address.to_string());
             } else if (ip_address.is_loopback()) {
-                PLOG_INFO << format("{} with ip address {} is loopback device",
-                                                  interface_name,
-                                                  ip_address.to_string());
+                PLOG_INFO << format("{} with ip address {} is loopback device", interface_name, ip_address.to_string());
             } else {
                 PLOG_INFO << format("{} with ip address {} is multicast device: {}",
-                                                  interface_name,
-                                                  ip_address.to_string(),
-                                                  ip_address.is_multicast() ? "yes" : "no");
+                                    interface_name,
+                                    ip_address.to_string(),
+                                    ip_address.is_multicast() ? "yes" : "no");
                 network_device->ip_addresses.push_back(ip_address);
             }
         }

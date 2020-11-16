@@ -9,9 +9,9 @@
 #include <boost/beast/version.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/system/error_code.hpp>
-#include <plog/Log.h>
 #include <cstdlib>
 #include <fmt/format.h>
+#include <plog/Log.h>
 #include <string>
 
 namespace beast = boost::beast; // from <boost/beast.hpp>
@@ -79,19 +79,22 @@ optional<string> HttpRequest::TryMakeRequest(std::string path) {
         http::read(stream, buffer, response);
     } catch (boost::system::error_code &ec) {
         if (ec == http::error::end_of_stream) {
-            PLOG_INFO << format(
-                "ignoring 'http::error::end_of_stream' during http request of {}:{}{} (details: {})",
-                host_,
-                port_,
-                path,
-                ec.message());
+            PLOG_INFO << format("ignoring 'http::error::end_of_stream' during http request of {}:{}{} (details: {})",
+                                host_,
+                                port_,
+                                path,
+                                ec.message());
             ec = boost::system::error_code{};
         } else {
             PLOG_ERROR << format("during http request of {}:{}{}, {}", host_, port_, path, ec.message());
             return nullopt;
         }
     } catch (boost::exception &ex) {
-        PLOG_ERROR << format("during http request of {}:{}{} (details: {})", host_, port_, path, boost::diagnostic_information(ex));
+        PLOG_ERROR << format("during http request of {}:{}{} (details: {})",
+                             host_,
+                             port_,
+                             path,
+                             boost::diagnostic_information(ex));
         return nullopt;
     } catch (std::exception &ex) {
         PLOG_ERROR << format("during http request of {}:{}{} (details: {})", host_, port_, path, ex.what());
@@ -99,7 +102,9 @@ optional<string> HttpRequest::TryMakeRequest(std::string path) {
     }
 
     if (response.result() != http::status::ok) {
-        PLOG_ERROR << format("http request status != 200, status: {}, reason: {}", response.result_int(), response.reason().to_string());
+        PLOG_ERROR << format("http request status != 200, status: {}, reason: {}",
+                             response.result_int(),
+                             response.reason().to_string());
         return nullopt;
     }
 

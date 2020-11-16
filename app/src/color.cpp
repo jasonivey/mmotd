@@ -1,8 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "app/include/color.h"
 
-#include <plog/Log.h>
 #include <fmt/format.h>
+#include <plog/Log.h>
 
 #include <algorithm>
 #include <array>

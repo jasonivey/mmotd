@@ -5,10 +5,10 @@
 #include <sys/utsname.h>
 
 #include <boost/algorithm/string.hpp>
-#include <plog/Log.h>
 #include <fmt/format.h>
 #include <iostream>
 #include <optional>
+#include <plog/Log.h>
 #include <sstream>
 
 using namespace fmt;

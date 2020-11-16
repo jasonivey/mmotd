@@ -13,8 +13,8 @@
 #include <boost/certify/extensions.hpp>
 #include <boost/certify/https_verification.hpp>
 
-#include <plog/Log.h>
 #include <fmt/format.h>
+#include <plog/Log.h>
 
 namespace beast = boost::beast;
 namespace asio = boost::asio;
