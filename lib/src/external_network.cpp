@@ -2,13 +2,10 @@
 #include "lib/include/external_network.h"
 #include "lib/include/http_request.h"
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated"
-
-#include <boost/log/trivial.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <json/json.h>
+#include <plog/Log.h>
 #include <sstream>
 #include <tuple>
 
@@ -40,12 +37,11 @@ IpAddress ExternalNetwork::ParseJsonResponse(const string &response) {
 
     // walk_ptree(tree, 2);
     if (tree.empty()) {
-        BOOST_LOG_TRIVIAL(error)
-            << "converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty";
+        PLOG_ERROR << "http response is empty after converting to json";
     } else {
         auto ip_address_value = tree.get_optional<string>("ip");
         if (ip_address_value) {
-            BOOST_LOG_TRIVIAL(info) << "found ip address in json response body=" << *ip_address_value << "\n";
+            PLOG_INFO << "found ip address in json response body=" << *ip_address_value << "\n";
             return make_address(*ip_address_value);
         }
     }
@@ -57,7 +53,7 @@ bool ExternalNetwork::TryDiscovery() {
     // const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
     const auto response = request.MakeRequest("/json");
     if (response.empty()) {
-        BOOST_LOG_TRIVIAL(error) << "querying 'http://ipinfo.io/json' failed";
+        PLOG_ERROR << "querying 'http://ipinfo.io/json' failed";
         return false;
     }
     const auto ip_address = ParseJsonResponse(response);
@@ -66,4 +62,3 @@ bool ExternalNetwork::TryDiscovery() {
     }
     return !ip_address.is_unspecified();
 }
-#pragma GCC diagnostic pop

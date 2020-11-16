@@ -13,8 +13,8 @@
 #include <boost/certify/extensions.hpp>
 #include <boost/certify/https_verification.hpp>
 
-#include <boost/log/trivial.hpp>
 #include <fmt/format.h>
+#include <plog/Log.h>
 
 namespace beast = boost::beast;
 namespace asio = boost::asio;
@@ -23,6 +23,7 @@ namespace http = boost::beast::http;
 using tcp = boost::asio::ip::tcp;
 using ssl_stream = ssl::stream<tcp::socket>;
 using stream_ptr = std::unique_ptr<ssl_stream>;
+using fmt::format;
 using namespace std;
 
 namespace {
@@ -39,11 +40,8 @@ tcp::socket connect(asio::io_context &ctx, std::string const &hostname) {
 
 stream_ptr connect(asio::io_context &ctx, ssl::context &ssl_ctx, std::string const &hostname) {
     auto stream = boost::make_unique<ssl_stream>(connect(ctx, hostname), ssl_ctx);
-    // tag::stream_setup_source[]
     boost::certify::set_server_hostname(*stream, hostname);
     boost::certify::sni_hostname(*stream, hostname);
-    // end::stream_setup_source[]
-
     stream->handshake(ssl::stream_base::handshake_type::client);
     return stream;
 }
@@ -69,16 +67,17 @@ optional<string> HttpRequest::TryMakeSecureRequest(string path) {
     ssl::context ssl_ctx{ssl::context::tls_client};
     ssl_ctx.set_verify_mode(ssl::context::verify_peer | ssl::context::verify_fail_if_no_peer_cert);
     ssl_ctx.set_default_verify_paths();
-    // tag::ctx_setup_source[]
+
     boost::certify::enable_native_https_server_verification(ssl_ctx);
-    // end::ctx_setup_source[]
+
     auto stream = connect(ctx, ssl_ctx, host_);
     auto response = get(*stream, host_, path);
 
     auto response_str = response.body();
-    BOOST_LOG_TRIVIAL(info) << fmt::format("response from {}:{}{}\n{}", host_, port_, path, response_str);
+    PLOG_INFO << format("response from {}:{}{}\n{}", host_, port_, path, response_str);
 
-    boost::system::error_code ec;
+    auto ec = boost::system::error_code{};
+
     stream->shutdown(ec);
     stream->next_layer().close(ec);
 

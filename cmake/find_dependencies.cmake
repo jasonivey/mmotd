@@ -13,11 +13,7 @@ endif ()
 find_package(ZLIB 1.2.11 REQUIRED)
 
 find_package(fmt)
-set (Boost_USE_STATIC_LIBS off)
-set (Boost_USE_MULTITHREADED on)
-set (Boost_USE_STATIC_RUNTIME off)
-add_definitions(-DBOOST_ALL_DYN_LINK ${Boost_LIB_DIAGNOSTIC_DEFINITIONS})
-find_package(Boost 1.74.0 REQUIRED COMPONENTS log_setup log)
+find_package(Boost 1.74.0 REQUIRED)
 
 # Find OpenSSL for use with boost::asio and boost::beast.
 #  There is also a submodule certify which handles the https
@@ -42,6 +38,4 @@ if (GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
         endif ()
     endif ()
 endif ()
-
-add_subdirectory (${CMAKE_CURRENT_SOURCE_DIR}/external/CLI11)
 

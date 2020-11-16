@@ -1,8 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "app/include/color.h"
 
-#include <boost/log/trivial.hpp>
 #include <fmt/format.h>
+#include <plog/Log.h>
 
 #include <algorithm>
 #include <array>
@@ -194,7 +194,7 @@ void PrintErrorInternal(ostream &out, std::string msg, bool tee_to_log) {
         out << "\n";
     }
     if (tee_to_log) {
-        BOOST_LOG_TRIVIAL(error) << msg;
+        PLOG_ERROR << msg;
     }
 }
 
@@ -206,7 +206,7 @@ void PrintErrorInternal(ostream &out, const char *msg, bool tee_to_log) {
         out << "\n";
     }
     if (tee_to_log) {
-        BOOST_LOG_TRIVIAL(error) << msg;
+        PLOG_ERROR << msg;
     }
 }
 
@@ -219,7 +219,7 @@ void PrintErrorInternal(ostream &out, std::string_view msg, bool tee_to_log) {
         out << "\n";
     }
     if (tee_to_log) {
-        BOOST_LOG_TRIVIAL(error) << msg;
+        PLOG_ERROR << msg;
     }
 }
 
@@ -231,7 +231,7 @@ void PrintInfoInternal(ostream &out, string msg, bool tee_to_log) {
         out << "\n";
     }
     if (tee_to_log) {
-        BOOST_LOG_TRIVIAL(info) << msg;
+        PLOG_INFO << msg;
     }
 }
 
@@ -243,7 +243,7 @@ void PrintInfoInternal(ostream &out, const char *msg, bool tee_to_log) {
         out << "\n";
     }
     if (tee_to_log) {
-        BOOST_LOG_TRIVIAL(info) << msg;
+        PLOG_INFO << msg;
     }
 }
 
@@ -256,7 +256,7 @@ void PrintInfoInternal(ostream &out, std::string_view msg, bool tee_to_log) {
         out << "\n";
     }
     if (tee_to_log) {
-        BOOST_LOG_TRIVIAL(info) << msg;
+        PLOG_INFO << msg;
     }
 }
 

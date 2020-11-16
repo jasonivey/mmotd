@@ -6,3 +6,7 @@
 	path = external/CLI11
 	url = https://github.com/CLIUtils/CLI11.git
 	branch = master
+[submodule "external/plog"]
+	path = external/plog
+	url = https://github.com/SergiusTheBest/plog.git
+	branch = master

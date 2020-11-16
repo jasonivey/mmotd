@@ -42,3 +42,9 @@ target_include_directories(
     PRIVATE ${PROJECT_ROOT_INCLUDE_PATH}
     )
 
+target_include_directories(
+    ${MMOTD_TARGET_NAME} SYSTEM
+    PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
+    PRIVATE ${Boost_INCLUDE_DIRS}
+    )
+
