@@ -6,8 +6,8 @@
 #pragma GCC diagnostic ignored "-Wdeprecated"
 
 #include <boost/log/trivial.hpp>
-#include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <json/json.h>
 #include <sstream>
 #include <tuple>
@@ -38,7 +38,7 @@ IpAddress ExternalNetwork::ParseJsonResponse(const string &response) {
     auto tree = pt::ptree{};
     pt::read_json(input_stream, tree);
 
-    //walk_ptree(tree, 2);
+    // walk_ptree(tree, 2);
     if (tree.empty()) {
         BOOST_LOG_TRIVIAL(error)
             << "converting HTTP response from ipinfo to JSON. Conversion succeeded but the value is empty";
