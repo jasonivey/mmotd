@@ -33,6 +33,8 @@ target_include_directories(
 
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
+    PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
+    PRIVATE ${CMAKE_SOURCE_DIR}/external/CLI11/include
     PRIVATE ${Boost_INCLUDE_DIRS}
     )
 
@@ -51,31 +53,5 @@ target_link_libraries(
     PRIVATE ${OPENSSL_CRYPTO_LIBRARY}
     PRIVATE ${OPENSSL_SSL_LIBRARY}
     PRIVATE ZLIB::ZLIB
-    PRIVATE CLI11::CLI11
-    PRIVATE ${Boost_LIBRARIES}
     )
 
-# TODO: may need some of the following ideas when coming back to get macOS
-#       brew version of GCC to compile the project.
-
-#target_link_libraries(${MMOTD_TARGET_NAME} -Wl,--start-group ${Boost_LIBRARIES} -Wl,--end-group)
-#target_link_libraries(${mmotd_target_name} PRIVATE Boost::log INTERFACE ${loglib})
-
-#target_link_options(
-#    ${MMOTD_TARGET_NAME}
-#    -Wl,--start-group
-#    ${Boost_LIBRARIES}
-#    -Wl,--end-group
-#    )
-
-
-    #PRIVATE Boost::log
-    #INTERFACE ${loglib}
-    #PRIVATE ${Boost_LIBRARIES}
-    #PRIVATE /usr/local/lib/libboost_atomic-mt.dylib
-    #PRIVATE /usr/local/lib/libboost_chrono-mt.dylib
-    #PRIVATE /usr/local/lib/libboost_regex-mt.dylib
-    #PRIVATE /usr/local/lib/libboost_thread-mt.dylib
-    #PRIVATE /usr/local/lib/libboost_filesystem-mt.dylib
-    #PRIVATE /usr/local/lib/libboost_date_time-mt.dylib
-    #PRIVATE /usr/local/lib/libboost_log-mt.dylib

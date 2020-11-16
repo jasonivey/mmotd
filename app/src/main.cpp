@@ -13,7 +13,6 @@
 #include "app/include/logging.h"
 
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
 #include <cstdlib>
 #include <fmt/format.h>
 #include <iostream>

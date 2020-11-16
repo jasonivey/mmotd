@@ -38,5 +38,6 @@ target_include_directories(
     PRIVATE ${Boost_INCLUDE_DIRS}
     PRIVATE ${OPENSSL_INCLUDE_DIR}
     PRIVATE ${CMAKE_SOURCE_DIR}/external/certify/include
+    PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
     )
 

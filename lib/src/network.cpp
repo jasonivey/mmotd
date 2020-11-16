@@ -13,14 +13,8 @@
 
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
-#if __has_include(<format>)
-#    include <format>
-using std::format;
-#else
-#    include <fmt/format.h>
-using fmt::format;
-#endif
-#include <boost/log/trivial.hpp>
+#include <fmt/format.h>
+#include <plog/Log.h>
 #include <boost/numeric/conversion/cast.hpp>
 #include <iostream>
 #include <optional>
@@ -29,6 +23,7 @@ using fmt::format;
 #include <vector>
 
 using boost::asio::ip::make_address;
+using fmt::format;
 using namespace std;
 
 MacAddress::MacAddress(const uint8_t *buffer, size_t buffer_size) {
@@ -136,31 +131,27 @@ string to_string(const IpAddresses &ip_addresses) {
 
 // bool get_mac_address(char* mac_addr, const char* if_name = "eth0")
 static optional<NetworkDevices> DiscoverNetworkDevices() {
-    {
-#    if 0
-    struct ifreq ifinfo;
-    strcpy(ifinfo.ifr_name, if_name);
-    int sd = socket(AF_INET, SOCK_DGRAM, 0);
-    int result = ioctl(sd, SIOCGIFHWADDR, &ifinfo);
-    close(sd);
+    //struct ifreq ifinfo;
+    //strcpy(ifinfo.ifr_name, if_name);
+    //int sd = socket(AF_INET, SOCK_DGRAM, 0);
+    //int result = ioctl(sd, SIOCGIFHWADDR, &ifinfo);
+    //close(sd);
 
-    if ((result == 0) && (ifinfo.ifr_hwaddr.sa_family == 1)) {
-        memcpy(mac_addr, ifinfo.ifr_hwaddr.sa_data, IFHWADDRLEN);
-        return true;
-    }
-    else {
-        return false;
-    }
-#    endif
-        return optional<NetworkDevices>{};
-    }
+    //if ((result == 0) && (ifinfo.ifr_hwaddr.sa_family == 1)) {
+    //    memcpy(mac_addr, ifinfo.ifr_hwaddr.sa_data, IFHWADDRLEN);
+    //    return true;
+    //} else {
+    //    return false;
+    //}
+    return nullopt;
+}
 
 #elif defined(__APPLE__)
 
 static optional<NetworkDevices> DiscoverNetworkDevices() {
     struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
-        BOOST_LOG_TRIVIAL(error) << format("ERROR: getifaddrs failed, errno: {}", errno);
+        PLOG_ERROR << format("getifaddrs failed, errno: {}", errno);
         return optional<NetworkDevices>{};
     }
 
@@ -178,7 +169,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
             const auto ntoa_str = string(link_ntoa(sock_addr));
             const auto index = ntoa_str.find(':');
             if (index == string::npos) {
-                BOOST_LOG_TRIVIAL(warning)
+                PLOG_WARNING
                     << format("{} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx",
                               interface_name,
                               ntoa_str);
@@ -193,7 +184,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
             }
             auto mac_address = ntoa_str.substr(index + 1);
             if (static_cast<bool>(network_device->mac_address)) {
-                BOOST_LOG_TRIVIAL(warning) << format("{} with mac address {} is being replaced with {}",
+                PLOG_WARNING << format("{} with mac address {} is being replaced with {}",
                                                      interface_name,
                                                      to_string(network_device->mac_address),
                                                      mac_address);
@@ -214,7 +205,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
                 }
             }
             const auto family_name = address_family == AF_INET ? string{"ipv4"} : string{"ipv6"};
-            BOOST_LOG_TRIVIAL(info) << format("{} found ip {} for family {}", interface_name, ip_str, family_name);
+            PLOG_INFO << format("{} found ip {} for family {}", interface_name, ip_str, family_name);
             auto iter = network_devices.find(interface_name);
             NetworkDevice *network_device = iter == end(network_devices) ? nullptr : &(iter->second);
             if (iter == end(network_devices)) {
@@ -224,15 +215,15 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
             }
             auto ip_address = make_address(ip_str);
             if (ip_address.is_unspecified()) {
-                BOOST_LOG_TRIVIAL(info) << format("{} with ip address {} is unspecified",
+                PLOG_INFO << format("{} with ip address {} is unspecified",
                                                   interface_name,
                                                   ip_address.to_string());
             } else if (ip_address.is_loopback()) {
-                BOOST_LOG_TRIVIAL(info) << format("{} with ip address {} is loopback device",
+                PLOG_INFO << format("{} with ip address {} is loopback device",
                                                   interface_name,
                                                   ip_address.to_string());
             } else {
-                BOOST_LOG_TRIVIAL(info) << format("{} with ip address {} is multicast device={}",
+                PLOG_INFO << format("{} with ip address {} is multicast device: {}",
                                                   interface_name,
                                                   ip_address.to_string(),
                                                   ip_address.is_multicast() ? "yes" : "no");
@@ -266,53 +257,55 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
     return make_optional(cleaned_network_devices);
 }
 #else
-#    error no definition for get_mac_address() on this platform!
+
+#    error no definition for DiscoverNetworkDevices() on this platform!
+
 #endif
 
-    bool NetworkInfo::TryDiscovery() {
-        const auto devices = DiscoverNetworkDevices();
-        if (devices) {
-            network_devices_ = *devices;
+bool NetworkInfo::TryDiscovery() {
+    const auto devices = DiscoverNetworkDevices();
+    if (devices) {
+        network_devices_ = *devices;
+    }
+    return static_cast<bool>(devices);
+}
+
+ostream &operator<<(ostream &out, const NetworkInfo &network_info) {
+    out << network_info.network_devices_ << "\n";
+    return out;
+}
+
+ostream &operator<<(ostream &out, const NetworkDevices &network_devices) {
+    for (const auto &[interface_name, network_device] : network_devices) {
+        out << interface_name << "\n" << network_device << "\n";
+    }
+    return out;
+}
+
+ostream &operator<<(ostream &out, const NetworkDevice &network_device) {
+    out << "  interface    : " << network_device.interface_name << "\n";
+    out << "  mac address  : " << network_device.mac_address << "\n";
+    out << "  ip addresses : " << network_device.ip_addresses << "\n";
+    return out;
+}
+
+ostream &operator<<(ostream &out, const IpAddresses &ip_addresses) {
+    if (ip_addresses.empty()) {
+        out << "\n";
+    }
+    for (auto i = size_t{1}; i < ip_addresses.size(); ++i) {
+        if (i == 1) {
+            out << ip_addresses[i] << "\n";
+        } else if (i + 1 == ip_addresses.size()) {
+            out << format("               : {}\n", ip_addresses[i].to_string());
+        } else {
+            out << format("               : {}\n", ip_addresses[i].to_string());
         }
-        return static_cast<bool>(devices);
     }
+    return out;
+}
 
-    ostream &operator<<(ostream &out, const NetworkInfo &network_info) {
-        out << network_info.network_devices_ << "\n";
-        return out;
-    }
-
-    ostream &operator<<(ostream &out, const NetworkDevices &network_devices) {
-        for (const auto &[interface_name, network_device] : network_devices) {
-            out << interface_name << "\n" << network_device << "\n";
-        }
-        return out;
-    }
-
-    ostream &operator<<(ostream &out, const NetworkDevice &network_device) {
-        out << "  interface    : " << network_device.interface_name << "\n";
-        out << "  mac address  : " << network_device.mac_address << "\n";
-        out << "  ip addresses : " << network_device.ip_addresses << "\n";
-        return out;
-    }
-
-    ostream &operator<<(ostream &out, const IpAddresses &ip_addresses) {
-        if (ip_addresses.empty()) {
-            out << "\n";
-        }
-        for (auto i = size_t{1}; i < ip_addresses.size(); ++i) {
-            if (i == 1) {
-                out << ip_addresses[i] << "\n";
-            } else if (i + 1 == ip_addresses.size()) {
-                out << format("               : {}\n", ip_addresses[i].to_string());
-            } else {
-                out << format("               : {}\n", ip_addresses[i].to_string());
-            }
-        }
-        return out;
-    }
-
-    ostream &operator<<(ostream &out, const MacAddress &mac_address) {
-        out << to_string(mac_address) << "\n";
-        return out;
-    }
+ostream &operator<<(ostream &out, const MacAddress &mac_address) {
+    out << to_string(mac_address) << "\n";
+    return out;
+}

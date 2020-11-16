@@ -5,7 +5,7 @@
 #include <sys/utsname.h>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/log/trivial.hpp>
+#include <plog/Log.h>
 #include <fmt/format.h>
 #include <iostream>
 #include <optional>
@@ -28,9 +28,9 @@ static KernelDetails to_kernel_details(const string &kernel_type,
 static optional<KernelDetails> GetKernelDetails() {
     struct utsname buf = {};
     int retval = uname(&buf);
-    BOOST_LOG_TRIVIAL(debug) << format("uname returned {} [{}]", retval, retval == 0 ? "success" : "failed");
+    PLOG_DEBUG << format("uname returned {} [{}]", retval, retval == 0 ? "success" : "failed");
     if (retval != 0) {
-        BOOST_LOG_TRIVIAL(error) << format("uname failed with return code '{}'", retval);
+        PLOG_ERROR << format("uname failed with return code '{}'", retval);
         return optional<KernelDetails>{};
     }
 
@@ -40,11 +40,11 @@ static optional<KernelDetails> GetKernelDetails() {
     auto version = string(buf.version);
     auto machine = string(buf.machine);
 
-    BOOST_LOG_TRIVIAL(debug) << "sys name: " << sys_name;
-    BOOST_LOG_TRIVIAL(debug) << "node name: " << node_name;
-    BOOST_LOG_TRIVIAL(debug) << "release: " << release;
-    BOOST_LOG_TRIVIAL(debug) << "version: " << version;
-    BOOST_LOG_TRIVIAL(debug) << "machine: " << machine;
+    PLOG_DEBUG << "sys name: " << sys_name;
+    PLOG_DEBUG << "node name: " << node_name;
+    PLOG_DEBUG << "release: " << release;
+    PLOG_DEBUG << "version: " << version;
+    PLOG_DEBUG << "machine: " << machine;
 
     return to_kernel_details(sys_name, node_name, release, version, machine);
 }
@@ -232,7 +232,7 @@ static KernelRelease to_kernel_release(const string &release) {
     }
     if (release_parts.size() < 2) {
         auto error_str = format("uname release string is not of the format 'xx.yy' instead it is '{}'", release);
-        BOOST_LOG_TRIVIAL(error) << error_str;
+        PLOG_ERROR << error_str;
         throw std::runtime_error(error_str);
     }
     auto kernel_release = KernelRelease{};
