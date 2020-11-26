@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
     }
 
     auto computer_information_providers = mmotd::GetComputerInformationProviders();
-    (void) computer_information_providers;
+    (void)computer_information_providers;
 
     auto system_information = PosixSystemInformation{};
     if (!system_information.TryDiscovery()) {

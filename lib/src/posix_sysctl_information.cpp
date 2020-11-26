@@ -10,7 +10,7 @@
 using namespace std;
 
 ostream &operator<<(ostream &out, const PosixSysctlInformation &sysctl_info) {
-    (void) sysctl_info;
+    (void)sysctl_info;
     return out;
 }
 

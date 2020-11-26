@@ -26,7 +26,7 @@ AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
 BinPackParameters: false
 BraceWrapping:
-  AfterCaseLabel:  true
+  AfterCaseLabel:  false
   AfterClass:      false
   AfterControlStatement: Never
   AfterEnum:       false
@@ -84,6 +84,7 @@ IncludeIsMainSourceRegex: '\.cpp$'
 IndentCaseLabels: true
 IndentCaseBlocks: false
 IndentGotoLabels: false
+#IndentPPDirectives: BeforeHash
 IndentPPDirectives: AfterHash
 IndentExternBlock: AfterExternBlock
 IndentWidth:     4
@@ -108,10 +109,10 @@ NamespaceIndentation: None
 #PenaltyExcessCharacter: 1000000
 #PenaltyReturnTypeOnItsOwnLine: 60
 PointerAlignment: Right
-#ReflowComments:  true
+ReflowComments:  false
 SortIncludes:    true
 SortUsingDeclarations: true
-SpaceAfterCStyleCast: true
+SpaceAfterCStyleCast: false
 SpaceAfterLogicalNot: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true
@@ -142,4 +143,3 @@ UseTab:          Never
 #  - PP_STRINGIZE
 #  - BOOST_PP_STRINGIZE
 ...
-
