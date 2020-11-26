@@ -1,6 +1,21 @@
-* linguist-vendored
+# Ignore these directories
+.vscode/* linguist-vendored
+build/* linguist-vendored
+config/* linguist-vendored
+external/* linguist-vendored
+
+# Mark these files as documentation
+README.md linguist-documentation
+LICENSE linguist-documentation
+
+# This file is a multiple-pre-processed file generating dictionaries and enums
+*_defs.h linguist-generated
+
+# Actual source files
 *.cpp linguist-language=cpp
 *.h linguist-language=cpp
 *.inl linguist-language=cpp
-Makefile linguist-language=make
+
+# CMake files
 CMakeLists.txt linguist-language=cmake
+*.cmake linguist-language=cmake

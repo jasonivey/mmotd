@@ -1,3 +1,4 @@
+// vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 SYSCTL(user.cs_path, STR)
 SYSCTL(user.bc_base_max, INT)
 SYSCTL(user.bc_dim_max, INT)
