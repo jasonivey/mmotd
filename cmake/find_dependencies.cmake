@@ -3,6 +3,8 @@ include_guard (DIRECTORY)
 
 cmake_minimum_required (VERSION 3.10)
 
+set (CMAKE_WARN_DEPRECATED FALSE CACHE BOOL "Whether to issue warnings for deprecated functionality." FORCE)
+
 if (APPLE)
     # enables setting ${package}_root variables like ZLIB_ROOT without warning
     if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12")
@@ -10,32 +12,63 @@ if (APPLE)
     endif ()
     set (ZLIB_ROOT /usr/local/opt/zlib)
 endif ()
+
 find_package(ZLIB 1.2.11 REQUIRED)
-
-find_package(fmt)
 find_package(Boost 1.74.0 REQUIRED)
-
-# Find OpenSSL for use with boost::asio and boost::beast.
-#  There is also a submodule certify which handles the https
-#  certificates.
 find_package(OpenSSL 1.1.1 REQUIRED)
 
-# Update the submodules which are strictly stored in mmotd/external.
-#  The reason there are as many as there are is due to the fact that
-#  when using C++17 it breaks ABI compatibility with libraries which
-#  are only build with C++11.
-find_package(Git)
-if (GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
-    # Update submodules as needed
-    option(GIT_SUBMODULE "Check submodules during build" ON)
-    if (GIT_SUBMODULE)
-        message(STATUS "Submodule update")
-        execute_process(COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-                        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                        RESULT_VARIABLE GIT_SUBMOD_RESULT)
-        if (NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "git submodule update --init failed with '${GIT_SUBMOD_RESULT}', please checkout submodules")
-        endif ()
-    endif ()
+include(FetchContent)
+
+FetchContent_Declare(
+    certify
+    GIT_REPOSITORY https://github.com/djarek/certify.git
+)
+
+FetchContent_GetProperties(certify)
+if (NOT certify_POPULATED)
+    FetchContent_Populate(certify)
+    add_library(certify INTERFACE)
+    target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
 endif ()
 
+FetchContent_Declare(
+    fmt
+    GIT_REPOSITORY  https://github.com/fmtlib/fmt.git
+    GIT_TAG         7.1.3
+)
+
+FetchContent_GetProperties(fmt)
+if (NOT fmt_POPULATED)
+    FetchContent_Populate(fmt)
+    add_library(fmt INTERFACE)
+    target_include_directories(fmt INTERFACE ${fmt_SOURCE_DIR}/include)
+endif ()
+
+FetchContent_Declare(
+    plog
+    GIT_REPOSITORY  https://github.com/SergiusTheBest/plog.git
+    GIT_TAG         1.1.5
+)
+
+FetchContent_GetProperties(plog)
+if (NOT plog_POPULATED)
+    FetchContent_Populate(plog)
+    add_library(plog INTERFACE)
+    target_include_directories(plog INTERFACE ${plog_SOURCE_DIR}/include)
+endif ()
+
+FetchContent_Declare(
+    cli11
+    GIT_REPOSITORY  https://github.com/CLIUtils/CLI11.git
+    # The git tag of 'v1.9.1' is actually valid.  But I started using HEAD and now I am reliant
+    #  on a few of the features there.  Once CLI11 creates a new release I will update this
+    #  rely on that tag
+    #GIT_TAG         v1.9.1
+)
+
+FetchContent_GetProperties(cli11)
+if (NOT cli11_POPULATED)
+    FetchContent_Populate(cli11)
+    add_library(cli11 INTERFACE)
+    target_include_directories(cli11 INTERFACE ${cli11_SOURCE_DIR}/include)
+endif ()

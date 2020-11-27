@@ -35,13 +35,5 @@ else ()
     string(APPEND CMAKE_C_FLAGS " -O2")
 endif ()
 
-# TODO: Add better-enums: https://github.com/aantron/better-enums
-
-# TODO: Create install and doc targets.  Use `standardese` as documentation generator for installed headers
-# INSTALL: brew install standardese
-#find_package(standardese REQUIRED) # find standardese after installation
-
-# generates a custom target that will run standardese to generate the documentation
-#standardese_generate(my_target CONFIG path/to/config_file
-#                     INCLUDE_DIRECTORY ${my_target_includedirs}
-#                     INPUT ${headers})
+message(STATUS "adding the fmtlib/fmt library as header only in ${MMOTD_TARGET_NAME}")
+add_definitions(-DFMT_HEADER_ONLY=1)

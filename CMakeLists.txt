@@ -9,12 +9,8 @@ include (pre_project)
 project (mmotd_root)
 
 define_property(
-    GLOBAL
-    PROPERTY
-    ROOT_CMAKE_PROJECT_DIR
-    INHERITED
-    BRIEF_DOCS "x"
-    FULL_DOCS "yy"
+    GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR INHERITED
+    BRIEF_DOCS "mmotd root directory" FULL_DOCS "root directory for the mmotd project"
     )
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
