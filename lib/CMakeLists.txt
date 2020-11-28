@@ -36,6 +36,7 @@ target_include_directories(
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
     PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${scope_guard_SOURCE_DIR}
     PRIVATE ${OPENSSL_INCLUDE_DIR}
     PRIVATE ${CMAKE_SOURCE_DIR}/external/certify/include
     PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include

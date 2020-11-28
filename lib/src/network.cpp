@@ -21,6 +21,7 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <scope_guard.hpp>
 
 using boost::asio::ip::make_address;
 using fmt::format;
@@ -154,6 +155,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
         PLOG_ERROR << format("getifaddrs failed, errno: {}", errno);
         return optional<NetworkDevices>{};
     }
+    auto freeifaddrs_deleter = sg::make_scope_guard([addrs](){ freeifaddrs(addrs); });
 
     auto network_devices = NetworkDevices{};
     static constexpr size_t BUFFER_SIZE = max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1;
@@ -226,7 +228,6 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
             }
         }
     }
-    freeifaddrs(addrs);
 
     auto cleaned_network_devices = NetworkDevices{};
     copy_if(begin(network_devices),
