@@ -1,11 +1,15 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "lib/include/information_provider.h"
+
 #include <array>
 #include <cstdint>
 #include <iosfwd>
 #include <optional>
 #include <string>
 #include <vector>
+
+namespace mmotd {
 
 enum class ArchitectureType {
     x64,
@@ -43,18 +47,7 @@ struct KernelDetails {
     EndianType endian = EndianType::unknown;
 };
 
-class PosixSystemInformation {
-    friend std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);
-
-public:
-    PosixSystemInformation() = default;
-
-    std::string to_string() const;
-    bool TryDiscovery();
-
-private:
-    KernelDetails kernel_details_ = {};
-};
+class PosixSystemInformation;
 
 std::string to_string(ArchitectureType architecture);
 std::string to_string(EndianType endian);
@@ -71,3 +64,21 @@ std::ostream &operator<<(std::ostream &out, const KernelRelease &kernel_release)
 std::ostream &operator<<(std::ostream &out, const KernelVersion &kernel_version);
 std::ostream &operator<<(std::ostream &out, const KernelDetails &kernel_details);
 std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);
+
+class PosixSystemInformation : public InformationProvider {
+    friend std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);
+
+public:
+    PosixSystemInformation() = default;
+
+    std::string to_string() const;
+
+    std::string GetName() const override { return std::string{"posix system information"}; }
+    bool QueryInformation() override;
+    std::optional<mmotd::ComputerValues> GetInformation() const override;
+
+private:
+    std::optional<KernelDetails> kernel_details_ = {};
+};
+
+} // namespace mmotd

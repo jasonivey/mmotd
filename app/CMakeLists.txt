@@ -6,9 +6,9 @@ set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake
 
 include (pre_project)
 
-set (MMOTD_TARGET_NAME mmotd_info)
+set (MMOTD_TARGET_NAME mmotd)
 
-project (mmotd_info)
+project (mmotd)
 
 add_executable (
     ${MMOTD_TARGET_NAME}
@@ -21,7 +21,7 @@ add_executable (
 find_library(FWCoreFoundation NAMES CoreFoundation)
 find_library(FWSecurity NAMES Security)
 
-include (common)
+include (target_common)
 
 get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
 
@@ -42,7 +42,8 @@ target_include_directories(
 # This should include all sub-directory static libraries or shared libraries
 target_link_libraries(
     ${MMOTD_TARGET_NAME}
-    PRIVATE mmotd
+    PRIVATE mmotd_common
+    PRIVATE mmotd_lib
     PRIVATE mmotd_view
     )
 

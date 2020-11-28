@@ -4,6 +4,8 @@
 
 using namespace std;
 
+bool gLinkHostNameProvider = false;
+
 static const bool factory_registered =
     mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::HostName>(); });
 

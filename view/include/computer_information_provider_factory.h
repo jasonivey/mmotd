@@ -11,7 +11,7 @@ class ComputerInformationProvider;
 using ComputerInformationProviderPtr = std::unique_ptr<ComputerInformationProvider>;
 using ComputerInformationProviderCreator = std::function<ComputerInformationProviderPtr()>;
 
-bool RegisterComputerInformationProvider(ComputerInformationProviderCreator &&creator);
+bool RegisterComputerInformationProvider(ComputerInformationProviderCreator creator);
 
 using ComputerInformationProviders = std::vector<ComputerInformationProviderPtr>;
 ComputerInformationProviders GetComputerInformationProviders();

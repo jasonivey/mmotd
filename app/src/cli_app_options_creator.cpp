@@ -1,18 +1,17 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "app/include/cli_app_options_creator.h"
+#include "app/include/logging.h"
 #include "lib/include/app_options.h"
 
 #include <CLI/CLI.hpp>
 #include <algorithm>
 #include <any>
-#include <boost/algorithm/string.hpp>
 #include <filesystem>
 #include <fmt/format.h>
 #include <fstream>
 #include <functional>
 #include <iterator>
 #include <memory>
-#include <plog/Log.h>
 #include <sstream>
 #include <stdexcept>
 
@@ -47,17 +46,16 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         app_finished_ = false;
     } catch (const CLI::CallForHelp &help) {
         const auto &msg = app.help("", CLI::AppFormatMode::All);
-        PLOG_INFO << msg;
+        MMOTD_LOG_INFO(msg);
         cout << msg << endl;
     } catch (const CLI::CallForVersion &version) {
         const string msg = format("version: {}", version.what());
-        PLOG_INFO << msg;
+        MMOTD_LOG_INFO(msg);
         cout << msg << endl;
     } catch (const CLI::ParseError &err) {
         // TODO: move this actual error all the way to main where we can actually use the error code
         if (err.get_exit_code() != 0) {
-            PLOG_ERROR << format("error code {}: {}", err.get_exit_code(), err.what());
-            cerr << format("ERROR ({}): {}\n", err.get_exit_code(), err.what());
+            MMOTD_LOG_ERROR(format("error code {}: {}", err.get_exit_code(), err.what()));
         }
     }
     if (options_.output_config_path) {
@@ -65,7 +63,7 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         new_config << app.config_to_str(true, true);
         app_finished_ = true;
     }
-    PLOG_DEBUG << "Options:\n" << to_string(options_) << endl;
+    MMOTD_LOG_DEBUG(format("Options:\n{}", to_string(options_)));
 }
 
 void CliAppOptionsCreator::AddOptionDeclarations(CLI::App &app) {

@@ -69,40 +69,40 @@ struct Options {
 
     bool IsVerboseSet() const { return verbose > 0; }
     int GetVerbosityLevel() const { return verbose; }
-    bool IsLogConfigPathSet() const { return static_cast<bool>(log_config_path); };
+    bool IsLogConfigPathSet() const { return log_config_path.has_value(); };
     std::string GetLogConfigPathSet() const { return log_config_path.value_or(std::string{}); };
     bool IsLastLoginSet() const { return !indeterminate(last_login); }
-    bool GetLastLoginValue() const { return static_cast<bool>(last_login); }
+    bool GetLastLoginValue() const { return last_login.value; }
     bool IsComputerNameSet() const { return !indeterminate(computer_name); }
-    bool GetComputerNameValue() const { return static_cast<bool>(computer_name); }
+    bool GetComputerNameValue() const { return computer_name.value; }
     bool IsHostNameSet() const { return !indeterminate(host_name); }
-    bool GetHostNameValue() const { return static_cast<bool>(host_name); }
+    bool GetHostNameValue() const { return host_name.value; }
     bool IsPublicIpSet() const { return !indeterminate(public_ip); }
-    bool GetPublicIpValue() const { return static_cast<bool>(public_ip); }
+    bool GetPublicIpValue() const { return public_ip.value; }
     bool IsUnreadMailSet() const { return !indeterminate(unread_mail); }
-    bool GetUnreadMailValue() const { return static_cast<bool>(unread_mail); }
+    bool GetUnreadMailValue() const { return unread_mail.value; }
     bool IsSystemLoadSet() const { return !indeterminate(system_load); }
-    bool GetSystemLoadValue() const { return static_cast<bool>(system_load); }
+    bool GetSystemLoadValue() const { return system_load.value; }
     bool IsProcessorCountSet() const { return !indeterminate(processor_count); }
-    bool GetProcessorCountValue() const { return static_cast<bool>(processor_count); }
+    bool GetProcessorCountValue() const { return processor_count.value; }
     bool IsDiskUsageSet() const { return !indeterminate(disk_usage); }
-    bool GetDiskUsageValue() const { return static_cast<bool>(disk_usage); }
+    bool GetDiskUsageValue() const { return disk_usage.value; }
     bool IsUsersCountSet() const { return !indeterminate(users_count); }
-    bool GetUsersCountValue() const { return static_cast<bool>(users_count); }
+    bool GetUsersCountValue() const { return users_count.value; }
     bool IsMemoryUsageSet() const { return !indeterminate(memory_usage); }
-    bool GetMemoryUsageValue() const { return static_cast<bool>(memory_usage); }
+    bool GetMemoryUsageValue() const { return memory_usage.value; }
     bool IsSwapUsageSet() const { return !indeterminate(swap_usage); }
-    bool GetSwapUsageValue() const { return static_cast<bool>(swap_usage); }
+    bool GetSwapUsageValue() const { return swap_usage.value; }
     bool IsActiveNetworkInterfacesSet() const { return !indeterminate(active_network_interfaces); }
-    bool GetActiveNetworkInterfacesValue() const { return static_cast<bool>(active_network_interfaces); }
+    bool GetActiveNetworkInterfacesValue() const { return active_network_interfaces.value; }
     bool IsGreetingSet() const { return !indeterminate(greeting); }
-    bool GetGreetingValue() const { return static_cast<bool>(greeting); }
+    bool GetGreetingValue() const { return greeting.value; }
     bool IsHeaderSet() const { return !indeterminate(header); }
-    bool GetHeaderValue() const { return static_cast<bool>(header); }
+    bool GetHeaderValue() const { return header.value; }
     bool IsSubHeaderSet() const { return !indeterminate(sub_header); }
-    bool GetSubHeaderValue() const { return static_cast<bool>(sub_header); }
+    bool GetSubHeaderValue() const { return sub_header.value; }
     bool IsQuoteSet() const { return !indeterminate(quote); }
-    bool GetQuoteValue() const { return static_cast<bool>(quote); }
+    bool GetQuoteValue() const { return quote.value; }
 };
 
 namespace AppOption {

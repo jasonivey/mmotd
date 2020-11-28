@@ -1,19 +1,15 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "lib/include/app_options.h"
-#include "lib/include/external_network.h"
-#include "lib/include/lastlog.h"
-#include "lib/include/network.h"
-#include "lib/include/posix_system_information.h"
-
 #include "view/include/computer_information_provider.h"
 #include "view/include/computer_information_provider_factory.h"
 
 #include "app/include/cli_app_options_creator.h"
 #include "app/include/color.h"
 #include "app/include/logging.h"
+#include "app/include/main.h"
 
 #include <boost/algorithm/string.hpp>
 #include <cstdlib>
+#include <fmt/color.h>
 #include <fmt/format.h>
 #include <iostream>
 
@@ -28,6 +24,23 @@ static const AppOptions *load_app_options(const int argc, char **argv) {
     return AppOptions::Initialize(*app_options_creator);
 }
 
+static void get_information(const AppOptions & /*app_options*/) {
+    auto name_style = fmt::fg(fmt::color::green);
+    auto information_style = fmt::fg(fmt::color::white) | fmt::emphasis::bold;
+    auto providers = mmotd::GetComputerInformationProviders();
+    fmt::print(name_style, "providers: ");
+    fmt::print(information_style, "{}\n", providers.size());
+    for (auto &&information_provider : mmotd::GetComputerInformationProviders()) {
+        const auto &name = information_provider->GetInformationName();
+        fmt::print(name_style, "{}: ", name);
+        auto information = information_provider->GetComputerInformation();
+        if (!information) {
+            PLOG_ERROR << format("trying to query {}", name);
+        }
+        fmt::print(information_style, "{}\n", information.value_or(string{"none"}));
+    }
+}
+
 int main(int argc, char *argv[]) {
     Logging::DefaultInitializeLogging();
 
@@ -36,35 +49,14 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    auto computer_information_providers = mmotd::GetComputerInformationProviders();
-    (void)computer_information_providers;
+    if (app_options->GetOptions().IsVerboseSet()) {
+        cout << format("verbosity is set to {}\n", app_options->GetOptions().GetVerbosityLevel());
+        Logging::UpdateSeverityFilter(app_options->GetOptions().GetVerbosityLevel());
+    } else {
+        cout << format("verbosity is set NOT to {}\n", app_options->GetOptions().GetVerbosityLevel());
+    }
 
-    auto system_information = PosixSystemInformation{};
-    if (!system_information.TryDiscovery()) {
-        color::PrintError("unable to query for system information\n");
-        return EXIT_FAILURE;
-    } else {
-        color::PrintInfo(format("system information:\n{}\n", to_string(system_information)));
-    }
-    auto last_log = LastLog{};
-    auto last_login_data = LastLoginData{};
-    if (!last_log.GetLastLoginRecord(last_login_data)) {
-        color::PrintError("unable to query for the last login record\n");
-        return EXIT_FAILURE;
-    }
-    auto network_info = NetworkInfo{};
-    if (!network_info.TryDiscovery()) {
-        color::PrintError("unable to query for IP and mac address\n");
-        return EXIT_FAILURE;
-    } else {
-        color::PrintInfo(format("network info::\n{}\n", to_string(network_info)));
-    }
-    auto external_network = ExternalNetwork{};
-    if (!external_network.TryDiscovery()) {
-        color::PrintError("unable to query for external IP address\n");
-        return EXIT_FAILURE;
-    } else {
-        color::PrintInfo(format("external ip: {}\n", to_string(external_network)));
-    }
+    get_information(*app_options);
+
     return EXIT_SUCCESS;
 }
