@@ -9,7 +9,6 @@
 #include <boost/beast/http/read.hpp>
 #include <boost/beast/http/string_body.hpp>
 #include <boost/beast/http/write.hpp>
-
 #include <boost/certify/extensions.hpp>
 #include <boost/certify/https_verification.hpp>
 

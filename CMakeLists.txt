@@ -17,8 +17,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set_property(GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
-include (common)
+include (target_common)
 
+add_subdirectory (common)
 add_subdirectory (view)
 add_subdirectory (lib)
 add_subdirectory (app)

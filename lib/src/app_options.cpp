@@ -2,7 +2,6 @@
 #include "lib/include/app_options.h"
 #include "lib/include/app_options_creator.h"
 
-#include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <iostream>
 #include <string_view>

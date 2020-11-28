@@ -4,7 +4,6 @@
 //#include <stdexcept>
 //#include <sys/utsname.h>
 
-//#include <boost/algorithm/string.hpp>
 #include <ostream>
 
 using namespace std;

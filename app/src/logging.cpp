@@ -23,16 +23,45 @@ template<typename... Args>
 inline void unused(Args &&...) {
 }
 
+plog::Severity gFileAppenderVerbosity = plog::verbose;
+plog::Severity gConsoleAppenderVerbosity = plog::warning;
+
 void Logging::DefaultInitializeLogging() {
     static auto file_appender = plog::RollingFileAppender<plog::TxtFormatter>("mmotd.log", 5 * 1048576, 3);
     static auto console_appender = plog::ColorConsoleAppender<plog::TxtFormatter>{};
-    plog::init(plog::verbose, &file_appender);
-    plog::init<CONSOLE_LOG>(plog::warning, &console_appender);
+    plog::init(gFileAppenderVerbosity, &file_appender);
+    plog::init<CONSOLE_LOG>(gConsoleAppenderVerbosity, &console_appender);
 }
 
 void Logging::InitializeLogging(const string & /*ini_file*/) {
     DefaultInitializeLogging();
 }
 
-void Logging::UpdateSeverityFilter(int /*verbosity*/) {
+static plog::Severity convert_verbosity(int verbosity) {
+    if (verbosity == 0) {
+        return plog::none;
+    }
+    if (static_cast<plog::Severity>(verbosity + 3) > plog::verbose) {
+        return plog::verbose;
+    } else {
+        return static_cast<plog::Severity>(verbosity + 3);
+    }
+}
+
+void Logging::UpdateSeverityFilter(int verbosity) {
+    plog::Severity new_severity = convert_verbosity(verbosity);
+    auto new_file_severity = std::max(new_severity, gFileAppenderVerbosity);
+    auto new_console_severity = std::max(new_severity, gConsoleAppenderVerbosity);
+    if (gFileAppenderVerbosity != new_file_severity) {
+        gFileAppenderVerbosity = new_file_severity;
+        auto *file_log = plog::get();
+        // cout << format("setting file log verbosity to {}\n", severityToString(gFileAppenderVerbosity));
+        file_log->setMaxSeverity(gFileAppenderVerbosity);
+    }
+    if (gConsoleAppenderVerbosity != new_console_severity) {
+        gConsoleAppenderVerbosity = new_console_severity;
+        auto *console_log = plog::get<CONSOLE_LOG>();
+        // cout << format("setting console log verbosity to {}\n", severityToString(gFileAppenderVerbosity));
+        console_log->setMaxSeverity(gConsoleAppenderVerbosity);
+    }
 }

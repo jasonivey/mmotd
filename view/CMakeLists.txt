@@ -32,7 +32,7 @@ add_library (
     src/users_count.cpp
     )
 
-include (common)
+include (target_common)
 
 get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
 
