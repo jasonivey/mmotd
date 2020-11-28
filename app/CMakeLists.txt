@@ -36,6 +36,7 @@ target_include_directories(
     PRIVATE ${fmt_SOURCE_DIR}/include
     PRIVATE ${plog_SOURCE_DIR}/include
     PRIVATE ${cli11_SOURCE_DIR}/include
+    PRIVATE ${scope_guard_SOURCE_DIR}
     )
 
 # This should include all sub-directory static libraries or shared libraries

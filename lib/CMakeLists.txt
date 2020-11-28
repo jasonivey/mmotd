@@ -36,6 +36,7 @@ target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
     PRIVATE ${OPENSSL_INCLUDE_DIR}
     PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${scope_guard_SOURCE_DIR}
     PRIVATE ${certify_SOURCE_DIR}/include
     PRIVATE ${fmt_SOURCE_DIR}/include
     PRIVATE ${plog_SOURCE_DIR}/include
