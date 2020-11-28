@@ -24,7 +24,6 @@ find_library(FWSecurity NAMES Security)
 include (common)
 
 get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
-message(STATUS "adding include directory: ${PROJECT_ROOT_INCLUDE_PATH}")
 
 target_include_directories(
     ${MMOTD_TARGET_NAME}
@@ -34,9 +33,10 @@ target_include_directories(
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
     PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${fmt_SOURCE_DIR}/include
+    PRIVATE ${plog_SOURCE_DIR}/include
+    PRIVATE ${cli11_SOURCE_DIR}/include
     PRIVATE ${scope_guard_SOURCE_DIR}
-    PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
-    PRIVATE ${CMAKE_SOURCE_DIR}/external/CLI11/include
     )
 
 # This should include all sub-directory static libraries or shared libraries
@@ -50,9 +50,7 @@ target_link_libraries(
     ${MMOTD_TARGET_NAME}
     PRIVATE ${FWCoreFoundation}
     PRIVATE ${FWSecurity}
-    PRIVATE fmt::fmt-header-only
     PRIVATE ${OPENSSL_CRYPTO_LIBRARY}
     PRIVATE ${OPENSSL_SSL_LIBRARY}
     PRIVATE ZLIB::ZLIB
     )
-
