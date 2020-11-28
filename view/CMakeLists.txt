@@ -44,7 +44,8 @@ target_include_directories(
 
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
-    PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
     PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${scope_guard_SOURCE_DIR}
+    PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
     )
 

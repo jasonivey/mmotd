@@ -33,9 +33,10 @@ target_include_directories(
 
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
+    PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${scope_guard_SOURCE_DIR}
     PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
     PRIVATE ${CMAKE_SOURCE_DIR}/external/CLI11/include
-    PRIVATE ${Boost_INCLUDE_DIRS}
     )
 
 # This should include all sub-directory static libraries or shared libraries

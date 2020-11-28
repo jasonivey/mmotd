@@ -39,3 +39,18 @@ if (GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
     endif ()
 endif ()
 
+include(FetchContent)
+
+FetchContent_Declare(
+    scope_guard
+    GIT_REPOSITORY  https://github.com/ricab/scope_guard.git
+    GIT_TAG         v0.2.3
+)
+
+FetchContent_GetProperties(scope_guard)
+if (NOT scope_guard_POPULATED)
+    FetchContent_Populate(scope_guard)
+    add_library(scope_guard INTERFACE)
+    target_include_directories(scope_guard INTERFACE ${scope_guard_SOURCE_DIR})
+endif ()
+
