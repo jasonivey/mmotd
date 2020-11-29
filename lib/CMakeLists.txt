@@ -19,6 +19,7 @@ add_library (
     src/http_request.cpp
     src/http_secure_request.cpp
     src/lastlog.cpp
+    src/load_average.cpp
     src/network.cpp
     src/posix_sysctl_information.cpp
     src/posix_system_information.cpp

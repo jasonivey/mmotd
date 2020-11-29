@@ -14,5 +14,5 @@ optional<string> mmotd::LastLogin::QueryInformation() {
 }
 
 string mmotd::LastLogin::GetName() const {
-    return "last-login";
+    return "last login";
 }

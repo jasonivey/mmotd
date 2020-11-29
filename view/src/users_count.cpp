@@ -14,5 +14,5 @@ optional<string> mmotd::UsersCount::QueryInformation() {
 }
 
 string mmotd::UsersCount::GetName() const {
-    return "users-count";
+    return "users count";
 }

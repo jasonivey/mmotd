@@ -14,5 +14,5 @@ optional<string> mmotd::DiskUsage::QueryInformation() {
 }
 
 string mmotd::DiskUsage::GetName() const {
-    return "disk-usage";
+    return "disk usage";
 }

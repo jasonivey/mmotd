@@ -14,5 +14,5 @@ optional<string> mmotd::UnreadMail::QueryInformation() {
 }
 
 string mmotd::UnreadMail::GetName() const {
-    return "unread-mail";
+    return "unread mail";
 }

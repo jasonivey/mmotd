@@ -14,5 +14,5 @@ optional<string> mmotd::SwapUsage::QueryInformation() {
 }
 
 string mmotd::SwapUsage::GetName() const {
-    return "swap-usage";
+    return "swap usage";
 }

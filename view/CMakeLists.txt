@@ -14,9 +14,9 @@ add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/active_network_interfaces.cpp
     src/computer_information_provider.cpp
+    src/computer_information_provider_factory.cpp
     src/computer_name.cpp
     src/disk_usage.cpp
-    src/computer_information_provider_factory.cpp
     src/greeting.cpp
     src/header.cpp
     src/host_name.cpp

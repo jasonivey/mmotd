@@ -14,5 +14,5 @@ optional<string> mmotd::RandomQuote::QueryInformation() {
 }
 
 string mmotd::RandomQuote::GetName() const {
-    return "random-quote";
+    return "random quote";
 }

@@ -73,6 +73,10 @@ bool ForceLinkOptionalProviders() {
     extern bool gLinkExternalNetwork;
     gLinkExternalNetwork = true;
 #endif
+#if !defined(OMIT_LINK_LOAD_AVERAGE_INFO)
+    extern bool gLinkLoadAverage;
+    gLinkLoadAverage = true;
+#endif
 #if !defined(OMIT_LINK_LAST_LOG_INFO)
     extern bool gLinkLastLog;
     gLinkLastLog = true;

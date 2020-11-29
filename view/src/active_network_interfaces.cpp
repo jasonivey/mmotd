@@ -58,5 +58,5 @@ optional<string> mmotd::ActiveNetworkInterfaces::QueryInformation() {
 }
 
 string mmotd::ActiveNetworkInterfaces::GetName() const {
-    return "active-network-interfaces";
+    return "active network interfaces";
 }

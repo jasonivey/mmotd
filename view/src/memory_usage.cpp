@@ -14,5 +14,5 @@ optional<string> mmotd::MemoryUsage::QueryInformation() {
 }
 
 string mmotd::MemoryUsage::GetName() const {
-    return "memory-usage";
+    return "memory usage";
 }
