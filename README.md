@@ -17,31 +17,3 @@ I ran profilers on the code and found a number of bottle necks which I could and
 After deliberating my options for a few seconds I hastily decided that it would be a good exercise to start from scratch.
 
 Hence, `modified message of the day` or `mmotd`
-
-### Build
-
-`mmotd` is using `CMake` for building and testing. Following these few steps will get you up and running.
-
-Since this project is still in its infancy I'm going to forego all the detailed environment setup steps (i.e. If on `macOS`, install the latest XCode along with Command Line Tools, Install brew, run `brew install cmake, llvm, git, fmt`, etc.). Just know that you need a development environment which has:
-
-*   recent version `g++`or `clang++`
-*   `boost`
-*   `fmt`
-*   `<instert-logging-library-here>`
-*   `<probably-gtest>`
-
-Then follow these instructions:
-
-1. Clone the repository
-	1. `git clone https://github.com/jasonivey/mmotd.git`
-	1. Change directory into the repo, `cd mmotd`
-1. Building the source
-	1. `mkdir build && cd build`
-	1. `cmake ..`
-	1. `make`
-1. Assuming all of the above commands succeeded then the `mmotd` binary should be ready to execute from the root of the build directory.
-
-### Testing
-
-This needs to be fleshed out more.  I need to add a `unit test` framework but also some type of **real world** platform testing where the code can exercise on real/virtualized hardware.
-
