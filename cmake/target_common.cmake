@@ -1,7 +1,7 @@
 # cmake/common.cmake
 include_guard (DIRECTORY)
 
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.8)
 
 include (find_dependencies)
 
@@ -37,3 +37,4 @@ endif ()
 
 message(STATUS "adding the fmtlib/fmt library as header only in ${MMOTD_TARGET_NAME}")
 add_definitions(-DFMT_HEADER_ONLY=1)
+add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)

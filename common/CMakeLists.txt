@@ -1,5 +1,5 @@
 # mmotd/common/CMakeLists.txt
-cmake_minimum_required (VERSION 3.18)
+cmake_minimum_required (VERSION 3.8)
 
 # update the module path so the include directive finds the module correctly
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)

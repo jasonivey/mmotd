@@ -1,7 +1,7 @@
 # cmake/find_dependencies.cmake
 include_guard (DIRECTORY)
 
-cmake_minimum_required (VERSION 3.10)
+cmake_minimum_required (VERSION 3.8)
 
 set (CMAKE_WARN_DEPRECATED FALSE CACHE BOOL "Whether to issue warnings for deprecated functionality." FORCE)
 

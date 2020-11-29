@@ -1,7 +1,7 @@
 # cmake/pre-project.cmake
 include_guard (DIRECTORY)
 
-cmake_minimum_required (VERSION 3.18)
+cmake_minimum_required (VERSION 3.8)
 
 # The following was an attempt to disable the automagic adding of
 #  --isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk
