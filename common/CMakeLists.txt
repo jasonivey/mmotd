@@ -12,7 +12,7 @@ project (mmotd_common)
 
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
-    src/ScopeGuard.cpp
+    src/chrono-io.cpp
     )
 
 include (target_common)
@@ -27,6 +27,8 @@ target_include_directories(
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
     PRIVATE ${Boost_INCLUDE_DIRS}
-    PRIVATE ${CMAKE_SOURCE_DIR}/external/plog/include
+    PRIVATE ${scope_guard_SOURCE_DIR}
+    PRIVATE ${fmt_SOURCE_DIR}/include
+    PRIVATE ${plog_SOURCE_DIR}/include
     )
 
