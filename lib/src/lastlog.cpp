@@ -4,10 +4,13 @@
 
 #include <array>
 #include <cassert>
+#include <chrono>
 #include <ctime>
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <plog/Log.h>
 #include <pwd.h>
+#include <scope_guard.hpp>
 #include <string.h>
 #include <string>
 #include <unistd.h>
@@ -77,6 +80,14 @@ namespace detail {
 //     return UserLoginLogoutTransaction{user, id, tty, pid, type, seconds, useconds, host};
 // }
 
+using time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::microseconds>;
+
+time_point shift_epoch(std::chrono::seconds seconds, std::chrono::microseconds microseconds) {
+    auto st = std::chrono::system_clock::from_time_t(static_cast<time_t>(seconds.count()));
+    st += microseconds;
+    PLOG_ERROR << format("login time: {}", to_string(st));
+}
+
 mmotd::ComputerValues ParseLastLogin(const struct lastlogx *login_record, pid_t user_id, const string &user_name) {
     assert(login_record != nullptr);
     time_t seconds = login_record->ll_tv.tv_sec;
@@ -85,12 +96,12 @@ mmotd::ComputerValues ParseLastLogin(const struct lastlogx *login_record, pid_t 
     auto host_name = string{strlen(login_record->ll_host) > 0 ? login_record->ll_host : ""};
 
     auto computer_values = mmotd::ComputerValues{};
-    computer_values.emplace_back(make_tuple("login seconds", to_string(seconds)));
-    computer_values.emplace_back(make_tuple("login useconds", to_string(useconds)));
-    computer_values.emplace_back(make_tuple("login terminal name", tty_name));
-    computer_values.emplace_back(make_tuple("login host name", host_name));
-    computer_values.emplace_back(make_tuple("login user id", to_string(user_id)));
-    computer_values.emplace_back(make_tuple("login user name", user_name));
+    computer_values.emplace_back(make_tuple("last login", format("seconds: {}", seconds)));
+    computer_values.emplace_back(make_tuple("last login", format("useconds: {}", useconds)));
+    computer_values.emplace_back(make_tuple("last login", format("terminal name: {}", tty_name)));
+    computer_values.emplace_back(make_tuple("last login", format("host name: {}", host_name)));
+    computer_values.emplace_back(make_tuple("last login", format("user id: {}", user_id)));
+    computer_values.emplace_back(make_tuple("last login", format("user name: {}", user_name)));
     return computer_values;
 }
 
@@ -193,21 +204,14 @@ bool LastLog::GetNextRecord(UserLoginLogoutTransaction &) {
 
 optional<tuple<string, uint32_t>> LastLog::GetUsername() {
     uid_t uid = geteuid();
-    // struct passwd *pw = getpwuid(uid);
-    // if (pw == nullptr) {
-    //     PLOG_ERROR << format("getpwuid failed to return a user name with uid: {}", uid);
-    //     return nullopt;
-    // }
-    // auto user_name = std::string{pw->pw_name};
-
-    auto sysconf_retval = sysconf(_SC_GETPW_R_SIZE_MAX);
-    // if retval == -1 it means the value was indeterminate, in that case 16K should be more than enough
-    size_t buf_size = sysconf_retval == -1 ? (16 * 1024) : static_cast<size_t>(sysconf_retval);
+    auto suggested_buf_size = sysconf(_SC_GETPW_R_SIZE_MAX);
+    size_t buf_size = suggested_buf_size == -1 ? (16 * 1024) : static_cast<size_t>(suggested_buf_size);
     char *buf = reinterpret_cast<char *>(malloc(buf_size));
     if (buf == NULL) {
         PLOG_ERROR << format("malloc failed to allocate {} bytes to get user name", buf_size);
         return nullopt;
     }
+    auto buf_deleter = sg::make_scope_guard([&buf]() { free(buf); });
     memset(buf, 0, buf_size);
     struct passwd pwd;
     struct passwd *result = nullptr;
@@ -229,25 +233,24 @@ optional<tuple<string, uint32_t>> LastLog::GetUsername() {
         return nullopt;
     }
     auto user_name = string{result->pw_name, result->pw_name + strlen(result->pw_name)};
-    free(buf);
     PLOG_INFO << format("found user: {}, with uid: {}", user_name, uid);
     return make_optional(make_tuple(user_name, uid));
 }
 
 bool LastLog::GetLastLoginRecord() {
-    auto user_info = GetUsername();
-    if (!user_info) {
+    auto user_info_wrapper = GetUsername();
+    if (!user_info_wrapper) {
         PLOG_ERROR << "unable to find user id and name";
         return false;
     }
-    auto [user_name, user_id] = *user_info;
+    auto [user_name, user_id] = *user_info_wrapper;
     struct lastlogx *login_record = getlastlogxbyname(user_name.c_str(), nullptr);
     if (login_record == nullptr) {
         PLOG_ERROR << format("getlastlogxbyname did not return a record for user: {}", user_name);
         return false;
     }
+    auto login_record_deleter = sg::make_scope_guard([&login_record]() { free(login_record); });
     auto login_details = detail::ParseLastLogin(login_record, user_id, user_name);
-    free(login_record);
     last_login_details_ = login_details;
     return true;
 }

@@ -34,15 +34,15 @@ ComputerInformation &ComputerInformation::Instance() {
 }
 
 void ComputerInformation::SetInformationProviders() {
-    static bool already_done = false;
-    if (already_done) {
+    static bool has_created = false;
+    if (has_created) {
         return;
     }
     auto &creators = detail::GetInformationProviderCreators();
     information_providers_ = InformationProviders(creators.size());
     transform(begin(creators), end(creators), begin(information_providers_), [](auto &creator) { return creator(); });
     PLOG_INFO << fmt::format("created {} information providers", information_providers_.size());
-    already_done = true;
+    has_created = true;
 }
 
 bool RegisterInformationProvider(InformationProviderCreator creator) {
