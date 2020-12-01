@@ -10,6 +10,10 @@ set (MMOTD_TARGET_NAME mmotd_common)
 
 project (mmotd_common)
 
+#add_definitions(-DINSTALL=${CMAKE_BINARY_DIR})
+#add_definitions(-DHAS_REMOTE_API=1)
+#add_definitions(-DAUTO_DOWNLOAD=1)
+
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/chrono-io.cpp

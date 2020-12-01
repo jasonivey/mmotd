@@ -6,7 +6,6 @@
 
 namespace mmotd { namespace chrono { namespace io {
 
-std::string to_string(std::chrono::system_clock system_clock, std::string_view chrono_format);
+std::string to_string(std::chrono::system_clock::time_point time_point, std::string_view chrono_format);
 
 }}} // namespace mmotd::chrono::io
-

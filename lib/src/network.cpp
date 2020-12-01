@@ -95,31 +95,6 @@ string MacAddress::to_string() const {
                   static_cast<uint32_t>(data_[5]));
 }
 
-// string NetworkInfo::to_string() const {
-//     return ::to_string(network_devices_);
-// }
-
-// string NetworkDevice::to_string() const {
-//     string str;
-//     const auto spaces = string(fmt::formatted_size("{}", interface_name), ' ');
-//     if (mac_address) {
-//         str += format("{} : {}\n", spaces, mac_address.to_string());
-//     } else {
-//         str += format("{} : no mac address\n", spaces);
-//     }
-//     if (ip_addresses.empty()) {
-//         str += format("{} : no ip address\n", spaces);
-//     } else {
-//         for (auto i = size_t{0}; i < ip_addresses.size(); ++i) {
-//             str += format("{} : {} {}\n",
-//                           spaces,
-//                           ip_addresses[i].to_string(),
-//                           ip_addresses[i].is_v4() ? "(ipv4)" : "(ipv6)");
-//         }
-//     }
-//     return str;
-// }
-
 bool NetworkInfo::TryDiscovery() {
     auto devices = DiscoverNetworkDevices();
     if (!devices) {
@@ -157,20 +132,7 @@ std::optional<mmotd::ComputerValues> NetworkInfo::GetInformation() const {
 
 #if defined(__linux__)
 
-// bool get_mac_address(char* mac_addr, const char* if_name = "eth0")
 static optional<NetworkDevices> DiscoverNetworkDevices() {
-    // struct ifreq ifinfo;
-    // strcpy(ifinfo.ifr_name, if_name);
-    // int sd = socket(AF_INET, SOCK_DGRAM, 0);
-    // int result = ioctl(sd, SIOCGIFHWADDR, &ifinfo);
-    // close(sd);
-
-    // if ((result == 0) && (ifinfo.ifr_hwaddr.sa_family == 1)) {
-    //    memcpy(mac_addr, ifinfo.ifr_hwaddr.sa_data, IFHWADDRLEN);
-    //    return true;
-    //} else {
-    //    return false;
-    //}
     return nullopt;
 }
 
@@ -180,7 +142,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
     struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
         PLOG_ERROR << format("getifaddrs failed, errno: {}", errno);
-        return optional<NetworkDevices>{};
+        return nullopt;
     }
     auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() { freeifaddrs(addrs); });
 
@@ -286,61 +248,3 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
 #endif
 
 } // namespace mmotd
-
-// string to_string(const mmotd::NetworkDevices &network_devices) {
-//     auto str = string{};
-//     auto i = size_t{0};
-//     for (const auto &[interface_name, network_device] : network_devices) {
-//         str += format("{:2}. {}\n{}\n", i++, interface_name, to_string(network_device));
-//     }
-//     return str;
-// }
-
-// string to_string(const mmotd::IpAddresses &ip_addresses) {
-//     auto str = string{};
-//     for (const auto &ip_address : ip_addresses) {
-//         str += ip_address.to_string();
-//     }
-//     str.resize(str.size() - 1);
-//     return str;
-// }
-
-// ostream &operator<<(ostream &out, const mmotd::NetworkInfo &network_info) {
-//     out << network_info.network_devices_ << "\n";
-//     return out;
-// }
-
-// ostream &operator<<(ostream &out, const mmotd::NetworkDevices &network_devices) {
-//     for (const auto &[interface_name, network_device] : network_devices) {
-//         out << interface_name << "\n" << network_device << "\n";
-//     }
-//     return out;
-// }
-
-// ostream &operator<<(ostream &out, const mmotd::NetworkDevice &network_device) {
-//     out << "  interface    : " << network_device.interface_name << "\n";
-//     out << "  mac address  : " << network_device.mac_address << "\n";
-//     out << "  ip addresses : " << network_device.ip_addresses << "\n";
-//     return out;
-// }
-
-// ostream &operator<<(ostream &out, const mmotd::IpAddresses &ip_addresses) {
-//     if (ip_addresses.empty()) {
-//         out << "\n";
-//     }
-//     for (auto i = size_t{1}; i < ip_addresses.size(); ++i) {
-//         if (i == 1) {
-//             out << ip_addresses[i] << "\n";
-//         } else if (i + 1 == ip_addresses.size()) {
-//             out << format("               : {}\n", ip_addresses[i].to_string());
-//         } else {
-//             out << format("               : {}\n", ip_addresses[i].to_string());
-//         }
-//     }
-//     return out;
-// }
-
-// ostream &operator<<(ostream &out, const mmotd::MacAddress &mac_address) {
-//     out << to_string(mac_address) << "\n";
-//     return out;
-// }
