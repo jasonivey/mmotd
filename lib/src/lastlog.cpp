@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/chrono-io.h"
+#include "common/include/chrono_io.h"
 #include "common/include/platform_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/lastlog.h"
