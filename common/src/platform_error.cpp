@@ -2,9 +2,10 @@
 #include "common/include/platform_error.h"
 
 #include <cstdio>
+#include <vector>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
-#include <vector>
 
 using namespace std;
 using fmt::format;

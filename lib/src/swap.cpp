@@ -4,12 +4,13 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/swap.h"
 
-#include <sys/sysctl.h>
+#include <unordered_map>
 
 #include <fmt/format.h>
 #include <plog/Log.h>
 #include <scope_guard.hpp>
-#include <unordered_map>
+
+#include <sys/sysctl.h>
 
 using fmt::format;
 using namespace std;

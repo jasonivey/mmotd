@@ -4,9 +4,10 @@
 #include "view/include/last_login.h"
 
 #include <array>
+#include <string>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
-#include <string>
 
 using fmt::format;
 using namespace std;

@@ -2,10 +2,11 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/users_logged_in.h"
 
+#include <unordered_map>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
 #include <scope_guard.hpp>
-#include <unordered_map>
 
 #include <utmpx.h>
 

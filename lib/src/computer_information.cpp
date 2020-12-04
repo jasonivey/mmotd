@@ -4,8 +4,9 @@
 #include "lib/include/information_provider.h"
 
 #include <algorithm>
-#include <fmt/format.h>
 #include <iterator>
+
+#include <fmt/format.h>
 #include <plog/Log.h>
 
 using namespace std;

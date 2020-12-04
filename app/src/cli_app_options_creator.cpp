@@ -3,17 +3,18 @@
 #include "app/include/logging.h"
 #include "lib/include/app_options.h"
 
-#include <CLI/CLI.hpp>
 #include <algorithm>
 #include <any>
 #include <filesystem>
-#include <fmt/format.h>
 #include <fstream>
 #include <functional>
 #include <iterator>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
+
+#include <CLI/CLI.hpp>
+#include <fmt/format.h>
 
 using namespace std;
 using fmt::format;

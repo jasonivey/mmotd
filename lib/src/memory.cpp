@@ -4,14 +4,14 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/memory.h"
 
+#include <fmt/format.h>
+#include <plog/Log.h>
+#include <scope_guard.hpp>
+
 #include <mach/mach.h>
 #include <mach/mach_types.h>
 #include <mach/vm_statistics.h>
 #include <sys/sysctl.h>
-
-#include <fmt/format.h>
-#include <plog/Log.h>
-#include <scope_guard.hpp>
 
 using fmt::format;
 using namespace std;

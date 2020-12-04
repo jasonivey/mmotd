@@ -1,19 +1,19 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "view/include/computer_information_provider.h"
-#include "view/include/computer_information_provider_factory.h"
-
 #include "app/include/cli_app_options_creator.h"
 #include "app/include/color.h"
 #include "app/include/logging.h"
 #include "app/include/main.h"
+#include "view/include/computer_information_provider.h"
+#include "view/include/computer_information_provider_factory.h"
+
+#include <cstdlib>
+#include <iostream>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception_ptr.hpp>
-#include <cstdlib>
 #include <fmt/color.h>
 #include <fmt/format.h>
-#include <iostream>
 
 using fmt::format;
 using namespace std;

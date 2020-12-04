@@ -8,12 +8,14 @@
 #include <cassert>
 #include <chrono>
 #include <ctime>
+#include <string>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
-#include <pwd.h>
 #include <scope_guard.hpp>
+
+#include <pwd.h>
 #include <string.h>
-#include <string>
 #include <unistd.h>
 #include <utmpx.h>
 

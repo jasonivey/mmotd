@@ -3,11 +3,12 @@
 #include "lib/include/information_provider.h"
 
 #include <array>
-#include <boost/asio/ip/address.hpp>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <boost/asio/ip/address.hpp>
 
 namespace mmotd {
 

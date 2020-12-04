@@ -1,6 +1,9 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "lib/include/http_request.h"
 
+#include <cstdlib>
+#include <string>
+
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/beast/core.hpp>
@@ -9,10 +12,8 @@
 #include <boost/beast/version.hpp>
 #include <boost/exception/all.hpp>
 #include <boost/system/error_code.hpp>
-#include <cstdlib>
 #include <fmt/format.h>
 #include <plog/Log.h>
-#include <string>
 
 namespace beast = boost::beast; // from <boost/beast.hpp>
 namespace http = beast::http;   // from <boost/beast/http.hpp>

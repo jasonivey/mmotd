@@ -6,10 +6,11 @@
 #include <ctime>
 #include <optional>
 
-#include <sys/sysctl.h>
-
 #include <fmt/format.h>
 #include <plog/Log.h>
+
+#include <sys/sysctl.h>
+#include <time.h>
 
 using fmt::format;
 using namespace std;
