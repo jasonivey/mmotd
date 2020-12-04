@@ -19,15 +19,21 @@ optional<string> mmotd::SystemLoad::QueryInformation() {
     if (!load_average_wrapper) {
         PLOG_INFO << "unable to find load average";
         return nullopt;
-    } else if ((*load_average_wrapper).size() != 1) {
-        PLOG_INFO << format("found load average but there were {} values returned", (*load_average_wrapper).size());
-        return nullopt;
-    } else if ((*load_average_wrapper).front().empty()) {
-        PLOG_ERROR << "the load average was returned but it was empty";
-        return nullopt;
     }
-    auto value = (*load_average_wrapper).front();
-    return make_optional(value);
+    // } else if ((*load_average_wrapper).size() != 1) {
+    //     PLOG_INFO << format("found load average but there were {} values returned", (*load_average_wrapper).size());
+    //     return nullopt;
+    // } else if ((*load_average_wrapper).front().empty()) {
+    //     PLOG_ERROR << "the load average was returned but it was empty";
+    //     return nullopt;
+    // }
+    // auto value = (*load_average_wrapper).front();
+    auto values = (*load_average_wrapper);
+    auto combined_value = string{};
+    for (auto value : values) {
+        combined_value += format("{}{}", combined_value.empty() ? "" : ", ", value);
+    }
+    return make_optional(combined_value);
 }
 
 string mmotd::SystemLoad::GetName() const {

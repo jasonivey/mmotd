@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono-io.h"
+#include "common/include/platform_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/lastlog.h"
 
@@ -7,7 +8,6 @@
 #include <cassert>
 #include <chrono>
 #include <ctime>
-#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <plog/Log.h>
 #include <pwd.h>
@@ -29,24 +29,27 @@ static const bool last_log_information_factory_registered =
 
 namespace detail {
 
-mmotd::ComputerValues ParseLastLogin(const struct lastlogx *login_record, pid_t user_id, const string &user_name) {
-    assert(login_record != nullptr);
-    time_t seconds = login_record->ll_tv.tv_sec;
-    int32_t useconds = login_record->ll_tv.tv_usec;
-    auto tty_name = string{strlen(login_record->ll_line) > 0 ? login_record->ll_line : ""};
-    auto host_name = string{strlen(login_record->ll_host) > 0 ? login_record->ll_host : ""};
+mmotd::ComputerValues ParseLastLogin(const struct lastlogx &login_record, pid_t /*user_id*/, const string &user_name) {
+    time_t seconds = login_record.ll_tv.tv_sec;
+    auto terminal = string{strlen(login_record.ll_line) > 0 ? login_record.ll_line : ""};
+    auto host_name = string{strlen(login_record.ll_host) > 0 ? login_record.ll_host : ""};
+
+    auto last_log_str = format("{} logged into {}", user_name, terminal);
+    if (!host_name.empty()) {
+        last_log_str += format(" from {}", host_name);
+    }
+    auto time_point = std::chrono::system_clock::from_time_t(seconds);
+    auto login_str = format("Log in: {}", mmotd::chrono::io::to_string(time_point, "{:%d-%h-%Y %I:%M:%S%p %Z}"));
+    auto logout_str = string{"Log out: still logged in"};
+
+    PLOG_INFO << format("last login: {}", last_log_str);
+    PLOG_INFO << format("last login: {}", login_str);
+    PLOG_INFO << format("last login: {}", logout_str);
 
     auto computer_values = mmotd::ComputerValues{};
-    auto local_time = fmt::localtime(seconds);
-    auto local_time_str = format("{:%d-%h-%Y %I:%M:%S%p %Z}", local_time);
-    PLOG_INFO << format("login time: {}", local_time_str);
-    computer_values.emplace_back(make_tuple("last login", format("seconds: {}", seconds)));
-    computer_values.emplace_back(make_tuple("last login", format("useconds: {}", useconds)));
-    computer_values.emplace_back(make_tuple("last login", format("time: {}", local_time_str)));
-    computer_values.emplace_back(make_tuple("last login", format("terminal name: {}", tty_name)));
-    computer_values.emplace_back(make_tuple("last login", format("host name: {}", host_name)));
-    computer_values.emplace_back(make_tuple("last login", format("user id: {}", user_id)));
-    computer_values.emplace_back(make_tuple("last login", format("user name: {}", user_name)));
+    computer_values.emplace_back(make_tuple("last login", last_log_str));
+    computer_values.emplace_back(make_tuple("last login", login_str));
+    computer_values.emplace_back(make_tuple("last login", logout_str));
     return computer_values;
 }
 
@@ -80,13 +83,8 @@ optional<tuple<string, uint32_t>> LastLog::GetUsername() {
     struct passwd *result = nullptr;
     int retval = getpwuid_r(uid, &pwd, buf, buf_size, &result);
     if (retval != 0) {
-        auto error_buf = array<char, 256>{};
-        if (strerror_r(retval, error_buf.data(), error_buf.size()) == 0) {
-            auto error_str = string{error_buf.begin(), error_buf.end()};
-            PLOG_ERROR << format("getpwuid_r failed uid: {}, details: {}", uid, error_str);
-        } else {
-            PLOG_ERROR << format("getpwuid_r failed uid: {}, details: {}", uid);
-        }
+        auto error_str = mmotd::platform::error::to_string(errno);
+        PLOG_ERROR << format("getpwuid_r failed uid: {}, details: {}", uid, error_str);
         return nullopt;
     } else if (result == nullptr) {
         PLOG_ERROR << format("getpwuid_r failed to find a user with uid: {}", uid);
@@ -113,7 +111,7 @@ bool LastLog::GetLastLoginRecord() {
         return false;
     }
     auto login_record_deleter = sg::make_scope_guard([&login_record]() { free(login_record); });
-    auto login_details = detail::ParseLastLogin(login_record, user_id, user_name);
+    auto login_details = detail::ParseLastLogin(*login_record, user_id, user_name);
     last_login_details_ = login_details;
     return true;
 }

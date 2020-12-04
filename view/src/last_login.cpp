@@ -3,8 +3,10 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/last_login.h"
 
+#include <array>
 #include <fmt/format.h>
 #include <plog/Log.h>
+#include <string>
 
 using fmt::format;
 using namespace std;
@@ -21,11 +23,23 @@ optional<string> mmotd::LastLogin::QueryInformation() {
         return nullopt;
     }
     auto last_login_values = last_login_wrapper.value();
-    auto combined_value = string{};
+    PLOG_INFO << format("last login returned {} items", last_login_values.size());
+    auto values = std::array<string, 3>{};
     for (auto value : last_login_values) {
-        combined_value += combined_value.empty() ? value : format(", {}", value);
+        PLOG_INFO << format("last login item: {}", value);
+        if (value.find("Log in: ") == 0) {
+            values[1].assign(value);
+        } else if (value.find("Log out: ") == 0) {
+            values[2].assign(value);
+        } else {
+            values[0].assign(value);
+        }
     }
-    return make_optional(combined_value);
+    auto combined_value = string{};
+    for (auto value : values) {
+        combined_value += value + ", ";
+    }
+    return make_optional(combined_value.substr(0, combined_value.size() - 2));
 }
 
 string mmotd::LastLogin::GetName() const {

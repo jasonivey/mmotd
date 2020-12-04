@@ -89,7 +89,22 @@ bool ForceLinkOptionalProviders() {
     extern bool gLinkPosixSystemInformation;
     gLinkPosixSystemInformation = true;
 #endif
-
+#if !defined(OMIT_LINK_FILE_SYSTEM)
+    extern bool gLinkFileSystem;
+    gLinkFileSystem = true;
+#endif
+#if !defined(OMIT_LINK_MEMORY_USAGE)
+    extern bool gLinkMemoryUsage;
+    gLinkMemoryUsage = true;
+#endif
+#if !defined(OMIT_LINK_USERS_LOGGED_IN)
+    extern bool gLinkUsersLoggedIn;
+    gLinkUsersLoggedIn = true;
+#endif
+#if !defined(OMIT_LINK_SWAP_USAGE)
+    extern bool gLinkSwapUsage;
+    gLinkSwapUsage = true;
+#endif
     return true;
 }
 

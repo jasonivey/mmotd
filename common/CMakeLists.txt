@@ -17,6 +17,8 @@ project (mmotd_common)
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/chrono-io.cpp
+    src/human_size.cpp
+    src/platform_error.cpp
     )
 
 include (target_common)

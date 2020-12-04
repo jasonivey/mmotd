@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/platform_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/network.h"
 
@@ -35,7 +36,7 @@ namespace mmotd {
 static const bool network_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::NetworkInfo>(); });
 
-static optional<NetworkDevices> DiscoverNetworkDevices();
+static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &ip_address);
 
 MacAddress::MacAddress(const uint8_t *buffer, size_t buffer_size) {
     if (buffer_size != MAC_ADDRESS_SIZE) {
@@ -96,7 +97,13 @@ string MacAddress::to_string() const {
 }
 
 bool NetworkInfo::TryDiscovery() {
-    auto devices = DiscoverNetworkDevices();
+    auto active_ip_address_wrapper = GetActiveInterface();
+    if (!active_ip_address_wrapper) {
+        PLOG_INFO << "unable to find active ip address";
+    }
+    auto active_ip_address = active_ip_address_wrapper.value_or(IpAddress{});
+
+    auto devices = DiscoverNetworkDevices(active_ip_address);
     if (!devices) {
         PLOG_INFO << "no network devices were discovered";
         return false;
@@ -105,7 +112,6 @@ bool NetworkInfo::TryDiscovery() {
     auto network_information = ComputerValues{};
     for (auto [key, value] : *devices) {
         assert(key == value.interface_name);
-        // make_tuple("network info", "$^$");
         network_information.push_back(
             // ☞ WHITE RIGHT POINTING INDEX, Unicode: U+261E, UTF-8: E2 98 9E
             make_tuple("network info", format("{}☞{}", key, value.mac_address.to_string())));
@@ -132,13 +138,13 @@ std::optional<mmotd::ComputerValues> NetworkInfo::GetInformation() const {
 
 #if defined(__linux__)
 
-static optional<NetworkDevices> DiscoverNetworkDevices() {
+static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &ip_address) {
     return nullopt;
 }
 
 #elif defined(__APPLE__)
 
-static optional<NetworkDevices> DiscoverNetworkDevices() {
+static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &active_ip_address) {
     struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
         PLOG_ERROR << format("getifaddrs failed, errno: {}", errno);
@@ -222,7 +228,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
     copy_if(begin(network_devices),
             end(network_devices),
             inserter(cleaned_network_devices, cleaned_network_devices.begin()),
-            [](const auto &device) {
+            [active_ip_address](const auto &device) {
                 const auto &network_device = device.second;
                 if (network_device.interface_name.empty()) {
                     return false;
@@ -231,10 +237,20 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
                 } else if (network_device.ip_addresses.empty()) {
                     return false;
                 } else {
-                    for (const auto &ip_address : network_device.ip_addresses) {
-                        if (ip_address.is_unspecified() || ip_address.is_loopback()) {
+                    if (!active_ip_address.is_unspecified()) {
+                        auto i = find(begin(network_device.ip_addresses),
+                                      end(network_device.ip_addresses),
+                                      active_ip_address);
+                        if (i == end(network_device.ip_addresses)) {
                             return false;
                         }
+                    }
+                    auto i = find_if(
+                        begin(network_device.ip_addresses),
+                        end(network_device.ip_addresses),
+                        [](const auto &ip_address) { return ip_address.is_unspecified() || ip_address.is_loopback(); });
+                    if (i != end(network_device.ip_addresses)) {
+                        return false;
                     }
                 }
                 return true;
@@ -243,8 +259,55 @@ static optional<NetworkDevices> DiscoverNetworkDevices() {
 }
 #else
 
-#    error no definition for DiscoverNetworkDevices() on this platform!
+#    error no definition for DiscoverNetworkDevices(const IpAddress &ip_address) on this platform!
 
 #endif
+
+optional<IpAddress> NetworkInfo::GetActiveInterface() {
+    auto sock = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sock == -1) {
+        PLOG_ERROR << "unable to open AF_INET SOCK_DGRAM socket";
+        return nullopt;
+    }
+    auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
+
+    constexpr const char *GOOGLE_DNS_IP = "8.8.8.8";
+    constexpr const uint16_t DNS_PORT = 53;
+    auto serv = sockaddr_in{};
+    memset(&serv, 0, sizeof(serv));
+    serv.sin_family = AF_INET;
+    serv.sin_addr.s_addr = inet_addr(GOOGLE_DNS_IP);
+    serv.sin_port = htons(DNS_PORT);
+
+    auto retval = connect(sock, reinterpret_cast<const sockaddr *>(&serv), sizeof(serv));
+    if (retval == -1) {
+        PLOG_ERROR << format("connect failed to {} on port {}", GOOGLE_DNS_IP, DNS_PORT);
+        return nullopt;
+    }
+
+    auto name = sockaddr_in{};
+    socklen_t namelen = sizeof(name);
+    retval = getsockname(sock, reinterpret_cast<sockaddr *>(&name), &namelen);
+    if (retval == -1) {
+        PLOG_ERROR << format("getsockname failed after connecting to {} on port {}", GOOGLE_DNS_IP, DNS_PORT);
+        return nullopt;
+    }
+
+    auto buffer = vector<char>(64);
+    const char *address_str = inet_ntop(AF_INET, &name.sin_addr, buffer.data(), buffer.size());
+    if (address_str == nullptr) {
+        PLOG_ERROR << format("inet_ntop failed after connecting to {} on port {}, details: {}",
+                             GOOGLE_DNS_IP,
+                             DNS_PORT,
+                             mmotd::platform::error::to_string(errno));
+        return nullopt;
+    }
+    PLOG_INFO << format("found active interface {} by connecting to {} on port {}",
+                        address_str,
+                        GOOGLE_DNS_IP,
+                        DNS_PORT);
+    auto ip_address = make_address(address_str);
+    return make_optional(ip_address);
+}
 
 } // namespace mmotd

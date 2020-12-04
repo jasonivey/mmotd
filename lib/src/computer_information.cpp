@@ -9,6 +9,7 @@
 #include <plog/Log.h>
 
 using namespace std;
+using fmt::format;
 using mmotd::algorithms::transform_if;
 
 namespace mmotd {
@@ -41,7 +42,7 @@ void ComputerInformation::SetInformationProviders() {
     auto &creators = detail::GetInformationProviderCreators();
     information_providers_ = InformationProviders(creators.size());
     transform(begin(creators), end(creators), begin(information_providers_), [](auto &creator) { return creator(); });
-    PLOG_INFO << fmt::format("created {} information providers", information_providers_.size());
+    PLOG_INFO << format("created {} information providers", information_providers_.size());
     has_created = true;
 }
 
@@ -79,18 +80,17 @@ bool ComputerInformation::IsInformationCached() const {
 void ComputerInformation::CacheAllInformation() const {
     for (auto &&provider : information_providers_) {
         if (!provider->QueryInformation()) {
-            PLOG_ERROR << fmt::format("unable to query information for {}", provider->GetName());
+            PLOG_ERROR << format("unable to query information for {}", provider->GetName());
             continue;
         }
-        auto information = provider->GetInformation();
-        if (!information) {
-            PLOG_ERROR << fmt::format("successfully queried information for {} but nothing was returned",
-                                      provider->GetName());
+        auto information_wrapper = provider->GetInformation();
+        if (!information_wrapper) {
+            PLOG_ERROR << format("successfully queried information for {} but nothing was returned",
+                                 provider->GetName());
             continue;
         }
-        //make_move_iterator
-        auto values = information.value();
-        information_cache_.insert(end(information_cache_), begin(values), end(values));
+        auto values = information_wrapper.value();
+        copy(begin(values), end(values), back_inserter(information_cache_));
     }
 }
 
