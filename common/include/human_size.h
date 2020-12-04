@@ -5,6 +5,7 @@
 
 namespace mmotd::algorithm::string {
 
+// Algorithm and code modified from https://gist.github.com/dgoguerra/7194777 thanks @dgoguerra
 template<typename T>
 inline std::string to_human_size(T number) {
     const auto suffixes = std::array<std::string, 5>{"B", "KB", "MB", "GB", "TB"};

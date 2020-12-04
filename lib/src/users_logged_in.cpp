@@ -65,7 +65,7 @@ struct UserSession {
     string hostname;
 };
 
-vector<UserSession> GetUserSessions() {
+unordered_map<string, UserSession> GetUserSessions() {
     // resets the database, so that the next getutxent() call will get the first entry
     setutxent();
 
@@ -73,16 +73,16 @@ vector<UserSession> GetUserSessions() {
     struct utmpx *utx = getutxent();
     if (utx == nullptr) {
         PLOG_ERROR << "attempting to get logged in users failed, getutxent returned nullptr";
-        return vector<UserSession>{};
+        return unordered_map<string, UserSession>{};
     }
 
     // auto close the database however we leave this function
     auto endutxent_closer = sg::make_scope_guard([]() { endutxent(); });
 
-    auto user_sessions = vector<detail::UserSession>{};
+    auto user_sessions = unordered_map<string, UserSession>{};
     size_t i = 0;
     while (utx != nullptr) {
-        auto ut_type_str = detail::to_string_ut_type(utx->ut_type);
+        auto ut_type_str = to_string_ut_type(utx->ut_type);
         PLOG_VERBOSE << format("{} iterating... type: {}, utmpx *: {}", ++i, ut_type_str, fmt::ptr(utx));
         if (utx->ut_type == USER_PROCESS) {
             auto username = strlen(utx->ut_user) > 0 ? string{utx->ut_user} : string{};
@@ -94,8 +94,15 @@ vector<UserSession> GetUserSessions() {
                                        tty,
                                        hostname);
             } else {
-                user_sessions.push_back(detail::UserSession{username, vector<string>{tty}, hostname});
-                PLOG_DEBUG << format("adding session {}: {}", user_sessions.size(), username);
+                auto iter = user_sessions.find(username);
+                if (iter != end(user_sessions)) {
+                    auto &user_session = iter->second;
+                    user_session.ttys.push_back(tty);
+                    PLOG_DEBUG << format("adding a new tty to existing user session: {}, {}", username, tty);
+                } else {
+                    user_sessions[username] = UserSession{username, vector<string>{tty}, hostname};
+                    PLOG_DEBUG << format("adding new session: {}, {}", username, tty);
+                }
             }
         }
         // read the next entry from the database
@@ -105,24 +112,7 @@ vector<UserSession> GetUserSessions() {
     return user_sessions;
 }
 
-unordered_map<string, detail::UserSession> FilterUserSessions(const vector<detail::UserSession> &input_user_sessions) {
-    auto user_sessions = unordered_map<string, detail::UserSession>{};
-    for_each(begin(input_user_sessions), end(input_user_sessions), [&user_sessions](const auto &user_session) {
-        auto count = user_sessions.count(user_session.name);
-        if (count > 0) {
-            assert(user_session.ttys.size() == 1);
-            user_sessions[user_session.name].ttys.push_back(user_session.ttys.front());
-            if (user_sessions[user_session.name].hostname.empty() && !user_session.hostname.empty()) {
-                user_sessions[user_session.name].hostname = user_session.hostname;
-            }
-        } else {
-            user_sessions[user_session.name] = user_session;
-        }
-    });
-    return user_sessions;
-}
-
-mmotd::ComputerValues CreateUserSessions(const unordered_map<string, detail::UserSession> &user_sessions) {
+mmotd::ComputerValues CreateUserSessions(const unordered_map<string, UserSession> &user_sessions) {
     auto values = mmotd::ComputerValues{};
     for (const auto &user_session_pair : user_sessions) {
         const auto &user_session = user_session_pair.second;
@@ -148,8 +138,7 @@ mmotd::ComputerValues CreateUserSessions(const unordered_map<string, detail::Use
 
 bool UsersLoggedIn::GetUsersLoggedIn() {
     details_.clear();
-    auto utmpx_user_sessions = detail::GetUserSessions();
-    auto user_sessions = detail::FilterUserSessions(utmpx_user_sessions);
+    auto user_sessions = detail::GetUserSessions();
     details_ = detail::CreateUserSessions(user_sessions);
     return !details_.empty();
 }
