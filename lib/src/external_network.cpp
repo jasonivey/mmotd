@@ -3,13 +3,14 @@
 #include "lib/include/external_network.h"
 #include "lib/include/http_request.h"
 
+#include <sstream>
+#include <tuple>
+
 #include <boost/asio/ip/address.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
-#include <sstream>
-#include <tuple>
 
 using boost::asio::ip::make_address;
 using fmt::format;

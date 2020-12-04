@@ -1,9 +1,10 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/platform_error.h"
 
+#include <vector>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
-#include <vector>
 
 using namespace std;
 using fmt::format;

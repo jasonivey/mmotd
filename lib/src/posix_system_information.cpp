@@ -2,13 +2,15 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/posix_system_information.h"
 
-#include <boost/algorithm/string.hpp>
-#include <fmt/format.h>
 #include <iostream>
 #include <optional>
-#include <plog/Log.h>
 #include <sstream>
 #include <stdexcept>
+
+#include <boost/algorithm/string.hpp>
+#include <fmt/format.h>
+#include <plog/Log.h>
+
 #include <sys/utsname.h>
 
 using namespace fmt;

@@ -3,12 +3,13 @@
 #include "view/include/active_network_interfaces.h"
 #include "view/include/computer_information_provider_factory.h"
 
-#include <boost/algorithm/string.hpp>
-#include <fmt/format.h>
 #include <iterator>
-#include <plog/Log.h>
 #include <unordered_map>
 #include <vector>
+
+#include <boost/algorithm/string.hpp>
+#include <fmt/format.h>
+#include <plog/Log.h>
 
 using namespace std;
 using fmt::format;

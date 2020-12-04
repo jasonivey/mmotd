@@ -3,6 +3,19 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/network.h"
 
+#include <algorithm>
+#include <iostream>
+#include <optional>
+#include <stdexcept>
+#include <string>
+#include <vector>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/numeric/conversion/cast.hpp>
+#include <fmt/format.h>
+#include <plog/Log.h>
+#include <scope_guard.hpp>
+
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <net/if_dl.h>
@@ -12,18 +25,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-
-#include <algorithm>
-#include <boost/algorithm/string.hpp>
-#include <boost/numeric/conversion/cast.hpp>
-#include <fmt/format.h>
-#include <iostream>
-#include <optional>
-#include <plog/Log.h>
-#include <scope_guard.hpp>
-#include <stdexcept>
-#include <string>
-#include <vector>
 
 using boost::asio::ip::make_address;
 using fmt::format;

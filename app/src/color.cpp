@@ -1,9 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "app/include/color.h"
 
-#include <fmt/format.h>
-#include <plog/Log.h>
-
 #include <algorithm>
 #include <array>
 #include <cstdio>
@@ -12,6 +9,9 @@
 #include <optional>
 #include <ostream>
 #include <regex>
+
+#include <fmt/format.h>
+#include <plog/Log.h>
 
 constexpr const char *StyleReset = "StyleReset";
 constexpr const char *StyleBold = "StyleBold";

@@ -1,20 +1,20 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "app/include/logging.h"
 
+#include <cassert>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <utility>
+
+#include <fmt/format.h>
 #include <plog/Appenders/ColorConsoleAppender.h>
 #include <plog/Appenders/RollingFileAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Init.h>
 #include <plog/Log.h>
-
-#include <cassert>
-#include <cstddef>
-#include <filesystem>
-#include <fmt/format.h>
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <utility>
 
 using fmt::format;
 using namespace std;

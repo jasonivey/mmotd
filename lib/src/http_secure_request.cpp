@@ -11,7 +11,6 @@
 #include <boost/beast/http/write.hpp>
 #include <boost/certify/extensions.hpp>
 #include <boost/certify/https_verification.hpp>
-
 #include <fmt/format.h>
 #include <plog/Log.h>
 
