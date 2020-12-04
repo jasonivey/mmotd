@@ -3,6 +3,9 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/load_average.h"
 
+#include <ctime>
+#include <optional>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
 

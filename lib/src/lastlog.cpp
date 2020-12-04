@@ -113,8 +113,7 @@ bool LastLog::GetLastLoginRecord() {
         return false;
     }
     auto login_record_deleter = sg::make_scope_guard([&login_record]() { free(login_record); });
-    auto login_details = detail::ParseLastLogin(*login_record, user_id, user_name);
-    last_login_details_ = login_details;
+    last_login_details_ = detail::ParseLastLogin(*login_record, user_id, user_name);
     return true;
 }
 

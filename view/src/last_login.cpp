@@ -38,9 +38,9 @@ optional<string> mmotd::LastLogin::QueryInformation() {
     }
     auto combined_value = string{};
     for (auto value : values) {
-        combined_value += value + ", ";
+        combined_value += format("{}{}", combined_value.empty() ? "" : ", ", value);
     }
-    return make_optional(combined_value.substr(0, combined_value.size() - 2));
+    return make_optional(combined_value);
 }
 
 string mmotd::LastLogin::GetName() const {

@@ -15,10 +15,10 @@ namespace mmotd {
 struct MacAddress {
     MacAddress() = default;
     MacAddress(const std::uint8_t *buffer, size_t buffer_size);
-    MacAddress(const std::string &input_str);
 
     explicit operator bool() const { return !IsZero(); }
     std::string to_string() const;
+    static MacAddress from_string(const std::string &input_str);
 
 private:
     bool IsZero() const;

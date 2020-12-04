@@ -10,6 +10,8 @@
 #include <iostream>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/exception/diagnostic_information.hpp>
+#include <boost/exception_ptr.hpp>
 #include <fmt/color.h>
 #include <fmt/format.h>
 
@@ -49,14 +51,34 @@ int main(int argc, char *argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (app_options->GetOptions().IsVerboseSet()) {
-        cout << format("verbosity is set to {}\n", app_options->GetOptions().GetVerbosityLevel());
-        Logging::UpdateSeverityFilter(app_options->GetOptions().GetVerbosityLevel());
-    } else {
-        cout << format("verbosity is set NOT to {}\n", app_options->GetOptions().GetVerbosityLevel());
+    auto retval = EXIT_SUCCESS;
+    try {
+        if (app_options->GetOptions().IsVerboseSet()) {
+            cout << format("verbosity is set to {}\n", app_options->GetOptions().GetVerbosityLevel());
+            Logging::UpdateSeverityFilter(app_options->GetOptions().GetVerbosityLevel());
+        } else {
+            cout << format("verbosity is set NOT to {}\n", app_options->GetOptions().GetVerbosityLevel());
+        }
+
+        get_information(*app_options);
+    } catch (boost::exception &ex) {
+        auto diag = boost::diagnostic_information(ex);
+        auto error_str = format("caught boost::exception in main: {}", diag);
+        PLOG_FATAL << error_str;
+        cerr << error_str << endl;
+        retval = EXIT_FAILURE;
+    } catch (const std::exception &ex) {
+        auto error_str = format("caught std::exception in main: {}", ex.what());
+        PLOG_FATAL << error_str;
+        cerr << error_str << endl;
+        retval = EXIT_FAILURE;
+    } catch (...) {
+        auto diag = boost::current_exception_diagnostic_information();
+        auto error_str = format("caught unknown exception in main: {}", diag);
+        PLOG_FATAL << error_str;
+        cerr << error_str << endl;
+        retval = EXIT_FAILURE;
     }
 
-    get_information(*app_options);
-
-    return EXIT_SUCCESS;
+    return retval;
 }

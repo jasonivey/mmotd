@@ -4,7 +4,7 @@
 #include "lib/include/network.h"
 
 #include <algorithm>
-#include <iostream>
+#include <iterator>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+using boost::numeric_cast;
 using boost::asio::ip::make_address;
 using fmt::format;
 using namespace std;
@@ -41,7 +42,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &ip_addre
 
 MacAddress::MacAddress(const uint8_t *buffer, size_t buffer_size) {
     if (buffer_size != MAC_ADDRESS_SIZE) {
-        throw std::runtime_error("invalid size of mac address");
+        throw std::invalid_argument("invalid size of mac address");
     } else if (buffer != nullptr) {
         memcpy(&data_[0], buffer, MAC_ADDRESS_SIZE);
     } else {
@@ -49,37 +50,53 @@ MacAddress::MacAddress(const uint8_t *buffer, size_t buffer_size) {
     }
 }
 
-MacAddress::MacAddress(const string &input_str) {
-    using namespace boost;
-    using split_vector_type = vector<string>;
-    split_vector_type mac_addr_parts;
-    split(mac_addr_parts, input_str, is_any_of(" :."), token_compress_on);
-    if (mac_addr_parts.size() == 1) {
-        // it didn't split at all -- it better be 2 characters for a total of 12!
-        mac_addr_parts.clear();
-        auto part = string{};
-        for (auto ch : input_str) {
-            part.push_back(ch);
-            if (part.size() == 2) {
-                mac_addr_parts.push_back(part);
-                part.clear();
+// converts the following strings to a MacAddress:
+// '64:4b:f0:27:6a:76', '64.4b.f0.27.6a.76', '64 4b f0 27 6a 76' or '644bf0276a76'
+MacAddress MacAddress::from_string(const std::string &input_str) {
+    using namespace boost::algorithm;
+
+    auto mac_addr_hex_chars = vector<string>{};
+    split(mac_addr_hex_chars, input_str, is_any_of(" :."), token_compress_on);
+
+    // if it didn't split at all -- the 6 double digit hex chars must not be delimitted by anything
+    if (mac_addr_hex_chars.size() == 1) {
+        mac_addr_hex_chars.clear();
+        auto hex_char = string{};
+        for_each(begin(input_str), end(input_str), [&mac_addr_hex_chars, &hex_char](const auto &single_char) {
+            if (!hex_char.empty()) {
+                mac_addr_hex_chars.push_back(hex_char + single_char);
+                hex_char.clear();
+            } else {
+                hex_char.push_back(single_char);
             }
-        }
+        });
     }
-    if (mac_addr_parts.size() != MAC_ADDRESS_SIZE) {
-        throw std::runtime_error("mac address is not the correct length");
+
+    // if the number of elements are still not == 6 then we have malformed input
+    if (mac_addr_hex_chars.size() != MAC_ADDRESS_SIZE) {
+        auto error_str = format("mac address is not the correct length (6 != {})", mac_addr_hex_chars.size());
+        PLOG_ERROR << error_str;
+        throw std::invalid_argument(error_str);
     }
-    vector<uint8_t> mac_addr;
-    for (const auto &part : mac_addr_parts) {
-        if (all(part, is_xdigit()) && part.size() <= 2) {
-            char *end = nullptr;
-            auto value = strtoul(&part[0], &end, 16);
-            mac_addr.push_back(numeric_cast<uint8_t>(value));
-        } else {
-            throw std::runtime_error("invalid character found in mac address string");
-        }
-    }
-    memcpy(&data_[0], &mac_addr[0], MAC_ADDRESS_SIZE);
+
+    // convert each two character element into an unsigned long integer and store it in the raw mac address
+    auto raw_mac_addr = vector<uint8_t>(MAC_ADDRESS_SIZE, 0);
+    transform(begin(mac_addr_hex_chars),
+              end(mac_addr_hex_chars),
+              begin(raw_mac_addr),
+              [&input_str](const auto &hex_char) {
+                  if (!all(hex_char, is_xdigit()) || hex_char.empty() || hex_char.size() > 2) {
+                      auto error_str =
+                          format("invalid character (\"{}\") found in mac address {}", hex_char, input_str);
+                      PLOG_ERROR << error_str;
+                      throw std::invalid_argument(error_str);
+                  }
+                  auto value = std::stoul(hex_char, nullptr, 16);
+                  return numeric_cast<uint8_t>(value);
+              });
+
+    // finally create a MacAddress instance
+    return MacAddress{raw_mac_addr.data(), MAC_ADDRESS_SIZE};
 }
 
 bool MacAddress::IsZero() const {
@@ -186,7 +203,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &active_i
                                        network_device->mac_address.to_string(),
                                        mac_address);
             }
-            network_device->mac_address = MacAddress(mac_address);
+            network_device->mac_address = MacAddress::from_string(mac_address);
         } else if (address_family == AF_INET || address_family == AF_INET6) {
             auto ip_str = string{};
             buffer.fill(0);
@@ -294,7 +311,7 @@ optional<IpAddress> NetworkInfo::GetActiveInterface() {
         return nullopt;
     }
 
-    auto buffer = vector<char>(64);
+    auto buffer = vector<char>(64, 0);
     const char *address_str = inet_ntop(AF_INET, &name.sin_addr, buffer.data(), buffer.size());
     if (address_str == nullptr) {
         PLOG_ERROR << format("inet_ntop failed after connecting to {} on port {}, details: {}",

@@ -20,14 +20,6 @@ optional<string> mmotd::SystemLoad::QueryInformation() {
         PLOG_INFO << "unable to find load average";
         return nullopt;
     }
-    // } else if ((*load_average_wrapper).size() != 1) {
-    //     PLOG_INFO << format("found load average but there were {} values returned", (*load_average_wrapper).size());
-    //     return nullopt;
-    // } else if ((*load_average_wrapper).front().empty()) {
-    //     PLOG_ERROR << "the load average was returned but it was empty";
-    //     return nullopt;
-    // }
-    // auto value = (*load_average_wrapper).front();
     auto values = (*load_average_wrapper);
     auto combined_value = string{};
     for (auto value : values) {

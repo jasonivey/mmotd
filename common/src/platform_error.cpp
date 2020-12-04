@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/platform_error.h"
 
+#include <cstdio>
 #include <vector>
 
 #include <fmt/format.h>
@@ -17,7 +18,7 @@ string to_string(int error_value) {
     auto error_buf = vector<char>{};
     do {
         buf_size *= 2;
-        auto error_buf = vector<char>(buf_size, 0);
+        error_buf.resize(buf_size, 0);
         retval = strerror_r(error_value, error_buf.data(), error_buf.size());
     } while (retval == ERANGE);
     if (retval == EINVAL) {
