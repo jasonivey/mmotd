@@ -1,6 +1,6 @@
 #pragma once
 
-namespace mmotd { namespace algorithms {
+namespace mmotd::algorithms {
 
 template<class InputIterator, class OutputIterator, class Predicate, class UnaryOperation>
 inline OutputIterator
@@ -13,4 +13,4 @@ transform_if(InputIterator first, InputIterator last, OutputIterator out, Predic
     return out;
 }
 
-}} // namespace mmotd::algorithms
+} // namespace mmotd::algorithms

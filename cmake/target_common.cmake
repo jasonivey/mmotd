@@ -35,6 +35,9 @@ else ()
     string(APPEND CMAKE_C_FLAGS " -O2")
 endif ()
 
-message(STATUS "adding the fmtlib/fmt library as header only in ${MMOTD_TARGET_NAME}")
 add_definitions(-DFMT_HEADER_ONLY=1)
-add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)
+add_definitions(-DFMT_USE_STRING_VIEW)
+
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
+    add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)
+endif ()

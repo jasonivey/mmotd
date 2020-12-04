@@ -14,5 +14,5 @@ optional<string> mmotd::SubHeader::QueryInformation() {
 }
 
 string mmotd::SubHeader::GetName() const {
-    return "sub-header";
+    return "sub header";
 }

@@ -13,6 +13,9 @@ if (APPLE)
     set (ZLIB_ROOT /usr/local/opt/zlib)
 endif ()
 
+#include(FindPkgConfig)
+#pkg_check_modules(CURL libcurl REQUIRED)
+
 find_package(ZLIB 1.2.11 REQUIRED)
 find_package(Boost 1.74.0 REQUIRED)
 find_package(OpenSSL 1.1.1 REQUIRED)
@@ -43,6 +46,18 @@ if (NOT fmt_POPULATED)
     add_library(fmt INTERFACE)
     target_include_directories(fmt INTERFACE ${fmt_SOURCE_DIR}/include)
 endif ()
+
+#FetchContent_Declare(
+#    date_src
+#    GIT_REPOSITORY  https://github.com/HowardHinnant/date.git
+#    GIT_TAG         v3.0.0
+#)
+#FetchContent_GetProperties(date_src)
+#if (NOT date_src_POPULATED)
+#    FetchContent_Populate(date_src)
+#    add_library(date_src INTERFACE)
+#    target_include_directories(date_src INTERFACE ${date_src_SOURCE_DIR}/include/date)
+#endif ()
 
 FetchContent_Declare(
     plog
