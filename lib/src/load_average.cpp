@@ -57,7 +57,7 @@ optional<double> GetSystemLoadAverage() {
     auto load_size = sizeof(load);
     if (sysctlbyname("vm.loadavg", &load, &load_size, NULL, 0) == -1) {
         PLOG_ERROR << "sysctlbyname returned -1 calling vm.loadavg";
-        return false;
+        return nullopt;
     } else {
         PLOG_INFO << format("sysctlbyname returned 1 min: {}, 5 min: {}, 15 min: {}",
                             load.ldavg[0] / static_cast<double>(load.fscale),

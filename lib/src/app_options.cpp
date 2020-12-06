@@ -2,22 +2,12 @@
 #include "lib/include/app_options.h"
 #include "lib/include/app_options_creator.h"
 
-#include <iostream>
 #include <string_view>
 
 #include <fmt/format.h>
 
 using fmt::format;
 using namespace std;
-
-std::string to_string(const Options &options) {
-    return options.to_string();
-}
-
-std::ostream &operator<<(std::ostream &out, const Options &options) {
-    out << options.to_string() << endl;
-    return out;
-}
 
 template<typename T, typename U>
 void append_option(string &existing_options_str, const string &name, T is_set, U get_value) {
@@ -30,10 +20,6 @@ void append_option(string &existing_options_str, const string &name, T is_set, U
 std::string Options::to_string() const {
     auto options_str = string{};
     append_option(options_str, "verbose", bind(&Options::IsVerboseSet, this), bind(&Options::GetVerbosityLevel, this));
-    append_option(options_str,
-                  "log_config_path",
-                  bind(&Options::IsLogConfigPathSet, this),
-                  bind(&Options::GetLogConfigPathSet, this));
     append_option(options_str,
                   "last_login",
                   bind(&Options::IsLastLoginSet, this),
@@ -92,9 +78,15 @@ std::string Options::to_string() const {
     return options_str;
 }
 
-const AppOptions *AppOptions::Initialize(const AppOptionsCreator &creator) {
+const AppOptions &AppOptions::Instance() {
     static auto app_options = AppOptions{};
-    app_options.AddOptions(creator);
+    return app_options;
+}
+
+const AppOptions *AppOptions::Initialize(const AppOptionsCreator &creator) {
+    const auto &app_options = AppOptions::Instance();
+    // BAD, BAD, BAD -- find another way!
+    const_cast<AppOptions &>(app_options).AddOptions(creator);
     return &app_options;
 }
 

@@ -30,6 +30,7 @@ add_library (
     src/processes.cpp
     src/swap.cpp
     src/users_logged_in.cpp
+    src/weather_info.cpp
     )
 
 include (target_common)

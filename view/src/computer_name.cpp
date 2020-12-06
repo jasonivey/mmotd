@@ -3,6 +3,10 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/computer_name.h"
 
+#include <algorithm>
+#include <iterator>
+
+#include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -15,26 +19,28 @@ static const bool computer_name_factory_registered =
     mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::ComputerName>(); });
 
 optional<string> mmotd::ComputerName::QueryInformation() {
-    auto host_name = ComputerInformation::Instance().GetInformation("host name");
-    if (!host_name) {
+    auto system_info_wrapper = ComputerInformation::Instance().GetInformation("system information");
+    if (!system_info_wrapper) {
         PLOG_ERROR << "no host names were returned from posix system information";
         return nullopt;
-    } else if ((*host_name).size() != 1) {
-        PLOG_ERROR << format("the computer name was returned but there were {} values", (*host_name).size());
-        return nullopt;
-    } else if ((*host_name).front().empty()) {
-        PLOG_ERROR << "the computer name was returned but it was empty";
+    }
+    auto system_infos = (*system_info_wrapper);
+    auto i = find_if(begin(system_infos), end(system_infos), [](const auto &value) {
+        return boost::starts_with(value, "host name: ");
+    });
+
+    if (i == end(system_infos)) {
         return nullopt;
     }
-    auto value = (*host_name).front();
-    auto index = value.find(".");
-    if (index != string::npos) {
-        return make_optional(value.substr(0, index));
-    } else {
-        return make_optional(value);
+
+    const auto &hostname = (*i).substr(string{"host name: "}.size());
+    auto index = hostname.find(".");
+    if (index == string::npos) {
+        return make_optional(hostname);
     }
+    return make_optional(hostname.substr(0, index));
 }
 
 string mmotd::ComputerName::GetName() const {
-    return "host name";
+    return "computer name";
 }

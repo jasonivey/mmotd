@@ -1,7 +1,9 @@
-build/
 .cache
 .clangd/
 .vscode/c_cpp_properties.json
+.vscode/cmake-kits.json
 .vscode/launch.json
 .vscode/settings.json
 .vscode/tasks.json
+build/
+vs-build/

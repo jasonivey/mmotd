@@ -12,14 +12,12 @@
 class AppOptionsCreator;
 
 struct Options {
-    friend std::string to_string(const Options &options);
-    friend std::ostream &operator<<(std::ostream &out, const Options &options);
+    Options() = default;
 
     std::string to_string() const;
 
     int verbose = 0;
     std::optional<std::string> output_config_path;
-    std::optional<std::string> log_config_path;
     std::string config_path;
     boost::tribool last_login = boost::indeterminate;
     boost::tribool computer_name = boost::indeterminate;
@@ -45,12 +43,6 @@ struct Options {
         }
         return true;
     }
-    bool SetLogConfigPath(const std::vector<std::string> &paths) {
-        if (!paths.empty()) {
-            log_config_path = paths.front();
-        }
-        return true;
-    }
     void SetLastLogin(int value) { last_login = value == -1 ? false : true; }
     void SetComputerName(int value) { computer_name = value == -1 ? false : true; }
     void SetHostName(int value) { host_name = value == -1 ? false : true; }
@@ -70,8 +62,6 @@ struct Options {
 
     bool IsVerboseSet() const { return verbose > 0; }
     int GetVerbosityLevel() const { return verbose; }
-    bool IsLogConfigPathSet() const { return log_config_path.has_value(); };
-    std::string GetLogConfigPathSet() const { return log_config_path.value_or(std::string{}); };
     bool IsLastLoginSet() const { return !indeterminate(last_login); }
     bool GetLastLoginValue() const { return last_login.value; }
     bool IsComputerNameSet() const { return !indeterminate(computer_name); }
@@ -106,12 +96,9 @@ struct Options {
     bool GetQuoteValue() const { return quote.value; }
 };
 
-namespace AppOption {
-
-}
-
 class AppOptions {
 public:
+    static const AppOptions &Instance();
     static const AppOptions *Initialize(const AppOptionsCreator &creator);
 
     const Options &GetOptions() const { return options_; }

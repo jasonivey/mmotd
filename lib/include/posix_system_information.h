@@ -19,19 +19,27 @@ enum class ArchitectureType {
     unknown,
 };
 
+std::string to_string(ArchitectureType architecture);
+
 enum class EndianType {
     little,
     big,
     unknown,
 };
 
+std::string to_string(EndianType endian);
+
 enum class KernelType { unknown, linux, darwin };
+
+std::string to_string(KernelType kernel_type);
 
 struct KernelRelease {
     std::optional<uint32_t> major;
     std::optional<uint32_t> minor;
     std::optional<uint32_t> patch;
     std::optional<uint32_t> build;
+
+    std::string to_string() const;
 };
 
 struct KernelVersion {
@@ -47,31 +55,9 @@ struct KernelDetails {
     EndianType endian = EndianType::unknown;
 };
 
-class PosixSystemInformation;
-
-std::string to_string(ArchitectureType architecture);
-std::string to_string(EndianType endian);
-std::string to_string(KernelType kernel_type);
-std::string to_string(const KernelRelease &kernel_release);
-std::string to_string(const KernelVersion &kernel_version);
-std::string to_string(const KernelDetails &kernel_details);
-std::string to_string(const PosixSystemInformation &system_information);
-
-std::ostream &operator<<(std::ostream &out, const ArchitectureType &architecture);
-std::ostream &operator<<(std::ostream &out, const EndianType &endian);
-std::ostream &operator<<(std::ostream &out, const KernelType &kernel_type);
-std::ostream &operator<<(std::ostream &out, const KernelRelease &kernel_release);
-std::ostream &operator<<(std::ostream &out, const KernelVersion &kernel_version);
-std::ostream &operator<<(std::ostream &out, const KernelDetails &kernel_details);
-std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);
-
 class PosixSystemInformation : public InformationProvider {
-    friend std::ostream &operator<<(std::ostream &out, const PosixSystemInformation &system_information);
-
 public:
     PosixSystemInformation() = default;
-
-    std::string to_string() const;
 
     std::string GetName() const override { return std::string{"posix system information"}; }
     bool QueryInformation() override;

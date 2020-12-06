@@ -125,6 +125,10 @@ bool ForceLinkOptionalProviders() {
     extern bool gLinkBootTime;
     gLinkBootTime = true;
 #endif
+#if !defined(OMIT_LINK_WEATHER_INFO)
+    extern bool gLinkWeatherInfo;
+    gLinkWeatherInfo = true;
+#endif
     return true;
 }
 
