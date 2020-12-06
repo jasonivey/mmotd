@@ -14,9 +14,11 @@ add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/app_options.cpp
     src/app_options_creator.cpp
+    src/boot_time.cpp
     src/computer_information.cpp
     src/external_network.cpp
     src/file_system.cpp
+    src/fortune.cpp
     src/http_request.cpp
     src/http_secure_request.cpp
     src/lastlog.cpp
@@ -25,6 +27,7 @@ add_library (
     src/network.cpp
     src/posix_sysctl_information.cpp
     src/posix_system_information.cpp
+    src/processes.cpp
     src/swap.cpp
     src/users_logged_in.cpp
     )
@@ -46,5 +49,6 @@ target_include_directories(
     PRIVATE ${certify_SOURCE_DIR}/include
     PRIVATE ${fmt_SOURCE_DIR}/include
     PRIVATE ${plog_SOURCE_DIR}/include
+    PRIVATE ${random_SOURCE_DIR}/include
     )
 

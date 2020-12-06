@@ -67,6 +67,14 @@ bool ForceLinkOptionalProviders() {
     extern bool gLinkUsersCountProvider;
     gLinkUsersCountProvider = true;
 #endif
+#if !defined(OMIT_LINK_PROCESSES_COUNT_PROVIDER)
+    extern bool gLinkProcessesCountProvider;
+    gLinkProcessesCountProvider = true;
+#endif
+#if !defined(OMIT_LINK_COMPUTER_BOOT_TIME_PROVIDER)
+    extern bool gLinkComputerBootTimeProvider;
+    gLinkComputerBootTimeProvider = true;
+#endif
 
     // mmotd-lib components
 #if !defined(OMIT_LINK_EXTERNAL_NETWORK_INFO)
@@ -104,6 +112,18 @@ bool ForceLinkOptionalProviders() {
 #if !defined(OMIT_LINK_SWAP_USAGE)
     extern bool gLinkSwapUsage;
     gLinkSwapUsage = true;
+#endif
+#if !defined(OMIT_LINK_PROCESSES_INFO)
+    extern bool gLinkProcessesInfo;
+    gLinkProcessesInfo = true;
+#endif
+#if !defined(OMIT_LINK_FORTUNE_GENERATOR)
+    extern bool gLinkFortuneGenerator;
+    gLinkFortuneGenerator = true;
+#endif
+#if !defined(OMIT_LINK_BOOT_TIME)
+    extern bool gLinkBootTime;
+    gLinkBootTime = true;
 #endif
     return true;
 }
