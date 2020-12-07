@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "lib/include/app_options.h"
-#include "lib/include/app_options_creator.h"
+#include "common/include/app_options.h"
+#include "common/include/app_options_creator.h"
 
 #include <string_view>
 

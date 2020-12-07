@@ -1,7 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "app/include/cli_app_options_creator.h"
 #include "app/include/logging.h"
-#include "lib/include/app_options.h"
+#include "common/include/app_options.h"
 
 #include <algorithm>
 #include <any>

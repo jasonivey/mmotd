@@ -12,8 +12,6 @@ project (mmotd_lib)
 
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
-    src/app_options.cpp
-    src/app_options_creator.cpp
     src/boot_time.cpp
     src/computer_information.cpp
     src/external_network.cpp
