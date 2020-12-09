@@ -45,7 +45,7 @@ bool ExternalNetwork::QueryInformation() {
 }
 
 optional<mmotd::ComputerValues> ExternalNetwork::GetInformation() const {
-    return make_optional(details_);
+    return !details_.empty() ? make_optional(details_) : nullopt;
 }
 
 bool ExternalNetwork::RequestExternalIpAddress() {

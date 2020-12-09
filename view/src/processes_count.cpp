@@ -3,6 +3,8 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/processes_count.h"
 
+#include <memory>
+
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
@@ -13,7 +15,7 @@ using namespace std;
 bool gLinkProcessesCountProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::ProcessesCount>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::ProcessesCount>(); });
 
 optional<string> mmotd::ProcessesCount::QueryInformation() {
     auto processes_count_wrapper = ComputerInformation::Instance().GetInformation("processes");

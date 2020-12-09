@@ -32,11 +32,7 @@ bool LoadAverage::QueryInformation() {
 }
 
 optional<mmotd::ComputerValues> LoadAverage::GetInformation() const {
-    if (!details_.empty()) {
-        return make_optional(details_);
-    } else {
-        return nullopt;
-    }
+    return !details_.empty() ? make_optional(details_) : nullopt;
 }
 
 namespace detail {

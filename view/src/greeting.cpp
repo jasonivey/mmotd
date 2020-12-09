@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <array>
 #include <iterator>
+#include <memory>
 #include <tuple>
 #include <vector>
 
@@ -19,7 +20,7 @@ using namespace std;
 bool gLinkGreetingProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::Greeting>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::Greeting>(); });
 
 namespace detail {
 

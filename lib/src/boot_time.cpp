@@ -54,7 +54,6 @@ optional<string> GetBootTimeImpl() {
         }
         PLOG_ERROR << error_str;
         return nullopt;
-        return nullopt;
     }
     auto boot_time_point = std::chrono::system_clock::from_time_t(result.tv_sec);
     // Fri, 04-Dec-2020 07:49:36am MST

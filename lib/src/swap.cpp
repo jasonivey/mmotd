@@ -74,9 +74,7 @@ bool Swap::GetSwapUsage() {
         return false;
     }
 
-    bool encrypted = false;
-    uint64_t total, available = 0;
-    tie(total, std::ignore, available, encrypted) = *swap_usage_wrapper;
+    auto [total, used, available, encrypted] = *swap_usage_wrapper;
     auto percent_used = 0.0;
     if (total != 0) {
         percent_used = (static_cast<double>(total - available) / static_cast<double>(total)) * 100.0;

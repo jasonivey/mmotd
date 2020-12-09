@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
@@ -16,7 +17,7 @@ using namespace std;
 bool gLinkComputerNameProvider = false;
 
 static const bool computer_name_factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::ComputerName>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::ComputerName>(); });
 
 optional<string> mmotd::ComputerName::QueryInformation() {
     auto system_info_wrapper = ComputerInformation::Instance().GetInformation("system information");

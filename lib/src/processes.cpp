@@ -82,9 +82,9 @@ std::optional<mmotd::ComputerValues> Processes::GetInformation() const {
 bool Processes::GetProcessCount() {
     auto process_ids = detail::GetProcessesInfo();
     auto process_ids_str = string{};
-    for (const auto id : process_ids) {
-        process_ids_str += format("{}{}", process_ids_str.empty() ? "" : ", ", id);
-    }
+    //for (const auto id : process_ids) {
+    //    process_ids_str += format("{}{}", process_ids_str.empty() ? "" : ", ", id);
+    //}
     PLOG_VERBOSE << format("found process ids: {}", process_ids_str);
     details_.push_back(make_tuple("processes", format("ids: {}", process_ids_str)));
     details_.push_back(make_tuple("processes", format("count: {}", process_ids.size())));

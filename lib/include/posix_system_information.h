@@ -64,7 +64,9 @@ public:
     std::optional<mmotd::ComputerValues> GetInformation() const override;
 
 private:
-    std::optional<KernelDetails> kernel_details_ = {};
+    bool GetSystemInformation();
+
+    mmotd::ComputerValues details_;
 };
 
 } // namespace mmotd

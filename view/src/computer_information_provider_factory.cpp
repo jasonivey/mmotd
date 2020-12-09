@@ -22,10 +22,12 @@ bool mmotd::RegisterComputerInformationProvider(ComputerInformationProviderCreat
 }
 
 mmotd::ComputerInformationProviders mmotd::GetComputerInformationProviders() {
-    auto computer_information_providers = mmotd::ComputerInformationProviders{};
-    for (auto creator : GetComputerInformationProviderCreators()) {
-        computer_information_providers.emplace_back(creator());
+    static auto computer_information_providers = mmotd::ComputerInformationProviders{};
+    if (computer_information_providers.empty()) {
+        for (auto creator : GetComputerInformationProviderCreators()) {
+            computer_information_providers.push_back(creator());
+        }
+        PLOG_ERROR << fmt::format("returning {} total creators", computer_information_providers.size());
     }
-    PLOG_ERROR << fmt::format("returning {} total creators", computer_information_providers.size());
     return computer_information_providers;
 }

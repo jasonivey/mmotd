@@ -3,6 +3,8 @@
 #include "view/include/computer_boot_time.h"
 #include "view/include/computer_information_provider_factory.h"
 
+#include <memory>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -12,7 +14,7 @@ using namespace std;
 bool gLinkComputerBootTimeProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::ComputerBootTime>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::ComputerBootTime>(); });
 
 optional<string> mmotd::ComputerBootTime::QueryInformation() {
     auto boot_time_wrapper = ComputerInformation::Instance().GetInformation("boot time");

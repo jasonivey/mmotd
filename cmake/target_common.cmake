@@ -37,6 +37,8 @@ endif ()
 
 add_definitions(-DFMT_HEADER_ONLY=1)
 add_definitions(-DFMT_USE_STRING_VIEW)
+add_definitions(-DPLOG_OMIT_LOG_DEFINES)
+#add_definitions(-DMMOTD_ASYNC_DISABLED=1)
 
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)

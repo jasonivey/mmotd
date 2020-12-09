@@ -3,6 +3,8 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/processor_count.h"
 
+#include <memory>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -12,7 +14,7 @@ using namespace std;
 bool gLinkProcessorCountProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::ProcessorCount>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::ProcessorCount>(); });
 
 optional<string> mmotd::ProcessorCount::QueryInformation() {
     auto processor_count_wrapper = ComputerInformation::Instance().GetInformation("processor count");

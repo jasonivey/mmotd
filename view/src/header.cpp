@@ -4,6 +4,7 @@
 #include "view/include/header.h"
 
 #include <chrono>
+#include <memory>
 
 #include <fmt/format.h>
 
@@ -13,7 +14,7 @@ using namespace std;
 bool gLinkHeaderProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::Header>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::Header>(); });
 
 optional<string> mmotd::Header::QueryInformation() { // System information as of Sun, 06-Dec-2020 🌦 06:14:23am MST
     auto right_now = std::chrono::system_clock::now();

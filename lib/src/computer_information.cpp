@@ -5,7 +5,10 @@
 
 #include <algorithm>
 #include <iterator>
+#include <thread>
 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -79,6 +82,7 @@ bool ComputerInformation::IsInformationCached() const {
 }
 
 void ComputerInformation::CacheAllInformation() const {
+#if defined(MMOTD_ASYNC_DISABLED)
     for (auto &&provider : information_providers_) {
         if (!provider->QueryInformation()) {
             PLOG_ERROR << format("unable to query information for {}", provider->GetName());
@@ -93,6 +97,45 @@ void ComputerInformation::CacheAllInformation() const {
         auto values = information_wrapper.value();
         copy(begin(values), end(values), back_inserter(information_cache_));
     }
+#else
+    auto thread_pool = boost::asio::thread_pool{std::thread::hardware_concurrency()};
+    for (auto &&provider : information_providers_) {
+        boost::asio::post(thread_pool, boost::bind(&InformationProvider::QueryInformation, provider.get()));
+    }
+    thread_pool.join();
+    for (auto &&provider : information_providers_) {
+        auto information_wrapper = provider->GetInformation();
+        if (!information_wrapper) {
+            PLOG_ERROR << format("successfully queried information for {} but nothing was returned",
+                                 provider->GetName());
+            continue;
+        }
+        auto values = information_wrapper.value();
+        copy(begin(values), end(values), back_inserter(information_cache_));
+    }
+#endif
+    // auto information = Information{};
+    // transform(begin(information_providers_),
+    //           end(information_providers_),
+    //           back_inserter(information),
+    //           [](auto &&provider) {
+    //               if (!provider->QueryInformation()) {
+    //                   PLOG_ERROR << format("unable to query information for {}", provider->GetName());
+    //                   return NameAndValue{};
+    //               }
+    //               auto information_wrapper = provider->GetInformation();
+    //               if (!information_wrapper) {
+    //                   PLOG_ERROR << format("successfully queried information for {} but nothing was returned",
+    //                                        provider->GetName());
+    //                   return NameAndValue{};
+    //               }
+    //               return information_wrapper.value();
+    //           });
+    // auto i = remove_if(begin(information), end(information), [](const auto &name_value) {
+    //     auto [name, value] = name_value;
+    //     return name.empty() && value.empty();
+    // });
+    // information.erase(i, end(information));
 }
 
 } // namespace mmotd

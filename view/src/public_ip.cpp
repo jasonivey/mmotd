@@ -3,6 +3,8 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/public_ip.h"
 
+#include <memory>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -12,7 +14,7 @@ using namespace std;
 bool gLinkPublicIpProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::PublicIp>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::PublicIp>(); });
 
 optional<string> mmotd::PublicIp::QueryInformation() {
     auto public_ip_info = ComputerInformation::Instance().GetInformation("public ip");

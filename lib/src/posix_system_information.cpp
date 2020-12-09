@@ -66,43 +66,45 @@ bool PosixSystemInformation::QueryInformation() {
     static bool has_queried = false;
     if (!has_queried) {
         has_queried = true;
-        kernel_details_ = GetKernelDetails();
+        return GetSystemInformation();
     }
-    return kernel_details_.has_value();
+    return has_queried;
 }
 
-optional<mmotd::ComputerValues> PosixSystemInformation::GetInformation() const {
-    if (!kernel_details_) {
-        PLOG_ERROR << "unable to return any posix system information because there isn't any gathered";
-        return nullopt;
+bool PosixSystemInformation::GetSystemInformation() {
+    auto kernel_details_wrapper = GetKernelDetails();
+    if (kernel_details_wrapper) {
+        auto kernel_details = *kernel_details_wrapper;
+        details_.emplace_back(make_tuple("system information", format("host name: {}", kernel_details.host_name)));
+        details_.emplace_back(
+            make_tuple("system information", format("kernel version: {}", kernel_details.kernel_version.version)));
+        details_.emplace_back(
+            make_tuple("system information",
+                       format("kernel release: {}", kernel_details.kernel_version.release.to_string())));
+        details_.emplace_back(
+            make_tuple("system information", format("kernel type: {}", mmotd::to_string(kernel_details.kernel))));
+        details_.emplace_back(make_tuple("system information",
+                                         format("architecture: {}", mmotd::to_string(kernel_details.architecture))));
+        details_.emplace_back(
+            make_tuple("system information", format("byte order: {}", mmotd::to_string(kernel_details.endian))));
     }
-    auto computer_values = ComputerValues{};
-    const auto &kernel_details = *kernel_details_;
-    computer_values.emplace_back(make_tuple("system information", format("host name: {}", kernel_details.host_name)));
-    computer_values.emplace_back(
-        make_tuple("system information", format("kernel version: {}", kernel_details.kernel_version.version)));
-    computer_values.emplace_back(
-        make_tuple("system information",
-                   format("kernel release: {}", kernel_details.kernel_version.release.to_string())));
-    computer_values.emplace_back(
-        make_tuple("system information", format("kernel type: {}", mmotd::to_string(kernel_details.kernel))));
-    computer_values.emplace_back(
-        make_tuple("system information", format("architecture: {}", mmotd::to_string(kernel_details.architecture))));
-    computer_values.emplace_back(
-        make_tuple("system information", format("byte order: {}", mmotd::to_string(kernel_details.endian))));
     auto os_version = GetOsVersion();
     if (os_version) {
         auto [major, minor, patch] = *os_version;
-        computer_values.emplace_back(
+        details_.emplace_back(
             make_tuple("system information", format("platform version: {}.{}.{}", major, minor, patch)));
-        computer_values.emplace_back(
+        details_.emplace_back(
             make_tuple("system information", format("platform name: {}", GetPlatformName(major, minor))));
     }
-    for (const auto &computer_value : computer_values) {
+    for (const auto &computer_value : details_) {
         const auto &[name, value] = computer_value;
-        PLOG_DEBUG << format("{}: {}", name, value);
+        PLOG_VERBOSE << format("{}: {}", name, value);
     }
-    return make_optional(computer_values);
+    return true;
+}
+
+optional<mmotd::ComputerValues> PosixSystemInformation::GetInformation() const {
+    return !details_.empty() ? make_optional(details_) : nullopt;
 }
 
 string mmotd::KernelRelease::to_string() const {

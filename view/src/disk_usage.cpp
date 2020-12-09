@@ -3,6 +3,9 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/disk_usage.h"
 
+#include <memory>
+
+#include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -12,7 +15,7 @@ using namespace std;
 bool gLinkDiskUsageProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::DiskUsage>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::DiskUsage>(); });
 
 optional<string> mmotd::DiskUsage::QueryInformation() {
     auto fs_usages_wrapper = ComputerInformation::Instance().GetInformation("file system");
@@ -23,9 +26,14 @@ optional<string> mmotd::DiskUsage::QueryInformation() {
     auto fs_usages = fs_usages_wrapper.value();
     auto repr = string{};
     for (auto fs_usage : fs_usages) {
-        repr += repr.empty() ? fs_usage : format(", {}", fs_usage);
+        auto rng = boost::find_first(fs_usage, "Usage of /: ");
+        if (!rng) {
+            continue;
+        }
+        auto value = string{rng.end(), fs_usage.end()};
+        return make_optional(value);
     }
-    return make_optional(repr);
+    return nullopt;
 }
 
 string mmotd::DiskUsage::GetName() const {

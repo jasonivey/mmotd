@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <boost/asio/ip/address.hpp>
+#include <boost/logic/tribool.hpp>
 
 namespace mmotd {
 
@@ -34,6 +35,7 @@ struct NetworkDevice {
     std::string interface_name;
     MacAddress mac_address;
     IpAddresses ip_addresses;
+    boost::tribool active = boost::indeterminate;
 };
 
 using NetworkDevices = std::unordered_map<std::string, NetworkDevice>;

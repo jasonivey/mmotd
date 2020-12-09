@@ -3,6 +3,8 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/random_quote.h"
 
+#include <memory>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -12,7 +14,7 @@ using namespace std;
 bool gLinkRandomQuoteProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::RandomQuote>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::RandomQuote>(); });
 
 optional<string> mmotd::RandomQuote::QueryInformation() {
     auto fortune_wrapper = ComputerInformation::Instance().GetInformation("fortune");
