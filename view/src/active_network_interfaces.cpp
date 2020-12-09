@@ -4,6 +4,7 @@
 #include "view/include/computer_information_provider_factory.h"
 
 #include <iterator>
+#include <memory>
 #include <unordered_map>
 #include <vector>
 
@@ -17,7 +18,7 @@ using fmt::format;
 bool gLinkActiveNetworkInterfaces = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::ActiveNetworkInterfaces>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::ActiveNetworkInterfaces>(); });
 
 optional<string> mmotd::ActiveNetworkInterfaces::QueryInformation() {
     auto network_infos = ComputerInformation::Instance().GetInformation("network info");

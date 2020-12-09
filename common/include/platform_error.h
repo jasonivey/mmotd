@@ -5,5 +5,6 @@
 namespace mmotd::platform::error {
 
 std::string to_string(int error_value);
+std::string errno_to_string();
 
-}
+} // namespace mmotd::platform::error

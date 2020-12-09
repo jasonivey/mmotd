@@ -8,7 +8,7 @@
 namespace mmotd {
 
 class ComputerInformationProvider;
-using ComputerInformationProviderPtr = std::unique_ptr<ComputerInformationProvider>;
+using ComputerInformationProviderPtr = std::shared_ptr<ComputerInformationProvider>;
 using ComputerInformationProviderCreator = std::function<ComputerInformationProviderPtr()>;
 
 bool RegisterComputerInformationProvider(ComputerInformationProviderCreator creator);

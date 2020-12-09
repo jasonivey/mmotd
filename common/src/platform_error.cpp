@@ -2,10 +2,13 @@
 #include "common/include/platform_error.h"
 
 #include <cstdio>
+#include <string>
 #include <vector>
 
 #include <fmt/format.h>
 #include <plog/Log.h>
+
+#include <errno.h>
 
 using namespace std;
 using fmt::format;
@@ -27,9 +30,13 @@ string to_string(int error_value) {
     } else {
         assert(retval == 0); // strerror_r should be success(0) since all other errors are covered
         auto error_str = string{error_buf.begin(), error_buf.end()};
-        PLOG_INFO << format("error {}: {}", error_value, error_str);
-        return error_str;
+        //PLOG_VERBOSE << format("error {}: {}", error_value, error_str);
+        return format("{}: {}", error_value, error_str);
     }
+}
+
+string errno_to_string() {
+    return mmotd::platform::error::to_string(errno);
 }
 
 } // namespace mmotd::platform::error

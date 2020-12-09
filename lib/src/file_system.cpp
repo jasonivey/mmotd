@@ -31,11 +31,7 @@ bool FileSystem::QueryInformation() {
 }
 
 optional<mmotd::ComputerValues> FileSystem::GetInformation() const {
-    if (!file_system_details_.empty()) {
-        return make_optional(file_system_details_);
-    } else {
-        return nullopt;
-    }
+    return !file_system_details_.empty() ? make_optional(file_system_details_) : nullopt;
 }
 
 bool FileSystem::GetFileSystemDetails() {

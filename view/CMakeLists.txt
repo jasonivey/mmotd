@@ -13,6 +13,7 @@ project (mmotd_view)
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/active_network_interfaces.cpp
+    src/computer_boot_time.cpp
     src/computer_information_provider.cpp
     src/computer_information_provider_factory.cpp
     src/computer_name.cpp
@@ -23,6 +24,7 @@ add_library (
     src/last_login.cpp
     src/memory_usage.cpp
     src/processor_count.cpp
+    src/processes_count.cpp
     src/public_ip.cpp
     src/random_quote.cpp
     src/sub_header.cpp

@@ -67,7 +67,7 @@ bool LastLog::QueryInformation() {
 }
 
 std::optional<mmotd::ComputerValues> LastLog::GetInformation() const {
-    return last_login_details_;
+    return !last_login_details_.empty() ? make_optional(last_login_details_) : nullopt;
 }
 
 optional<tuple<string, uint32_t>> LastLog::GetUsername() {

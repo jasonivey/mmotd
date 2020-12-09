@@ -1,16 +1,19 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/platform_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/posix_system_information.h"
 
-#include <iostream>
 #include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <tuple>
+#include <vector>
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
+#include <sys/sysctl.h>
 #include <sys/utsname.h>
 
 using namespace fmt;
@@ -29,6 +32,8 @@ static KernelDetails to_kernel_details(const string &kernel_type,
                                        const string &release,
                                        const string &version,
                                        const string &architecture);
+static string GetPlatformName(int major, int minor);
+static optional<tuple<int, int, int>> GetOsVersion();
 
 static const bool posix_system_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::PosixSystemInformation>(); });
@@ -61,104 +66,70 @@ bool PosixSystemInformation::QueryInformation() {
     static bool has_queried = false;
     if (!has_queried) {
         has_queried = true;
-        kernel_details_ = GetKernelDetails();
+        return GetSystemInformation();
     }
-    return kernel_details_.has_value();
+    return has_queried;
+}
+
+bool PosixSystemInformation::GetSystemInformation() {
+    auto kernel_details_wrapper = GetKernelDetails();
+    if (kernel_details_wrapper) {
+        auto kernel_details = *kernel_details_wrapper;
+        details_.emplace_back(make_tuple("system information", format("host name: {}", kernel_details.host_name)));
+        details_.emplace_back(
+            make_tuple("system information", format("kernel version: {}", kernel_details.kernel_version.version)));
+        details_.emplace_back(
+            make_tuple("system information",
+                       format("kernel release: {}", kernel_details.kernel_version.release.to_string())));
+        details_.emplace_back(
+            make_tuple("system information", format("kernel type: {}", mmotd::to_string(kernel_details.kernel))));
+        details_.emplace_back(make_tuple("system information",
+                                         format("architecture: {}", mmotd::to_string(kernel_details.architecture))));
+        details_.emplace_back(
+            make_tuple("system information", format("byte order: {}", mmotd::to_string(kernel_details.endian))));
+    }
+    auto os_version = GetOsVersion();
+    if (os_version) {
+        auto [major, minor, patch] = *os_version;
+        details_.emplace_back(
+            make_tuple("system information", format("platform version: {}.{}.{}", major, minor, patch)));
+        details_.emplace_back(
+            make_tuple("system information", format("platform name: {}", GetPlatformName(major, minor))));
+    }
+    for (const auto &computer_value : details_) {
+        const auto &[name, value] = computer_value;
+        PLOG_VERBOSE << format("{}: {}", name, value);
+    }
+    return true;
 }
 
 optional<mmotd::ComputerValues> PosixSystemInformation::GetInformation() const {
-    if (!kernel_details_) {
-        PLOG_ERROR << "unable to return any posix system information because there isn't any gathered";
-        return nullopt;
-    }
-    auto computer_values = ComputerValues{};
-    const auto &kernel_details = *kernel_details_;
-    computer_values.emplace_back(make_tuple("host name", kernel_details.host_name));
-    computer_values.emplace_back(make_tuple("kernel version", kernel_details.kernel_version.version));
-    computer_values.emplace_back(make_tuple("kernel release", mmotd::to_string(kernel_details.kernel_version.release)));
-    computer_values.emplace_back(make_tuple("kernel type", mmotd::to_string(kernel_details.kernel)));
-    computer_values.emplace_back(make_tuple("architecture", mmotd::to_string(kernel_details.architecture)));
-    computer_values.emplace_back(make_tuple("byte-order", mmotd::to_string(kernel_details.endian)));
-    return make_optional(computer_values);
+    return !details_.empty() ? make_optional(details_) : nullopt;
 }
 
-ostream &operator<<(ostream &out, const mmotd::PosixSystemInformation &system_information) {
-    out << mmotd::to_string(system_information);
-    return out;
-}
-
-string mmotd::to_string(const mmotd::KernelRelease &kernel_release) {
+string mmotd::KernelRelease::to_string() const {
     auto str = string{};
-    if (kernel_release.major) {
-        str += std::to_string(kernel_release.major.value());
+    if (major) {
+        str += std::to_string(major.value());
     } else {
         return str;
     }
-    if (kernel_release.minor) {
-        str += "." + std::to_string(kernel_release.minor.value());
+    if (minor) {
+        str += "." + std::to_string(minor.value());
     } else {
         return str;
     }
-    if (kernel_release.patch) {
-        str += "." + std::to_string(kernel_release.patch.value());
+    if (patch) {
+        str += "." + std::to_string(patch.value());
     } else {
         return str;
     }
-    if (kernel_release.build) {
-        str += "." + std::to_string(kernel_release.build.value());
+    if (build) {
+        str += "." + std::to_string(build.value());
     } else {
         return str;
     }
     return str;
-}
-
-ostream &operator<<(ostream &out, const mmotd::KernelRelease &kernel_release) {
-    out << format("kernel release: {}\n", mmotd::to_string(kernel_release));
-    return out;
-}
-
-string mmotd::to_string(const mmotd::KernelVersion &kernel_version) {
-    auto str = mmotd::to_string(kernel_version.release);
-    str += "\n" + kernel_version.version;
-    return str;
-}
-
-ostream &operator<<(ostream &out, const mmotd::KernelVersion &kernel_version) {
-    out << format("kernel version: {}\n", to_string(kernel_version.version));
-    out << mmotd::to_string(kernel_version.release);
-    return out;
-}
-
-string mmotd::to_string(const mmotd::KernelDetails &kernel_details) {
-    auto str = to_string(kernel_details.kernel);
-    str += "\n" + mmotd::to_string(kernel_details.kernel_version);
-    str += "\n" + kernel_details.host_name;
-    str += "\n" + to_string(kernel_details.architecture);
-    str += "\n" + to_string(kernel_details.endian);
-    return str;
-}
-
-ostream &operator<<(ostream &out, const mmotd::KernelDetails &kernel_details) {
-    // out << format("kernel type: {}\n", to_string(kernel_details.kernel));
-    out << to_string(kernel_details.kernel) << "\n";
-    out << mmotd::to_string(kernel_details.kernel_version);
-    out << format("host name: {}\n", to_string(kernel_details.host_name));
-    // out << format("architecture: {}\n", to_string(kernel_details.architecture));
-    out << to_string(kernel_details.architecture) << "\n";
-    out << to_string(kernel_details.endian) << "\n";
-    return out;
-}
-
-string mmotd::PosixSystemInformation::to_string() const {
-    if (kernel_details_) {
-        return mmotd::to_string(*kernel_details_);
-    } else {
-        return string{};
-    }
-}
-
-string mmotd::to_string(const mmotd::PosixSystemInformation &system_information) {
-    return system_information.to_string();
 }
 
 std::string mmotd::to_string(mmotd::KernelType kernel_type) {
@@ -177,11 +148,6 @@ std::string mmotd::to_string(mmotd::KernelType kernel_type) {
     return string{};
 }
 
-ostream &operator<<(ostream &out, const mmotd::KernelType &kernel_type) {
-    out << format("kernel type: {}", mmotd::to_string(kernel_type));
-    return out;
-}
-
 string mmotd::to_string(mmotd::ArchitectureType architecture) {
     switch (architecture) {
         case ArchitectureType::x64:
@@ -197,10 +163,6 @@ string mmotd::to_string(mmotd::ArchitectureType architecture) {
             return "unknown";
     }
 }
-ostream &operator<<(ostream &out, const mmotd::ArchitectureType &architecture) {
-    out << "architecture: " << mmotd::to_string(architecture);
-    return out;
-}
 
 string mmotd::to_string(mmotd::EndianType endian) {
     switch (endian) {
@@ -212,11 +174,6 @@ string mmotd::to_string(mmotd::EndianType endian) {
         default:
             return "unknown";
     }
-}
-
-ostream &operator<<(ostream &out, const mmotd::EndianType &endian) {
-    out << "Endian: " << mmotd::to_string(endian);
-    return out;
 }
 
 static ArchitectureType to_architecture_type(const string &type_str) {
@@ -301,4 +258,79 @@ static KernelDetails to_kernel_details(const string &kernel_type,
     kernel_details.architecture = to_architecture_type(architecture);
     kernel_details.endian = to_endian_type();
     return kernel_details;
+}
+
+static string GetPlatformName(int major, int minor) {
+    static constexpr std::array<std::tuple<int, int, const char *>, 3> PLATFORM_NAMES = {make_tuple(10, 11, "Mac OS X"),
+                                                                                         make_tuple(10, 15, "macOS 10"),
+                                                                                         make_tuple(11, 0, "macOS 11")};
+    static constexpr std::array<std::tuple<int, int, const char *>, 17> VERSION_NAMES = {
+        make_tuple(10, 0, "Cheetah"),
+        make_tuple(10, 1, "Puma"),
+        make_tuple(10, 2, "Jaguar"),
+        make_tuple(10, 3, "Panther"),
+        make_tuple(10, 4, "Tiger"),
+        make_tuple(10, 5, "Leopard"),
+        make_tuple(10, 6, "Snow Leopard"),
+        make_tuple(10, 7, "Lion"),
+        make_tuple(10, 8, "Mountain Lion"),
+        make_tuple(10, 9, "Mavericks"),
+        make_tuple(10, 10, "Yosemite"),
+        make_tuple(10, 11, "El Capitan"),
+        make_tuple(10, 12, "Sierra"),
+        make_tuple(10, 13, "High Sierra"),
+        make_tuple(10, 14, "Mojave"),
+        make_tuple(10, 15, "Catalina"),
+        make_tuple(11, 0, "Big Sur")};
+
+    auto platform_name = string{"unknown"};
+    for (const auto &platform_name_pack : PLATFORM_NAMES) {
+        auto [major_version, minor_version, platform] = platform_name_pack;
+        if (major == major_version && minor <= minor_version) {
+            platform_name = string{platform};
+            break;
+        }
+    }
+
+    auto version_name = string{"unkown"};
+    for (const auto &version_name_pack : VERSION_NAMES) {
+        auto [major_version, minor_version, version] = version_name_pack;
+        if (major == major_version && minor == minor_version) {
+            version_name = string{version};
+            break;
+        }
+    }
+
+    return format("{} {}", platform_name, version_name);
+}
+
+static optional<tuple<int, int, int>> GetOsVersion() {
+    int mib[4] = {0, 0, 0, 0};
+    size_t miblen = 512;
+    if (sysctlnametomib("kern.osproductversion", mib, &miblen) == -1) {
+        auto error_str = mmotd::platform::error::to_string(errno);
+        PLOG_ERROR << format("error calling sysctlnametomib with kern.osproductversion, details: {}", error_str);
+        return nullopt;
+    }
+    char version[512] = {0};
+    memset(version, 0, 512);
+    size_t length = sizeof(long long);
+    if (sysctl(mib, 2, version, &length, NULL, 0) == -1) {
+        auto error_str = mmotd::platform::error::to_string(errno);
+        PLOG_ERROR << format("error calling sysctl with kern.osproductversion, details: {}", error_str);
+        return nullopt;
+    }
+    auto versions = vector<string>{};
+    boost::split(versions, version, boost::is_any_of("."));
+    auto version_numbers = vector<int>{0, 0, 0};
+    if (!versions.empty()) {
+        version_numbers[0] = stoi(versions[0]);
+    }
+    if (versions.size() > 1) {
+        version_numbers[1] = stoi(versions[1]);
+    }
+    if (versions.size() > 2) {
+        version_numbers[2] = stoi(versions[2]);
+    }
+    return make_optional(make_tuple(version_numbers[0], version_numbers[1], version_numbers[2]));
 }

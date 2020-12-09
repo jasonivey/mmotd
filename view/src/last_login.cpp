@@ -4,6 +4,7 @@
 #include "view/include/last_login.h"
 
 #include <array>
+#include <memory>
 #include <string>
 
 #include <fmt/format.h>
@@ -15,7 +16,7 @@ using namespace std;
 bool gLinkLastLoginProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::LastLogin>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::LastLogin>(); });
 
 optional<string> mmotd::LastLogin::QueryInformation() {
     auto last_login_wrapper = ComputerInformation::Instance().GetInformation("last login");

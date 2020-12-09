@@ -100,3 +100,16 @@ if (NOT scope_guard_POPULATED)
     add_library(scope_guard INTERFACE)
     target_include_directories(scope_guard INTERFACE ${scope_guard_SOURCE_DIR})
 endif ()
+
+FetchContent_Declare(
+    random
+    GIT_REPOSITORY  https://github.com/effolkronium/random.git
+    GIT_TAG         v1.3.1
+)
+
+FetchContent_GetProperties(random)
+if (NOT random_POPULATED)
+    FetchContent_Populate(random)
+    add_library(random INTERFACE)
+    target_include_directories(random INTERFACE ${random_SOURCE_DIR}/include)
+endif ()

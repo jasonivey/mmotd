@@ -3,6 +3,10 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/memory_usage.h"
 
+#include <memory>
+
+#include <boost/algorithm/string.hpp>
+#include <boost/range.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -12,7 +16,7 @@ using namespace std;
 bool gLinkMemoryUsageProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::MemoryUsage>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::MemoryUsage>(); });
 
 optional<string> mmotd::MemoryUsage::QueryInformation() {
     auto memory_usage_wrapper = ComputerInformation::Instance().GetInformation("memory usage");
@@ -23,9 +27,12 @@ optional<string> mmotd::MemoryUsage::QueryInformation() {
     auto values = (*memory_usage_wrapper);
     auto combined_value = string{};
     for (auto value : values) {
-        combined_value += format("{}{}", combined_value.empty() ? "" : ", ", value);
+        auto rng = boost::find_first(value, "percent: ");
+        if (rng) {
+            return make_optional(string(rng.end(), value.end()));
+        }
     }
-    return make_optional(combined_value);
+    return nullopt;
 }
 
 string mmotd::MemoryUsage::GetName() const {

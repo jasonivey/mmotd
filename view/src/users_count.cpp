@@ -3,6 +3,9 @@
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/users_count.h"
 
+#include <memory>
+#include <regex>
+
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -12,7 +15,7 @@ using namespace std;
 bool gLinkUsersCountProvider = false;
 
 static const bool factory_registered =
-    mmotd::RegisterComputerInformationProvider([]() { return make_unique<mmotd::UsersCount>(); });
+    mmotd::RegisterComputerInformationProvider([]() { return make_shared<mmotd::UsersCount>(); });
 
 optional<string> mmotd::UsersCount::QueryInformation() {
     auto user_sessions_wrapper = ComputerInformation::Instance().GetInformation("user session");
@@ -20,12 +23,19 @@ optional<string> mmotd::UsersCount::QueryInformation() {
         PLOG_INFO << "unable to find user sessions";
         return nullopt;
     }
+    auto rgx = std::regex(" logged in (\\d+) times", std::regex_constants::ECMAScript);
     auto values = (*user_sessions_wrapper);
-    auto combined_value = string{};
     for (auto value : values) {
-        combined_value += format("{}{}", combined_value.empty() ? "" : ", ", value);
+        auto match = std::smatch{};
+        if (!regex_search(value, match, rgx)) {
+            continue;
+        }
+        if (match.size() > 0) {
+            auto submatch = match[1];
+            return make_optional(submatch.str());
+        }
     }
-    return make_optional(combined_value);
+    return nullopt;
 }
 
 string mmotd::UsersCount::GetName() const {

@@ -5,14 +5,11 @@ struct Options;
 
 class AppOptionsCreator {
 public:
-    AppOptionsCreator();
-
-    virtual ~AppOptionsCreator();
+    AppOptionsCreator() = default;
+    virtual ~AppOptionsCreator() = default;
 
     virtual const Options &GetOptions() const = 0;
-
     virtual bool IsAppFinished() const = 0;
 
 private:
-    // virtual void AddOption(const Option &option) = 0;
 };

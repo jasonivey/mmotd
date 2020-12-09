@@ -19,7 +19,9 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <net/if_dl.h>
+#include <net/if_media.h>
 #include <netinet/in.h>
+#include <netinet6/in6_var.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -38,7 +40,8 @@ namespace mmotd {
 static const bool network_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::NetworkInfo>(); });
 
-static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &ip_address);
+//static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &ip_address);
+static optional<NetworkDevices> DiscoverNetworkDevices();
 
 MacAddress::MacAddress(const uint8_t *buffer, size_t buffer_size) {
     if (buffer_size != MAC_ADDRESS_SIZE) {
@@ -115,13 +118,14 @@ string MacAddress::to_string() const {
 }
 
 bool NetworkInfo::TryDiscovery() {
-    auto active_ip_address_wrapper = GetActiveInterface();
-    if (!active_ip_address_wrapper) {
-        PLOG_INFO << "unable to find active ip address";
-    }
-    auto active_ip_address = active_ip_address_wrapper.value_or(IpAddress{});
+    //auto active_ip_address_wrapper = GetActiveInterface();
+    //if (!active_ip_address_wrapper) {
+    //    PLOG_INFO << "unable to find active ip address";
+    //}
+    //auto active_ip_address = active_ip_address_wrapper.value_or(IpAddress{});
 
-    auto devices = DiscoverNetworkDevices(active_ip_address);
+    //auto devices = DiscoverNetworkDevices(active_ip_address);
+    auto devices = DiscoverNetworkDevices();
     if (!devices) {
         PLOG_INFO << "no network devices were discovered";
         return false;
@@ -156,13 +160,118 @@ std::optional<mmotd::ComputerValues> NetworkInfo::GetInformation() const {
 
 #if defined(__linux__)
 
-static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &ip_address) {
+//static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &ip_address) {
+static optional<NetworkDevices> DiscoverNetworkDevices() {
     return nullopt;
 }
 
 #elif defined(__APPLE__)
 
-static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &active_ip_address) {
+static bool IsInterfaceActive(const string &name, sa_family_t family) {
+    if (family != AF_INET && family != AF_INET6) {
+        PLOG_ERROR << format("only able to open sockets to INET & INET6 where as this is {}", family);
+        return false;
+    }
+    auto sock = socket(family, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        PLOG_ERROR << format("opening socket failed, family: {}, type: SOCK_DGRAM, protocol: 0, details: {}",
+                             family,
+                             mmotd::platform::error::errno_to_string());
+        return false;
+    }
+    auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
+
+    auto ifmr = ifmediareq{};
+    (void)memset(&ifmr, 0, sizeof(ifmr));
+    (void)strncpy(ifmr.ifm_name, name.c_str(), sizeof(ifmr.ifm_name));
+
+    if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
+        PLOG_ERROR << format("iterface does not support SIOCGIFMEDIA, details: {}",
+                             mmotd::platform::error::errno_to_string());
+        return false;
+    }
+
+    if (ifmr.ifm_count == 0) {
+        PLOG_WARNING << format("ioctl SIOCGIFMEDIA returned no ifmediareq for {}", name);
+        return false;
+    }
+
+    int *media_list = (int *)malloc(ifmr.ifm_count * sizeof(int));
+    if (media_list == NULL) {
+        PLOG_ERROR << format("malloc failed to allocate {} bytes", ifmr.ifm_count * sizeof(int));
+        return false;
+    }
+    auto media_list_deleter = sg::make_scope_guard([media_list]() { free(media_list); });
+    ifmr.ifm_ulist = media_list;
+
+    if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
+        PLOG_ERROR << format("ioctl SIOCGIFMEDIA failed, details: {}", mmotd::platform::error::errno_to_string());
+        return false;
+    }
+
+    auto active = (ifmr.ifm_status & IFM_AVALID) != 0 && (ifmr.ifm_status & IFM_ACTIVE) != 0;
+    PLOG_INFO << format("interface {}: {}active", name, active ? "" : "in");
+
+    return active;
+}
+
+#    if 0
+static optional<int> GetIp6Flags(const struct ifaddrs *ifa, const string &name) {
+    struct sockaddr_in6 *sin = (struct sockaddr_in6 *)ifa->ifa_addr;
+    if (sin == NULL) {
+        PLOG_ERROR << format("invalid GetIp6Flags ifaddrs argument (== nullptr) on {}", name);
+        return nullopt;
+    }
+
+    auto sock = socket(AF_INET6, SOCK_DGRAM, 0);
+    if (sock < 0) {
+        PLOG_ERROR << format("opening socket failed, family: AF_INET6, type: SOCK_DGRAM, protocol: 0, details: {}",
+                             mmotd::platform::error::errno_to_string());
+        return nullopt;
+    }
+    auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
+
+    struct in6_ifreq ifr6;
+    strncpy(ifr6.ifr_name, name.c_str(), name.size());
+    ifr6.ifr_addr = *sin;
+
+    auto retval = ioctl(sock, SIOCGIFAFLAG_IN6, &ifr6);
+    if (retval < 0) {
+        PLOG_ERROR << format("ioctl SIOCGIFAFLAG_IN6 failed on {}, details: {}",
+                             name,
+                             mmotd::platform::error::errno_to_string());
+        return nullopt;
+    }
+    int32_t flags = ifr6.ifr_ifru.ifru_flags6;
+    return make_optional(flags);
+
+#        if 0
+    if ((flags & IN6_IFF_ANYCAST) != 0)
+        printf("anycast ");
+    if ((flags & IN6_IFF_TENTATIVE) != 0)
+        printf("tentative ");
+    if ((flags & IN6_IFF_OPTIMISTIC) != 0)
+        printf("optimistic ");
+    if ((flags & IN6_IFF_DUPLICATED) != 0)
+        printf("duplicated ");
+    if ((flags & IN6_IFF_DETACHED) != 0)
+        printf("detached ");
+    if ((flags & IN6_IFF_DEPRECATED) != 0)
+        printf("deprecated ");
+    if ((flags & IN6_IFF_AUTOCONF) != 0)
+        printf("autoconf ");
+    if ((flags & IN6_IFF_TEMPORARY) != 0)
+        printf("temporary ");
+    if ((flags & IN6_IFF_DYNAMIC) != 0)
+        printf("dynamic ");
+    if ((flags & IN6_IFF_SECURED) != 0)
+        printf("secured ");
+#        endif
+}
+#    endif
+
+//static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &active_ip_address) {
+static optional<NetworkDevices> DiscoverNetworkDevices() {
     struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
         PLOG_ERROR << format("getifaddrs failed, errno: {}", errno);
@@ -177,6 +286,7 @@ static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &active_i
         if (ptr->ifa_addr == nullptr || ptr->ifa_name == nullptr) {
             continue;
         }
+        //auto flags = ptr->ifa_flags;
         const auto interface_name = string{ptr->ifa_name};
         const auto address_family = ptr->ifa_addr->sa_family;
         if (address_family == AF_LINK) {
@@ -227,18 +337,52 @@ static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &active_i
                 network_device = &(iter->second);
                 network_device->interface_name = interface_name;
             }
+            PLOG_INFO << format("{} checking whether active == boost::indeterminate: {}, ",
+                                interface_name,
+                                boost::indeterminate(network_device->active) ? "yes" :
+                                static_cast<bool>(network_device->active)    ? "bool{true}" :
+                                                                               "bool{false}");
+            if (boost::indeterminate(network_device->active)) {
+                auto active = IsInterfaceActive(interface_name, address_family);
+                network_device->active = active;
+            }
+
             auto ip_address = make_address(ip_str);
             if (ip_address.is_unspecified()) {
-                PLOG_INFO << format("{} with ip address {} is unspecified", interface_name, ip_address.to_string());
-            } else if (ip_address.is_loopback()) {
-                PLOG_INFO << format("{} with ip address {} is loopback device", interface_name, ip_address.to_string());
-            } else {
-                PLOG_INFO << format("{} with ip address {} is multicast device: {}",
+                PLOG_INFO << format("{} with ip address {} is unspecified (bad)",
                                     interface_name,
-                                    ip_address.to_string(),
-                                    ip_address.is_multicast() ? "yes" : "no");
-                network_device->ip_addresses.push_back(ip_address);
+                                    ip_address.to_string());
+                continue;
             }
+            if (ip_address.is_loopback()) {
+                PLOG_INFO << format("{} with ip address {} is a loopback device",
+                                    interface_name,
+                                    ip_address.to_string());
+                continue;
+            }
+            if (ip_address.is_multicast()) {
+                // not a problem that we won't add the ip address
+                PLOG_INFO << format("{} with ip address {} is a multicast device",
+                                    interface_name,
+                                    ip_address.to_string());
+            }
+            if (ip_address.is_v6()) {
+                // Not displaying IPv6 addresses at this point
+                continue;
+                // auto flags_wrapper = GetIp6Flags(ptr, interface_name);
+                // if (flags_wrapper && (*flags_wrapper & IN6_IFF_AUTOCONF) != 0) {
+                //     PLOG_INFO << format("{} with ip address {} is a autoconf device",
+                //                         interface_name,
+                //                         ip_address.to_string());
+                //     continue;
+                // }
+            }
+
+            PLOG_INFO << format("adding ip address {} to the network device: {}",
+                                ip_address.to_string(),
+                                interface_name);
+
+            network_device->ip_addresses.push_back(ip_address);
         }
     }
 
@@ -246,28 +390,30 @@ static optional<NetworkDevices> DiscoverNetworkDevices(const IpAddress &active_i
     copy_if(begin(network_devices),
             end(network_devices),
             inserter(cleaned_network_devices, cleaned_network_devices.begin()),
-            [active_ip_address](const auto &device) {
+            [](const auto &device) {
+                //[active_ip_address](const auto &device) {
                 const auto &network_device = device.second;
                 if (network_device.interface_name.empty()) {
+                    return false;
+                } else if (!boost::indeterminate(network_device.active) && !static_cast<bool>(network_device.active)) {
                     return false;
                 } else if (!network_device.mac_address) {
                     return false;
                 } else if (network_device.ip_addresses.empty()) {
                     return false;
                 } else {
-                    if (!active_ip_address.is_unspecified()) {
-                        auto i = find(begin(network_device.ip_addresses),
-                                      end(network_device.ip_addresses),
-                                      active_ip_address);
-                        if (i == end(network_device.ip_addresses)) {
-                            return false;
-                        }
-                    }
-                    auto i = find_if(
-                        begin(network_device.ip_addresses),
-                        end(network_device.ip_addresses),
-                        [](const auto &ip_address) { return ip_address.is_unspecified() || ip_address.is_loopback(); });
-                    if (i != end(network_device.ip_addresses)) {
+                    // if (!active_ip_address.is_unspecified()) {
+                    //     auto i = find(begin(network_device.ip_addresses),
+                    //                   end(network_device.ip_addresses),
+                    //                   active_ip_address);
+                    //     if (i == end(network_device.ip_addresses)) {
+                    //         return false;
+                    //     }
+                    // }
+                    auto i = find_if(begin(network_device.ip_addresses),
+                                     end(network_device.ip_addresses),
+                                     [](const auto &ip_address) { return ip_address.is_v4(); });
+                    if (i == end(network_device.ip_addresses)) {
                         return false;
                     }
                 }
@@ -317,7 +463,7 @@ optional<IpAddress> NetworkInfo::GetActiveInterface() {
         PLOG_ERROR << format("inet_ntop failed after connecting to {} on port {}, details: {}",
                              GOOGLE_DNS_IP,
                              DNS_PORT,
-                             mmotd::platform::error::to_string(errno));
+                             mmotd::platform::error::errno_to_string());
         return nullopt;
     }
     PLOG_INFO << format("found active interface {} by connecting to {} on port {}",
