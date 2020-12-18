@@ -17,6 +17,7 @@ public:
     const Options &GetOptions() const override { return options_; }
 
     bool IsAppFinished() const override { return app_finished_; }
+    bool IsErrorExit() const override { return error_exit_; }
 
 private:
     static CliAppOptionsCreator &GetInstance();
@@ -30,4 +31,5 @@ private:
 
     Options options_;
     bool app_finished_ = false;
+    bool error_exit_ = false;
 };

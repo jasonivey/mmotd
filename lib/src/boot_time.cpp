@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
-#include "common/include/platform_error.h"
+#include "common/include/posix_error.h"
 #include "lib/include/boot_time.h"
 #include "lib/include/computer_information.h"
 
@@ -49,8 +49,8 @@ optional<string> GetBootTimeImpl() {
 
     if (sysctl(mib, 2, &result, &result_len, NULL, 0) == -1) {
         auto error_str = string{"sysctl(KERN_BOOTTIME) syscall failed"};
-        if (errno != 0) {
-            error_str += format(", details: {}", mmotd::platform::error::to_string(errno));
+        if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
+            error_str += format(", details: {}", errno_str);
         }
         PLOG_ERROR << error_str;
         return nullopt;

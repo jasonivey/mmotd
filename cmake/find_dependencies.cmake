@@ -47,18 +47,6 @@ if (NOT fmt_POPULATED)
     target_include_directories(fmt INTERFACE ${fmt_SOURCE_DIR}/include)
 endif ()
 
-#FetchContent_Declare(
-#    date_src
-#    GIT_REPOSITORY  https://github.com/HowardHinnant/date.git
-#    GIT_TAG         v3.0.0
-#)
-#FetchContent_GetProperties(date_src)
-#if (NOT date_src_POPULATED)
-#    FetchContent_Populate(date_src)
-#    add_library(date_src INTERFACE)
-#    target_include_directories(date_src INTERFACE ${date_src_SOURCE_DIR}/include/date)
-#endif ()
-
 FetchContent_Declare(
     plog
     GIT_REPOSITORY  https://github.com/SergiusTheBest/plog.git

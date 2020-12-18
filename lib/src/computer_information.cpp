@@ -114,28 +114,6 @@ void ComputerInformation::CacheAllInformation() const {
         copy(begin(values), end(values), back_inserter(information_cache_));
     }
 #endif
-    // auto information = Information{};
-    // transform(begin(information_providers_),
-    //           end(information_providers_),
-    //           back_inserter(information),
-    //           [](auto &&provider) {
-    //               if (!provider->QueryInformation()) {
-    //                   PLOG_ERROR << format("unable to query information for {}", provider->GetName());
-    //                   return NameAndValue{};
-    //               }
-    //               auto information_wrapper = provider->GetInformation();
-    //               if (!information_wrapper) {
-    //                   PLOG_ERROR << format("successfully queried information for {} but nothing was returned",
-    //                                        provider->GetName());
-    //                   return NameAndValue{};
-    //               }
-    //               return information_wrapper.value();
-    //           });
-    // auto i = remove_if(begin(information), end(information), [](const auto &name_value) {
-    //     auto [name, value] = name_value;
-    //     return name.empty() && value.empty();
-    // });
-    // information.erase(i, end(information));
 }
 
 } // namespace mmotd

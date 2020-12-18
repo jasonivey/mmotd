@@ -2,6 +2,7 @@
 #include "app/include/cli_app_options_creator.h"
 #include "app/include/logging.h"
 #include "common/include/app_options.h"
+#include "common/include/version.h"
 
 #include <algorithm>
 #include <any>
@@ -42,7 +43,7 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         MMOTD_LOG_INFO(msg);
         cout << msg << endl;
     } catch (const CLI::CallForVersion &version) {
-        const string msg = format("version: {}", version.what());
+        const string msg = format("version: {}", mmotd::version::Version::Instance().to_string());
         MMOTD_LOG_INFO(msg);
         cout << msg << endl;
     } catch (const CLI::ParseError &err) {
@@ -50,6 +51,7 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         if (err.get_exit_code() != 0) {
             MMOTD_LOG_ERROR(format("error code {}: {}", err.get_exit_code(), err.what()));
         }
+        error_exit_ = true;
     }
     if (options_.output_config_path) {
         auto new_config = ofstream((*options_.output_config_path).c_str());

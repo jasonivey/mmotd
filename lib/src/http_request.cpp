@@ -15,10 +15,10 @@
 #include <fmt/format.h>
 #include <plog/Log.h>
 
-namespace beast = boost::beast; // from <boost/beast.hpp>
-namespace http = beast::http;   // from <boost/beast/http.hpp>
-namespace net = boost::asio;    // from <boost/asio.hpp>
-using tcp = net::ip::tcp;       // from <boost/asio/ip/tcp.hpp>
+namespace beast = boost::beast;
+namespace http = beast::http;
+namespace net = boost::asio;
+using tcp = net::ip::tcp;
 using fmt::format;
 using namespace std;
 
@@ -28,19 +28,15 @@ HttpRequest::HttpRequest(HttpProtocol protocol, string host, string port) :
 
 string HttpRequest::MakeRequest(string path) {
     try {
-        auto response = optional<string>{};
-        if (protocol_ == HttpProtocol::HTTPS) {
-            response = TryMakeSecureRequest(path);
-        } else {
-            response = TryMakeRequest(path);
-        }
-        return response == nullopt ? string{} : *response;
+        auto response = TryMakeSecureRequest(protocol_, host_, port_, path);
+        return !response ? string{} : *response;
     } catch (const exception &ex) {
         PLOG_ERROR << "exception " << ex.what();
         return string{};
     }
 }
 
+#if 0
 optional<string> HttpRequest::TryMakeRequest(std::string path) {
     const auto version = int{11};
 
@@ -85,7 +81,7 @@ optional<string> HttpRequest::TryMakeRequest(std::string path) {
                                 port_,
                                 path,
                                 ec.message());
-            ec = boost::system::error_code{};
+            ec.clear();
         } else {
             PLOG_ERROR << format("during http request of {}:{}{}, {}", host_, port_, path, ec.message());
             return nullopt;
@@ -123,3 +119,4 @@ optional<string> HttpRequest::TryMakeRequest(std::string path) {
 
     return make_optional(response_str);
 }
+#endif

@@ -12,7 +12,7 @@ namespace mmotd {
 class FileSystem : public InformationProvider {
 public:
     FileSystem() = default;
-    ~FileSystem() = default;
+    virtual ~FileSystem() = default;
 
     std::string GetName() const override { return std::string{"file system"}; }
     bool QueryInformation() override;

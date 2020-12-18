@@ -7,3 +7,5 @@
 .vscode/tasks.json
 build/
 vs-build/
+common/include/version_number.h
+

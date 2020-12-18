@@ -10,6 +10,7 @@ public:
 
     virtual const Options &GetOptions() const = 0;
     virtual bool IsAppFinished() const = 0;
+    virtual bool IsErrorExit() const = 0;
 
 private:
 };

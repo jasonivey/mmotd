@@ -11,6 +11,7 @@ namespace mmotd {
 class Memory : public InformationProvider {
 public:
     Memory() = default;
+    virtual ~Memory() = default;
 
     std::string GetName() const override { return std::string{"memory"}; }
     bool QueryInformation() override;

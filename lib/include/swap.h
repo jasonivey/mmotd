@@ -11,6 +11,7 @@ namespace mmotd {
 class Swap : public InformationProvider {
 public:
     Swap() = default;
+    virtual ~Swap() = default;
 
     std::string GetName() const override { return std::string{"swap information"}; }
     bool QueryInformation() override;

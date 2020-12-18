@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/iostream_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/fortune.h"
 
@@ -90,75 +91,89 @@ optional<tuple<fs::path, fs::path>> GetFortuneFiles(const string &fortune_name) 
     }
 
     auto ec = std::error_code{};
-    if (fs::is_regular_file(fortune_path, ec)) {
+    if (fs::is_regular_file(fortune_path, ec) || fs::is_symlink(fortune_path, ec)) {
         PLOG_VERBOSE << format("file exists: {}", fortune_path.string());
     } else if (ec) {
-        PLOG_ERROR << format("error code {} when calling is regular file for {}", ec.message(), fortune_path.string());
+        PLOG_ERROR << format("error {} when checking if file {} is regular/symlink",
+                             ec.message(),
+                             fortune_path.string());
         return nullopt;
     } else {
-        PLOG_ERROR << format("file does not exist: {}", fortune_path.string());
+        PLOG_ERROR << format("file {} is not regular/symlink", fortune_path.string());
         return nullopt;
     }
 
     auto fortune_db_path = (fortune_path.parent_path() / fortune_path.stem()).replace_extension(".dat");
-    if (fs::is_regular_file(fortune_db_path, ec)) {
+    if (fs::is_regular_file(fortune_db_path, ec) || fs::is_symlink(fortune_db_path, ec)) {
         PLOG_VERBOSE << format("file exists: {}", fortune_db_path.string());
     } else if (ec) {
-        PLOG_ERROR << format("error code {} when calling is regular file for {}",
+        PLOG_ERROR << format("error {} when checking if file {} is regular/symlink",
                              ec.message(),
                              fortune_db_path.string());
         return nullopt;
     } else {
-        PLOG_ERROR << format("file does not exist: {}", fortune_db_path.string());
+        PLOG_ERROR << format("file {} is not regular/symlink", fortune_db_path.string());
         return nullopt;
     }
 
     return make_optional(make_tuple(fortune_path, fortune_db_path));
 }
 
-vector<uint32_t> ParseFortuneDbData(const vector<uint8_t> &buffer) {
-    auto file_offsets = vector<uint32_t>{};
-    auto i = begin(buffer);
-    while (i != end(buffer)) {
-        if (std::distance(i, end(buffer)) < static_cast<int32_t>(sizeof(uint32_t))) {
-            PLOG_ERROR << format("found end and it was after file offset #{} and it's null uint32_t",
-                                 file_offsets.size());
-            i = end(buffer);
-            continue;
-        }
-
-        auto raw_offset_ptr = reinterpret_cast<const uint32_t *>(&(*i));
-        auto raw_offset = *raw_offset_ptr;
-        file_offsets.emplace_back(ntohl(raw_offset));
-        std::advance(i, sizeof(uint32_t));
-
-        if (std::distance(i, end(buffer)) < static_cast<int32_t>(sizeof(uint32_t))) {
-            PLOG_ERROR << format("found end and it was after file offset #{} but before it's null uint32_t",
-                                 file_offsets.size());
-            i = end(buffer);
-            continue;
-        }
-
-        raw_offset_ptr = reinterpret_cast<const uint32_t *>(&(*i));
-        raw_offset = *raw_offset_ptr;
-        if (raw_offset != 0) {
-            auto error_str = format(
-                "unexpected input in strfile offsets table, the uint32_t following an offset is not 0 (value={}, index={}",
-                raw_offset,
-                std::distance(begin(buffer), i));
-            PLOG_ERROR << error_str;
-            return vector<uint32_t>{};
-        }
-
-        std::advance(i, sizeof(uint32_t));
+optional<uint32_t> ParseSingleFortuneDbData(const vector<uint8_t> &buffer) {
+    if (buffer.size() != sizeof(uint32_t) * 2) {
+        PLOG_ERROR << format("unable to parse STRFILE when the input is not {}", sizeof(uint32_t) * 2);
+        return nullopt;
     }
 
-    //auto index = size_t{0};
-    //for (auto offset : file_offsets) {
-    //    PLOG_VERBOSE << format("file offset #{:3d}: offset value: {}", ++index, offset);
-    //}
+    auto network_offset_value = *reinterpret_cast<const uint32_t *>(buffer.data());
+    auto host_offset_value = ntohl(network_offset_value);
 
-    return file_offsets;
+    auto null_value = *reinterpret_cast<const uint32_t *>(buffer.data() + sizeof(uint32_t));
+    if (null_value != 0) {
+        auto error_str =
+            format("STRFILE appears corrupt, uint32_t value {} is not followed by NULL uint32_t (uint32_t={})",
+                   host_offset_value,
+                   null_value);
+        PLOG_ERROR << error_str;
+        return nullopt;
+    }
+    PLOG_VERBOSE << format("parsed the STRFILE database entry, offset: {}", host_offset_value);
+    return make_optional(host_offset_value);
+}
+
+optional<uint32_t>
+ReadRandomFortuneOffset(const fs::path &fortune_db_path, std::ifstream &fortune_db_file, uint32_t file_offset) {
+    PLOG_VERBOSE << format("seeking to offset {} in STRFILE database {}", file_offset, fortune_db_path.string());
+    fortune_db_file.seekg(file_offset, std::ios_base::beg);
+    if (!fortune_db_file.good()) {
+        PLOG_ERROR << format("unable to seek to {} in STRFILE database {}, {}",
+                             file_offset,
+                             fortune_db_path.string(),
+                             mmotd::error::ios_flags::to_string(fortune_db_file));
+        return nullopt;
+    }
+
+    auto buffer = vector<uint8_t>(sizeof(uint64_t), 0);
+    fortune_db_file.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
+    if (fortune_db_file.fail() || fortune_db_file.bad()) {
+        PLOG_ERROR << format("unable to read {} bytes of STRFILE database {} at offset {}, {}",
+                             sizeof(uint64_t),
+                             fortune_db_path.string(),
+                             file_offset,
+                             mmotd::error::ios_flags::to_string(fortune_db_file));
+        return nullopt;
+    }
+
+    return ParseSingleFortuneDbData(buffer);
+}
+
+uint32_t ConvertDbIndexToFortuneFileOffset(size_t db_index, uint32_t file_size) {
+    // adjust calculations for the STRFILE header and the following 2 uint32_t NULL's
+    auto file_offset = sizeof(StrFileHeader) + sizeof(uint64_t);
+    // add to the header size the actual database index * sizeof(uint64_t)
+    file_offset += db_index * sizeof(uint64_t);
+    // just make sure we haven't gone over the end of the file...
+    return std::min(file_offset, file_size - sizeof(uint64_t));
 }
 
 optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path &fortune_db_path) {
@@ -170,36 +185,93 @@ optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path 
                              ec.message());
         return nullopt;
     }
-    auto fortune_db_file = ifstream(fortune_db_path, ios_base::in | ios_base::binary);
-    if (!fortune_db_file.is_open()) {
-        PLOG_ERROR << format("unable to open {} for reading", fortune_db_path.string());
+    auto fortune_db_file = ifstream{};
+    fortune_db_file.exceptions(std::ifstream::goodbit);
+    fortune_db_file.open(fortune_db_path, ios_base::in | ios_base::binary);
+
+    if (!fortune_db_file.is_open() || fortune_db_file.fail() || fortune_db_file.bad()) {
+        PLOG_ERROR << format("unable to open STRFILE database {} for reading, {}",
+                             fortune_db_path.string(),
+                             mmotd::error::ios_flags::to_string(fortune_db_file));
         return nullopt;
     }
 
     auto strfile_header = StrFileHeader{};
     fortune_db_file.read(reinterpret_cast<char *>(&strfile_header), sizeof(StrFileHeader));
+    if (fortune_db_file.fail() || fortune_db_file.bad()) {
+        PLOG_ERROR << format("unable to read STRFILE database header {}, {}",
+                             fortune_db_path.string(),
+                             mmotd::error::ios_flags::to_string(fortune_db_file));
+        return nullopt;
+    }
+
     strfile_header.update();
     if (strfile_header.version != StrFileHeader::VERSION) {
-        PLOG_ERROR << format("STRFILE header is version {} not the expected version {}",
+        PLOG_ERROR << format("STRFILE database header is version {} not the expected version {}",
                              strfile_header.version,
                              StrFileHeader::VERSION);
         return nullopt;
     }
 
-    PLOG_VERBOSE << format("sizeof STRFILE header: {}", sizeof(StrFileHeader));
-    auto remaining_size = static_cast<size_t>(fortune_db_file_size) - sizeof(StrFileHeader);
-    PLOG_VERBOSE << format("remaining size: {}", remaining_size);
-    PLOG_VERBOSE << format("number of strs: {}", strfile_header.numstr);
+    PLOG_VERBOSE << format("sizeof STRFILE header: {}", sizeof(StrFileHeader) + sizeof(uint64_t));
+    auto remaining_size = static_cast<size_t>(fortune_db_file_size) - sizeof(StrFileHeader) - sizeof(uint64_t);
+    PLOG_VERBOSE << format("remaining size : {}", remaining_size);
+    PLOG_VERBOSE << format("number of strs : {}", strfile_header.numstr);
+    PLOG_VERBOSE << format("calculated strs: {} with {} bytes remaining",
+                           remaining_size / sizeof(uint64_t),
+                           remaining_size % sizeof(uint64_t));
 
-    auto buffer_size = static_cast<size_t>(strfile_header.numstr) * sizeof(uint64_t);
-    auto buffer = vector<uint8_t>(buffer_size, 0);
-    fortune_db_file.read(reinterpret_cast<char *>(buffer.data()), buffer_size);
-    PLOG_VERBOSE << format("read the entire fortune db, buffer size: {}", buffer.size());
+    auto random_index = effing_random::get<size_t>(0, static_cast<size_t>(strfile_header.numstr));
+    PLOG_VERBOSE << format("random STRFILE database index: {}", random_index);
+    auto file_offset = ConvertDbIndexToFortuneFileOffset(random_index, fortune_db_file_size);
 
-    auto file_offsets = ParseFortuneDbData(buffer);
-    auto random_iterator = effing_random::get(file_offsets);
-    PLOG_VERBOSE << format("random offset: {}", *random_iterator);
-    return make_optional(make_tuple(*random_iterator, strfile_header.longlen, strfile_header.get_delim()));
+    auto fortune_offset = ReadRandomFortuneOffset(fortune_db_path, fortune_db_file, file_offset);
+    if (!fortune_offset) {
+        return nullopt;
+    }
+
+    return make_optional(make_tuple(*fortune_offset, strfile_header.longlen, strfile_header.get_delim()));
+}
+
+optional<string> ReadFortune(const fs::path &fortune_path, uint32_t offset, uint32_t max_size, char delimeter) {
+    auto fortune_file = ifstream{};
+    fortune_file.exceptions(std::ifstream::goodbit);
+    fortune_file.open(fortune_path, ios_base::in);
+
+    if (!fortune_file.is_open() || fortune_file.fail() || fortune_file.bad()) {
+        PLOG_ERROR << format("unable to open {} for reading, {}",
+                             fortune_path.string(),
+                             mmotd::error::ios_flags::to_string(fortune_file));
+        return nullopt;
+    }
+
+    fortune_file.seekg(offset);
+    if (!fortune_file.good()) {
+        PLOG_ERROR << format("unable to seek {} to fortune at offset {}, {}",
+                             fortune_path.string(),
+                             offset,
+                             mmotd::error::ios_flags::to_string(fortune_file));
+        return nullopt;
+    }
+
+    auto buffer = vector<char>(max_size, 0);
+    fortune_file.read(buffer.data(), buffer.size());
+    if (fortune_file.fail() || fortune_file.bad()) {
+        PLOG_ERROR << format("unable to read {} bytes of the fortune file {} at offset {}, {}",
+                             max_size,
+                             fortune_path.string(),
+                             offset,
+                             mmotd::error::ios_flags::to_string(fortune_file));
+        return nullopt;
+    }
+
+    auto fortune = string{buffer.data()};
+    auto i = fortune.find(delimeter);
+    if (i != string::npos) {
+        fortune = fortune.substr(0, i);
+    }
+    PLOG_VERBOSE << format("fortune:\n{}", fortune);
+    return make_optional(trim_right_copy(fortune));
 }
 
 optional<string> GetRandomFortune(const string &fortune_name) {
@@ -230,34 +302,19 @@ optional<string> GetRandomFortune(const string &fortune_name) {
         return nullopt;
     } else if (fortune_offset + max_fortune_size > fortune_file_size) {
         PLOG_DEBUG << format(
-            "updating quote read size (offset={} + read size={}) since it is now past eof (file size={} bytes)",
+            "updating fortune read size (offset={} + read size={}) since it is now past eof (file size={} bytes)",
             fortune_offset,
             max_fortune_size,
             fortune_file_size);
         max_fortune_size = fortune_file_size - fortune_offset;
         PLOG_DEBUG << format(
-            "updated quote read size (offset={} + read size={}) should now be to the eof (file size={} bytes)",
+            "updated fortune read size (offset={} + read size={}) should now be to the eof (file size={} bytes)",
             fortune_offset,
             max_fortune_size,
             fortune_file_size);
     }
 
-    auto fortune_file = ifstream(fortune_path, ios_base::in);
-    if (!fortune_file.is_open()) {
-        PLOG_ERROR << format("unable to open {} for reading", fortune_path.string());
-        return nullopt;
-    }
-
-    auto buffer = vector<char>(max_fortune_size, 0);
-    fortune_file.seekg(fortune_offset);
-    fortune_file.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
-    auto fortune = string{buffer.data()};
-    auto i = fortune.find(fortune_delimeter);
-    if (i != string::npos) {
-        fortune = fortune.substr(0, i);
-    }
-    PLOG_VERBOSE << format("fortune:\n{}", fortune);
-    return make_optional(trim_right_copy(fortune));
+    return ReadFortune(fortune_path, fortune_offset, max_fortune_size, fortune_delimeter);
 }
 
 } // namespace detail

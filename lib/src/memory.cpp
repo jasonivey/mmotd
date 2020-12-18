@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/human_size.h"
-#include "common/include/platform_error.h"
+#include "common/include/posix_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/memory.h"
 
@@ -62,8 +62,8 @@ optional<tuple<uint64_t, uint64_t, double, uint64_t, uint64_t, uint64_t, uint64_
     auto len = sizeof(uint64_t);
     if (sysctl(mib, 2, &total, &len, NULL, 0) == -1) {
         auto error_str = string{"sysctl(HW_MEMSIZE) syscall failed"};
-        if (errno != 0) {
-            error_str += format(", details: {}", mmotd::platform::error::to_string(errno));
+        if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
+            error_str += format(", details: {}", errno_str);
         }
         PLOG_ERROR << error_str;
         return nullopt;

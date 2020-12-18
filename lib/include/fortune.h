@@ -11,6 +11,7 @@ namespace mmotd {
 class Fortune : public InformationProvider {
 public:
     Fortune() = default;
+    virtual ~Fortune() = default;
 
     std::string GetName() const override { return std::string{"fortune"}; }
     bool QueryInformation() override;

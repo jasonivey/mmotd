@@ -4,11 +4,10 @@
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
-#include <boost/beast/core/flat_buffer.hpp>
-#include <boost/beast/http/empty_body.hpp>
-#include <boost/beast/http/read.hpp>
-#include <boost/beast/http/string_body.hpp>
-#include <boost/beast/http/write.hpp>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/ssl.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/certify/extensions.hpp>
 #include <boost/certify/https_verification.hpp>
 #include <fmt/format.h>
@@ -20,36 +19,82 @@ namespace ssl = asio::ssl;
 namespace http = boost::beast::http;
 using tcp = boost::asio::ip::tcp;
 using ssl_stream = ssl::stream<tcp::socket>;
-using stream_ptr = std::unique_ptr<ssl_stream>;
+using ssl_stream_ptr = std::unique_ptr<ssl_stream>;
+using tcp_stream_ptr = std::unique_ptr<beast::tcp_stream>;
 using fmt::format;
 using namespace std;
 
 namespace {
-tcp::resolver::results_type resolve(asio::io_context &ctx, std::string const &hostname) {
-    auto resolver = tcp::resolver{ctx};
-    return resolver.resolve(hostname, "https");
+
+class HttpClient {
+public:
+    HttpClient() = default;
+    explicit HttpClient(HttpProtocol protocol, const string &host, const string &port, const string &path);
+
+    optional<string> MakeRequest();
+
+private:
+    template<typename T>
+    optional<string> MakeRequestImpl();
+
+    template<typename T>
+    T CreateStream(asio::io_context &ctx);
+
+    template<typename T>
+    void CloseStream(T &stream);
+
+    bool IsHttps() const { return protocol_ == HttpProtocol::HTTPS; }
+
+    tcp::resolver::results_type Resolve(asio::io_context &ctx);
+    tcp::socket Connect(asio::io_context &ctx);
+    ssl_stream_ptr MakeStream(asio::io_context &ctx, ssl::context &ssl_ctx);
+    tcp_stream_ptr MakeStream(asio::io_context &ctx);
+
+    template<typename T>
+    http::response<http::string_body> Request(T &stream);
+    //http::response<http::string_body> Request(beast::tcp_stream &stream);
+
+    HttpProtocol protocol_ = HttpProtocol::HTTP;
+    string host_;
+    string port_;
+    string path_;
+};
+
+HttpClient::HttpClient(HttpProtocol protocol, const string &host, const string &port, const string &path) :
+    protocol_(protocol), host_(host), port_(port), path_(path) {
 }
 
-tcp::socket connect(asio::io_context &ctx, std::string const &hostname) {
+tcp::resolver::results_type HttpClient::Resolve(asio::io_context &ctx) {
+    auto resolver = tcp::resolver{ctx};
+    return resolver.resolve(host_, port_);
+}
+
+tcp::socket HttpClient::Connect(asio::io_context &ctx) {
     auto socket = tcp::socket{ctx};
-    asio::connect(socket, resolve(ctx, hostname));
+    asio::connect(socket, Resolve(ctx));
     return socket;
 }
 
-stream_ptr connect(asio::io_context &ctx, ssl::context &ssl_ctx, std::string const &hostname) {
-    auto stream = boost::make_unique<ssl_stream>(connect(ctx, hostname), ssl_ctx);
-    boost::certify::set_server_hostname(*stream, hostname);
-    boost::certify::sni_hostname(*stream, hostname);
+ssl_stream_ptr HttpClient::MakeStream(asio::io_context &ctx, ssl::context &ssl_ctx) {
+    auto stream = boost::make_unique<ssl_stream>(Connect(ctx), ssl_ctx);
+    boost::certify::set_server_hostname(*stream, host_);
+    boost::certify::sni_hostname(*stream, host_);
     stream->handshake(ssl::stream_base::handshake_type::client);
     return stream;
 }
 
-http::response<http::string_body> get(ssl_stream &stream, boost::string_view hostname, boost::string_view uri) {
+tcp_stream_ptr HttpClient::MakeStream(asio::io_context &ctx) {
+    return boost::make_unique<beast::tcp_stream>(Connect(ctx));
+}
+
+#if 0
+http::response<http::string_body> HttpClient::Request(ssl_stream &stream) {
     http::request<http::empty_body> request;
     request.method(http::verb::get);
-    request.target(uri);
+    request.target(path_);
     request.keep_alive(false);
-    request.set(http::field::host, hostname);
+    request.version(11);
+    request.set(http::field::host, host_);
     http::write(stream, request);
 
     http::response<http::string_body> response;
@@ -58,26 +103,84 @@ http::response<http::string_body> get(ssl_stream &stream, boost::string_view hos
 
     return response;
 }
-} // namespace
+#endif
 
-optional<string> HttpRequest::TryMakeSecureRequest(string path) {
-    asio::io_context ctx;
+template<typename T>
+http::response<http::string_body> HttpClient::Request(T &stream) {
+    http::request<http::empty_body> request;
+    request.method(http::verb::get);
+    request.target(path_);
+    request.keep_alive(false);
+    request.version(11);
+    request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
+    request.set(http::field::content_type, "application/json");
+    request.set(http::field::host, host_);
+    http::write(stream, request);
+
+    http::response<http::string_body> response;
+    beast::flat_buffer buffer;
+    http::read(stream, buffer, response);
+
+    return response;
+}
+
+template<>
+ssl_stream_ptr HttpClient::CreateStream<ssl_stream_ptr>(asio::io_context &ctx) {
     ssl::context ssl_ctx{ssl::context::tls_client};
     ssl_ctx.set_verify_mode(ssl::context::verify_peer | ssl::context::verify_fail_if_no_peer_cert);
     ssl_ctx.set_default_verify_paths();
 
     boost::certify::enable_native_https_server_verification(ssl_ctx);
 
-    auto stream = connect(ctx, ssl_ctx, host_);
-    auto response = get(*stream, host_, path);
+    return MakeStream(ctx, ssl_ctx);
+}
+
+template<>
+tcp_stream_ptr HttpClient::CreateStream<tcp_stream_ptr>(asio::io_context &ctx) {
+    return MakeStream(ctx);
+}
+
+template<>
+void HttpClient::CloseStream<ssl_stream>(ssl_stream &stream) {
+    auto ec = boost::system::error_code{};
+    stream.shutdown(ec);
+    stream.next_layer().close(ec);
+}
+
+template<>
+void HttpClient::CloseStream<beast::tcp_stream>(beast::tcp_stream &stream) {
+    auto ec = boost::system::error_code{};
+    stream.socket().shutdown(tcp::socket::shutdown_both, ec);
+}
+
+template<typename T>
+optional<string> HttpClient::MakeRequestImpl() {
+    asio::io_context ctx;
+
+    auto stream = CreateStream<T>(ctx);
+    auto response = Request(*stream);
 
     auto response_str = response.body();
-    PLOG_INFO << format("response from {}:{}{}\n{}", host_, port_, path, response_str);
-
-    auto ec = boost::system::error_code{};
-
-    stream->shutdown(ec);
-    stream->next_layer().close(ec);
+    PLOG_INFO << format("response from {}:{}{}\n{}", host_, port_, path_, response_str);
+    CloseStream(*stream);
 
     return make_optional(response_str);
+}
+
+optional<string> HttpClient::MakeRequest() {
+    if (IsHttps()) {
+        return MakeRequestImpl<ssl_stream_ptr>();
+    } else {
+        return MakeRequestImpl<tcp_stream_ptr>();
+    }
+}
+
+} // namespace
+
+std::optional<std::string> HttpRequest::TryMakeSecureRequest(HttpProtocol protocol,
+                                                             const std::string &host,
+                                                             const std::string &port,
+                                                             const std::string &path) {
+    auto client = HttpClient{protocol, host, port, path};
+    return client.MakeRequest();
 }

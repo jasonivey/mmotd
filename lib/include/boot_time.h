@@ -11,6 +11,7 @@ namespace mmotd {
 class BootTime : public InformationProvider {
 public:
     BootTime() = default;
+    virtual ~BootTime() = default;
 
     std::string GetName() const override { return std::string{"boot time"}; }
     bool QueryInformation() override;
