@@ -11,6 +11,7 @@ namespace mmotd {
 class Processes : public InformationProvider {
 public:
     Processes() = default;
+    virtual ~Processes() = default;
 
     std::string GetName() const override { return std::string{"processes"}; }
     bool QueryInformation() override;

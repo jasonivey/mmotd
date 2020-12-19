@@ -52,7 +52,9 @@ struct DateTimeFields {
     bool IsFieldSet(Field field_mask) const { return (fields & field_mask) == field_mask; }
 
     template<FromStringFormat format>
-    static optional<DateTimeFields> from_string(string) {}
+    static optional<DateTimeFields> from_string(string) {
+        return nullopt;
+    }
 
     void UpdateFromTm(const tm &tm_time);
     void UpdateTm(tm &tm_time);
@@ -65,94 +67,72 @@ DateTimeFields::DateTimeFields(const tm &date_time_tm, DateTimeFields::Field set
 
 void DateTimeFields::UpdateTm(tm &tm_time) {
     if (IsFieldSet(detail::DateTimeFields::Field::SECONDS)) {
-        PLOG_INFO << format("updating seconds from: {}, to: {}", tm_time.tm_sec, seconds);
         tm_time.tm_sec = seconds;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::MINUTES)) {
-        PLOG_INFO << format("updating minutes from: {}, to: {}", tm_time.tm_min, minutes);
         tm_time.tm_min = minutes;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::HOURS)) {
-        PLOG_INFO << format("updating hours from: {}, to: {}", tm_time.tm_hour, hours);
         tm_time.tm_hour = hours;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::MONTH_DAY)) {
-        PLOG_INFO << format("updating month day from: {}, to: {}", tm_time.tm_mday, month_day);
         tm_time.tm_mday = month_day;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::MONTH)) {
-        PLOG_INFO << format("updating month from: {}, to: {}", tm_time.tm_mon, month);
         tm_time.tm_mon = month;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::YEAR)) {
-        PLOG_INFO << format("updating year from: {}, to: {}", tm_time.tm_year, year);
         tm_time.tm_year = year;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::WEEK_DAY)) {
-        PLOG_INFO << format("updating week day from: {}, to: {}", tm_time.tm_wday, week_day);
         tm_time.tm_wday = week_day;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::YEAR_DAY)) {
-        PLOG_INFO << format("updating year day from: {}, to: {}", tm_time.tm_yday, year_day);
         tm_time.tm_yday = year_day;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::IS_DAYLIGHT_SAVINGS)) {
-        PLOG_INFO << format("updating is daylight savings from: {}, to: {}", tm_time.tm_isdst, is_daylight_savings);
         tm_time.tm_isdst = is_daylight_savings;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::OFFSET_FROM_GMT)) {
-        PLOG_INFO << format("updating offset from gmt from: {}, to: {}", tm_time.tm_gmtoff, offset_from_gmt);
         tm_time.tm_gmtoff = offset_from_gmt;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::TIMEZONE_ABBR)) {
-        PLOG_INFO << format("updating timezone abbr from: {}, to: {}", tm_time.tm_zone, timezone_abbr);
         tm_time.tm_zone = timezone_abbr;
     }
 }
 
 void DateTimeFields::UpdateFromTm(const tm &tm_time) {
     if (IsFieldSet(detail::DateTimeFields::Field::SECONDS)) {
-        PLOG_INFO << format("updating seconds from: {}, to: {}", seconds, tm_time.tm_sec);
         seconds = tm_time.tm_sec;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::MINUTES)) {
-        PLOG_INFO << format("updating minutes from: {}, to: {}", minutes, tm_time.tm_min);
         minutes = tm_time.tm_min;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::HOURS)) {
-        PLOG_INFO << format("updating hours from: {}, to: {}", hours, tm_time.tm_hour);
         hours = tm_time.tm_hour;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::MONTH_DAY)) {
-        PLOG_INFO << format("updating month day from: {}, to: {}", month_day, tm_time.tm_mday);
         month_day = tm_time.tm_mday;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::MONTH)) {
-        PLOG_INFO << format("updating month from: {}, to: {}", month, tm_time.tm_mon);
         month = tm_time.tm_mon;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::YEAR)) {
-        PLOG_INFO << format("updating year from: {}, to: {}", year, tm_time.tm_year);
         year = tm_time.tm_year;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::WEEK_DAY)) {
-        PLOG_INFO << format("updating week day from: {}, to: {}", week_day, tm_time.tm_wday);
         week_day = tm_time.tm_wday;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::YEAR_DAY)) {
-        PLOG_INFO << format("updating year day from: {}, to: {}", year_day, tm_time.tm_yday);
         year_day = tm_time.tm_yday;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::IS_DAYLIGHT_SAVINGS)) {
-        PLOG_INFO << format("updating is daylight savings from: {}, to: {}", is_daylight_savings, tm_time.tm_isdst);
         is_daylight_savings = tm_time.tm_isdst;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::OFFSET_FROM_GMT)) {
-        PLOG_INFO << format("updating offset from gmt from: {}, to: {}", offset_from_gmt, tm_time.tm_gmtoff);
         offset_from_gmt = tm_time.tm_gmtoff;
     }
     if (IsFieldSet(detail::DateTimeFields::Field::TIMEZONE_ABBR)) {
-        PLOG_INFO << format("updating timezone abbr from: {}, to: {}", timezone_abbr, tm_time.tm_zone);
         timezone_abbr = tm_time.tm_zone;
     }
 }
@@ -194,6 +174,8 @@ string to_string(std::chrono::system_clock::time_point time_point, std::string c
 }
 
 optional<std::chrono::system_clock::time_point> from_string(std::string date_time_str, FromStringFormat format_type) {
+    using sys_clock = std::chrono::system_clock;
+
     auto date_time_fields_wrapper = detail::from_string(date_time_str, format_type);
     setenv("TZ", "/usr/share/zoneinfo/MST", 1); // fix_jasoni: POSIX-specific
     if (!date_time_fields_wrapper) {
@@ -205,13 +187,10 @@ optional<std::chrono::system_clock::time_point> from_string(std::string date_tim
         PLOG_ERROR << format("no fields were set after converting {} to tm structure", date_time_str);
         return nullopt;
     }
-    auto now_time_t = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    PLOG_INFO << format("now time_t value: {}", now_time_t);
-    auto local_time = fmt::localtime(now_time_t);
+    auto local_time = fmt::localtime(sys_clock::to_time_t(sys_clock::now()));
     date_time_fields.UpdateTm(local_time);
-    auto updated_time_t = mktime(&local_time);
-    PLOG_INFO << format("modified time_t value: {}", updated_time_t);
-    return make_optional(std::chrono::system_clock::from_time_t(updated_time_t));
+    auto updated_time_t = std::mktime(&local_time);
+    return make_optional(sys_clock::from_time_t(updated_time_t));
 }
 
 } // namespace mmotd::chrono::io

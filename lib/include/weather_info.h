@@ -11,6 +11,7 @@ namespace mmotd {
 class WeatherInfo : public InformationProvider {
 public:
     WeatherInfo() = default;
+    virtual ~WeatherInfo() = default;
 
     std::string GetName() const override { return std::string{"weather info"}; }
     bool QueryInformation() override;

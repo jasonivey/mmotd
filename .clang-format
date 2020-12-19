@@ -70,7 +70,7 @@ ContinuationIndentWidth: 4
 #  - BOOST_FOREACH
 IncludeBlocks: Regroup
 IncludeCategories:
-  # Your project's h files.
+  # mmotd project files -- will change per project
   - Regex:    '^"(app|common|lib|view)/include/'
     Priority: 10
   # C++ system headers (as of C++17).

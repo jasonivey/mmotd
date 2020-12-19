@@ -11,6 +11,7 @@ namespace mmotd {
 class LoadAverage : public InformationProvider {
 public:
     LoadAverage() = default;
+    virtual ~LoadAverage() = default;
 
     std::string GetName() const override { return std::string{"load average"}; }
     bool QueryInformation() override;

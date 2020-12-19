@@ -12,7 +12,7 @@ namespace mmotd {
 class LastLog : public InformationProvider {
 public:
     LastLog() = default;
-    ~LastLog() = default;
+    virtual ~LastLog() = default;
 
     std::string GetName() const override { return std::string{"last log"}; }
     bool QueryInformation() override;

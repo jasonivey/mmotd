@@ -10,11 +10,15 @@ set (MMOTD_TARGET_NAME mmotd_common)
 
 project (mmotd_common)
 
+include (git_version)
+
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/app_options.cpp
     src/chrono_io.cpp
-    src/platform_error.cpp
+    src/iostream_error.cpp
+    src/posix_error.cpp
+    src/version.cpp
     )
 
 include (target_common)

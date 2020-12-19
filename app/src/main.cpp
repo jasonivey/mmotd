@@ -1,6 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "app/include/cli_app_options_creator.h"
-#include "app/include/color.h"
 #include "app/include/logging.h"
 #include "app/include/main.h"
 #include "view/include/computer_information_provider.h"
@@ -13,19 +12,20 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception_ptr.hpp>
-#include <boost/range.hpp>
+#include <boost/range/iterator.hpp>
 #include <fmt/color.h>
 #include <fmt/format.h>
 
 using namespace fmt;
 using namespace std;
 
-static const AppOptions *load_app_options(const int argc, char **argv) {
+static const tuple<bool, const AppOptions *> LoadAppOptions(const int argc, char **argv) {
     const auto *app_options_creator = CliAppOptionsCreator::ParseCommandLine(argc, argv);
     if (app_options_creator->IsAppFinished()) {
-        return nullptr;
+        return make_tuple(app_options_creator->IsErrorExit(), nullptr);
     }
-    return AppOptions::Initialize(*app_options_creator);
+    auto *app_options = AppOptions::Initialize(*app_options_creator);
+    return make_tuple(false, app_options);
 }
 
 static string GetInformation(const string &provider_name) {
@@ -53,7 +53,6 @@ static string GetSubHeader(const string &header) {
 static string GetLastLogin(const string &login_info) {
     vector<string> login_parts;
     boost::split(login_parts, login_info, boost::is_any_of(","), boost::token_compress_on);
-    //"Last Login:"
     auto final_str = format(fg(color::cyan) | emphasis::bold, "  {:<15}", "Last Login:");
     auto first = true;
     for (const auto &login_part : login_parts) {
@@ -144,6 +143,7 @@ static void PrintMmotd(const AppOptions & /*app_options*/) {
     for (const auto &network_interface : network_interfaces) {
         const auto &[name, addr] = network_interface;
         if (!memory_usage.empty()) {
+            print(FormatTwoColumns("Memory Usage", memory_usage, name, addr));
             memory_usage.clear();
         } else if (!swap_usage.empty()) {
             print(FormatTwoColumns("Swap Usage", swap_usage, name, addr));
@@ -153,18 +153,22 @@ static void PrintMmotd(const AppOptions & /*app_options*/) {
         }
     }
     if (network_interfaces.empty()) {
-        print(FormatTwoColumns("Memory Usage", memory_usage, string{}, string{}));
-        print(FormatTwoColumns("Swap Usage", swap_usage, string{}, string{}));
+        if (!memory_usage.empty()) {
+            print(FormatTwoColumns("Memory Usage", memory_usage, string{}, string{}));
+        }
+        if (!swap_usage.empty()) {
+            print(FormatTwoColumns("Swap Usage", swap_usage, string{}, string{}));
+        }
     }
-    print(GetRandomQuote(GetInformation("random quote")));
+    print(GetRandomQuote(GetInformation("random quote")) + "\n");
 }
 
 int main(int argc, char *argv[]) {
     Logging::DefaultInitializeLogging();
 
-    const AppOptions *app_options = load_app_options(argc, argv);
+    auto [error_encountered, app_options] = LoadAppOptions(argc, argv);
     if (app_options == nullptr) {
-        return EXIT_FAILURE;
+        return error_encountered ? EXIT_FAILURE : EXIT_SUCCESS;
     }
 
     auto retval = EXIT_SUCCESS;

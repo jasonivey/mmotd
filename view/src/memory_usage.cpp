@@ -6,7 +6,7 @@
 #include <memory>
 
 #include <boost/algorithm/string.hpp>
-#include <boost/range.hpp>
+#include <boost/range/iterator.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 

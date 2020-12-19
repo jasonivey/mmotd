@@ -74,39 +74,39 @@ bool ExternalNetwork::ParseJsonResponse(const string &response) {
     auto retval = false;
     auto ip_address_value = tree.get_optional<string>("ip");
     if (ip_address_value) {
-        PLOG_INFO << format("found ip address: {} in json response body", *ip_address_value);
+        PLOG_DEBUG << format("found ip address: {} in json response body", *ip_address_value);
         auto ip_address = make_address(*ip_address_value);
         details_.push_back(make_tuple("public ip", ip_address.to_string()));
         retval = true;
     }
     auto city_value = tree.get_optional<string>("city");
     if (city_value) {
-        PLOG_INFO << format("found city: {} in json response body", *city_value);
+        PLOG_DEBUG << format("found city: {} in json response body", *city_value);
         details_.push_back(make_tuple("city", *city_value));
     }
     auto country_value = tree.get_optional<string>("country");
     if (country_value) {
-        PLOG_INFO << format("found country: {} in json response body", *country_value);
+        PLOG_DEBUG << format("found country: {} in json response body", *country_value);
         details_.push_back(make_tuple("country", *country_value));
     }
     auto gps_location_value = tree.get_optional<string>("loc");
     if (gps_location_value) {
-        PLOG_INFO << format("found gps location: {} in json response body", *gps_location_value);
+        PLOG_DEBUG << format("found gps location: {} in json response body", *gps_location_value);
         details_.push_back(make_tuple("gps location", *gps_location_value));
     }
     auto zip_code_value = tree.get_optional<string>("postal");
     if (zip_code_value) {
-        PLOG_INFO << format("found zip code: {} in json response body", *zip_code_value);
+        PLOG_DEBUG << format("found zip code: {} in json response body", *zip_code_value);
         details_.push_back(make_tuple("zip code", *zip_code_value));
     }
     auto state_value = tree.get_optional<string>("region");
     if (state_value) {
-        PLOG_INFO << format("found state: {} in json response body", *state_value);
+        PLOG_DEBUG << format("found state: {} in json response body", *state_value);
         details_.push_back(make_tuple("state", *state_value));
     }
     auto timezone_value = tree.get_optional<string>("timezone");
     if (timezone_value) {
-        PLOG_INFO << format("found timezone: {} in json response body", *timezone_value);
+        PLOG_DEBUG << format("found timezone: {} in json response body", *timezone_value);
         details_.push_back(make_tuple("timezone", *timezone_value));
     }
     return retval;

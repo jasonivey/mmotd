@@ -11,6 +11,7 @@ namespace mmotd {
 class UsersLoggedIn : public InformationProvider {
 public:
     UsersLoggedIn() = default;
+    virtual ~UsersLoggedIn() = default;
 
     std::string GetName() const override { return std::string{"user session"}; }
     bool QueryInformation() override;

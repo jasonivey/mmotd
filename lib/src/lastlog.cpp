@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
-#include "common/include/platform_error.h"
+#include "common/include/posix_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/lastlog.h"
 
@@ -85,7 +85,7 @@ optional<tuple<string, uint32_t>> LastLog::GetUsername() {
     struct passwd *result = nullptr;
     int retval = getpwuid_r(uid, &pwd, buf, buf_size, &result);
     if (retval != 0) {
-        auto error_str = mmotd::platform::error::to_string(errno);
+        auto error_str = mmotd::error::posix_error::to_string();
         PLOG_ERROR << format("getpwuid_r failed uid: {}, details: {}", uid, error_str);
         return nullopt;
     } else if (result == nullptr) {

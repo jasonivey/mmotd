@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/platform_error.h"
+#include "common/include/posix_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/posix_system_information.h"
 
@@ -308,7 +308,7 @@ static optional<tuple<int, int, int>> GetOsVersion() {
     int mib[4] = {0, 0, 0, 0};
     size_t miblen = 512;
     if (sysctlnametomib("kern.osproductversion", mib, &miblen) == -1) {
-        auto error_str = mmotd::platform::error::to_string(errno);
+        auto error_str = mmotd::error::posix_error::to_string();
         PLOG_ERROR << format("error calling sysctlnametomib with kern.osproductversion, details: {}", error_str);
         return nullopt;
     }
@@ -316,7 +316,7 @@ static optional<tuple<int, int, int>> GetOsVersion() {
     memset(version, 0, 512);
     size_t length = sizeof(long long);
     if (sysctl(mib, 2, version, &length, NULL, 0) == -1) {
-        auto error_str = mmotd::platform::error::to_string(errno);
+        auto error_str = mmotd::error::posix_error::to_string();
         PLOG_ERROR << format("error calling sysctl with kern.osproductversion, details: {}", error_str);
         return nullopt;
     }

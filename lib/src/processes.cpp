@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 // #include "common/include/chrono_io.h"
-#include "common/include/platform_error.h"
+#include "common/include/posix_error.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/processes.h"
 
@@ -40,7 +40,7 @@ vector<int32_t> GetProcessesInfo() {
         PLOG_VERBOSE << format("{}. attempting to get process list", index);
         auto size = size_t{0};
         if (sysctl(mib, 3, NULL, &size, NULL, 0) == -1) {
-            PLOG_ERROR << format("sysctl(KERN_PROC_ALL) failed, details: {}", mmotd::platform::error::to_string(errno));
+            PLOG_ERROR << format("sysctl(KERN_PROC_ALL) failed, details: {}", mmotd::error::posix_error::to_string());
             break;
         }
 
@@ -51,7 +51,7 @@ vector<int32_t> GetProcessesInfo() {
                 PLOG_ERROR << format("sysctl(KERN_PROC_ALL) failed with ENOMEM, attempting allocation again");
                 continue;
             }
-            PLOG_ERROR << format("sysctl(KERN_PROC_ALL) failed, details: {}", mmotd::platform::error::to_string(errno));
+            PLOG_ERROR << format("sysctl(KERN_PROC_ALL) failed, details: {}", mmotd::error::posix_error::to_string());
             break;
         }
 

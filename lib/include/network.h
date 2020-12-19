@@ -43,6 +43,7 @@ using NetworkDevices = std::unordered_map<std::string, NetworkDevice>;
 class NetworkInfo : public InformationProvider {
 public:
     NetworkInfo() = default;
+    virtual ~NetworkInfo() = default;
 
     std::string GetName() const override { return std::string{"network"}; }
     bool QueryInformation() override;

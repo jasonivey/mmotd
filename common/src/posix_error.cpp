@@ -1,8 +1,9 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/platform_error.h"
+#include "common/include/posix_error.h"
 
 #include <cstdio>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #include <fmt/format.h>
@@ -13,9 +14,17 @@
 using namespace std;
 using fmt::format;
 
-namespace mmotd::platform::error {
+namespace mmotd::error::posix_error {
 
-string to_string(int error_value) {
+string to_string() {
+    if (errno == 0) {
+        PLOG_DEBUG << "attempting to convert errno(0) to error string (i.e. returning nothing)";
+        return string{};
+    }
+#if !defined(USE_STR_ERROR_CLIB)
+    return make_error_code(static_cast<errc>(errno)).message();
+#else
+    auto error_value = errno;
     auto retval = int{0};
     auto buf_size = size_t{128};
     auto error_buf = vector<char>{};
@@ -33,10 +42,7 @@ string to_string(int error_value) {
         //PLOG_VERBOSE << format("error {}: {}", error_value, error_str);
         return format("{}: {}", error_value, error_str);
     }
+#endif
 }
 
-string errno_to_string() {
-    return mmotd::platform::error::to_string(errno);
-}
-
-} // namespace mmotd::platform::error
+} // namespace mmotd::error::posix_error

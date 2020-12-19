@@ -13,8 +13,11 @@ public:
     std::string MakeRequest(std::string path);
 
 private:
-    std::optional<std::string> TryMakeRequest(std::string path);
-    std::optional<std::string> TryMakeSecureRequest(std::string path);
+    //std::optional<std::string> TryMakeRequest(std::string path);
+    std::optional<std::string> TryMakeSecureRequest(HttpProtocol protocol,
+                                                    const std::string &host,
+                                                    const std::string &port,
+                                                    const std::string &path);
 
     HttpProtocol protocol_;
     std::string host_;

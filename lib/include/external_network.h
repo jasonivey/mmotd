@@ -11,6 +11,7 @@ namespace mmotd {
 class ExternalNetwork : public InformationProvider {
 public:
     ExternalNetwork() = default;
+    virtual ~ExternalNetwork() = default;
 
     std::string GetName() const override { return std::string{"external network"}; }
     bool QueryInformation() override;

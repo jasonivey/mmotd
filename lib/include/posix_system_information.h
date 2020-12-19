@@ -58,6 +58,7 @@ struct KernelDetails {
 class PosixSystemInformation : public InformationProvider {
 public:
     PosixSystemInformation() = default;
+    virtual ~PosixSystemInformation() = default;
 
     std::string GetName() const override { return std::string{"posix system information"}; }
     bool QueryInformation() override;
