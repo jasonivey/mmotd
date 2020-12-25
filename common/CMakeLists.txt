@@ -15,9 +15,6 @@ include (git_version)
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/app_options.cpp
-    src/chrono_io.cpp
-    src/iostream_error.cpp
-    src/posix_error.cpp
     src/version.cpp
     )
 

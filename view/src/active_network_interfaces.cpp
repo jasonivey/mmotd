@@ -29,14 +29,13 @@ optional<string> mmotd::ActiveNetworkInterfaces::QueryInformation() {
     auto network_interfaces = unordered_map<string, vector<string>>{};
     for (auto network_value : *network_infos) {
         auto split_network = vector<string>{};
-        // ☞ WHITE RIGHT POINTING INDEX, Unicode: U+261E, UTF-8: E2 98 9E
-        boost::split(split_network, network_value, boost::is_any_of("☞"), boost::token_compress_on);
+        boost::split(split_network, network_value, boost::is_any_of("*"), boost::token_compress_on);
         if (split_network.size() != 2) {
             PLOG_INFO << format("network value was in an unexpected form: {}", network_value);
             continue;
         }
-        auto interface_name = split_network.front();
-        auto value = split_network.back();
+        auto interface_name = boost::trim_copy(split_network.front());
+        auto value = boost::trim_copy(split_network.back());
         auto i = network_interfaces.find(interface_name);
         auto *network_details = i == end(network_interfaces) ? nullptr : &(i->second);
         if (i == end(network_interfaces)) {

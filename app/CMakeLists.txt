@@ -17,8 +17,10 @@ add_executable (
     src/main.cpp
     )
 
-find_library(FWCoreFoundation NAMES CoreFoundation)
-find_library(FWSecurity NAMES Security)
+if (APPLE)
+    find_library(FWCoreFoundation NAMES CoreFoundation)
+    find_library(FWSecurity NAMES Security)
+endif ()
 
 include (target_common)
 
@@ -46,11 +48,18 @@ target_link_libraries(
     PRIVATE mmotd_view
     )
 
+if (APPLE)
+    target_link_libraries(
+        ${MMOTD_TARGET_NAME}
+        PRIVATE ${FWCoreFoundation}
+        PRIVATE ${FWSecurity}
+        )
+endif ()
+
 target_link_libraries(
     ${MMOTD_TARGET_NAME}
-    PRIVATE ${FWCoreFoundation}
-    PRIVATE ${FWSecurity}
     PRIVATE ${OPENSSL_CRYPTO_LIBRARY}
     PRIVATE ${OPENSSL_SSL_LIBRARY}
     PRIVATE ZLIB::ZLIB
+    PRIVATE Threads::Threads
     )

@@ -94,8 +94,8 @@ bool ForceLinkOptionalProviders() {
     gLinkNetworkInformation = true;
 #endif
 #if !defined(OMIT_LINK_POSIX_SYSTEM_INFO)
-    extern bool gLinkPosixSystemInformation;
-    gLinkPosixSystemInformation = true;
+    extern bool gLinkSystemInformation;
+    gLinkSystemInformation = true;
 #endif
 #if !defined(OMIT_LINK_FILE_SYSTEM)
     extern bool gLinkFileSystem;

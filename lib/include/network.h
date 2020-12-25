@@ -2,43 +2,10 @@
 #pragma once
 #include "lib/include/information_provider.h"
 
-#include <array>
-#include <cstdint>
+#include <optional>
 #include <string>
-#include <unordered_map>
-#include <vector>
-
-#include <boost/asio/ip/address.hpp>
-#include <boost/logic/tribool.hpp>
 
 namespace mmotd {
-
-struct MacAddress {
-    MacAddress() = default;
-    MacAddress(const std::uint8_t *buffer, size_t buffer_size);
-
-    explicit operator bool() const { return !IsZero(); }
-    std::string to_string() const;
-    static MacAddress from_string(const std::string &input_str);
-
-private:
-    bool IsZero() const;
-
-    static const size_t MAC_ADDRESS_SIZE = 6;
-    std::array<std::uint8_t, MAC_ADDRESS_SIZE> data_;
-};
-
-using IpAddress = boost::asio::ip::address;
-using IpAddresses = std::vector<IpAddress>;
-
-struct NetworkDevice {
-    std::string interface_name;
-    MacAddress mac_address;
-    IpAddresses ip_addresses;
-    boost::tribool active = boost::indeterminate;
-};
-
-using NetworkDevices = std::unordered_map<std::string, NetworkDevice>;
 
 class NetworkInfo : public InformationProvider {
 public:
@@ -50,9 +17,6 @@ public:
     std::optional<mmotd::ComputerValues> GetInformation() const override;
 
 private:
-    bool TryDiscovery();
-    std::optional<IpAddress> GetActiveInterface();
-
     ComputerValues network_information_;
 };
 

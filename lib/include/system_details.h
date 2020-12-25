@@ -1,15 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
-#include "lib/include/information_provider.h"
 
-#include <array>
 #include <cstdint>
-#include <iosfwd>
 #include <optional>
 #include <string>
-#include <vector>
 
-namespace mmotd {
+namespace mmotd::system {
 
 enum class ArchitectureType {
     x64,
@@ -19,6 +15,7 @@ enum class ArchitectureType {
     unknown,
 };
 
+ArchitectureType to_architecture_type(const std::string &type_str);
 std::string to_string(ArchitectureType architecture);
 
 enum class EndianType {
@@ -27,24 +24,29 @@ enum class EndianType {
     unknown,
 };
 
+EndianType detect_endian_type();
 std::string to_string(EndianType endian);
 
 enum class KernelType { unknown, linux, darwin };
 
+KernelType to_kernel_type(const std::string &type_str);
 std::string to_string(KernelType kernel_type);
 
 struct KernelRelease {
     std::optional<uint32_t> major;
     std::optional<uint32_t> minor;
     std::optional<uint32_t> patch;
-    std::optional<uint32_t> build;
+    std::optional<std::string> build;
 
     std::string to_string() const;
+    static KernelRelease from_string(const std::string &release);
 };
 
 struct KernelVersion {
     std::string version;
     KernelRelease release;
+
+    static KernelVersion from_string(const std::string &full_version, const std::string &full_release);
 };
 
 struct KernelDetails {
@@ -53,21 +55,13 @@ struct KernelDetails {
     KernelType kernel = KernelType::unknown;
     ArchitectureType architecture = ArchitectureType::unknown;
     EndianType endian = EndianType::unknown;
+
+    static KernelDetails from_string(const std::string &kernel_type,
+                                     const std::string &host_name,
+                                     const std::string &release,
+                                     const std::string &version,
+                                     const std::string &architecture);
 };
 
-class PosixSystemInformation : public InformationProvider {
-public:
-    PosixSystemInformation() = default;
-    virtual ~PosixSystemInformation() = default;
+} // namespace mmotd::system
 
-    std::string GetName() const override { return std::string{"posix system information"}; }
-    bool QueryInformation() override;
-    std::optional<mmotd::ComputerValues> GetInformation() const override;
-
-private:
-    bool GetSystemInformation();
-
-    mmotd::ComputerValues details_;
-};
-
-} // namespace mmotd
