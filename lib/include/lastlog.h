@@ -19,11 +19,7 @@ public:
     std::optional<mmotd::ComputerValues> GetInformation() const override;
 
 private:
-    //bool GetNextRecord(UserLoginLogoutTransaction &transaction);
-    bool GetLastLoginRecord();
-    std::optional<std::tuple<std::string, std::uint32_t>> GetUsername();
-
-    mmotd::ComputerValues last_login_details_;
+    mmotd::ComputerValues details_;
 };
 
 } // namespace mmotd

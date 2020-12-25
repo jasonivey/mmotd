@@ -21,12 +21,41 @@ add_library (
     src/http_secure_request.cpp
     src/lastlog.cpp
     src/load_average.cpp
+    src/mac_address.cpp
     src/memory.cpp
     src/network.cpp
+    src/platform/darwin/boot_time.cpp
+    src/platform/darwin/lastlog.cpp
+    src/platform/darwin/load_average.cpp
+    src/platform/darwin/memory.cpp
+    src/platform/darwin/network.cpp
+    src/platform/darwin/processes.cpp
+    src/platform/darwin/swap.cpp
+    src/platform/darwin/system_information.cpp
+    src/platform/darwin/user_accounting_database.cpp
+    src/platform/linux/boot_time.cpp
+    src/platform/linux/lastlog.cpp
+    src/platform/linux/load_average.cpp
+    src/platform/linux/memory.cpp
+    src/platform/linux/network.cpp
+    src/platform/linux/processes.cpp
+    src/platform/linux/swap.cpp
+    src/platform/linux/system_information.cpp
+    src/platform/linux/user_accounting_database.cpp
+    src/platform/windows/boot_time.cpp
+    src/platform/windows/lastlog.cpp
+    src/platform/windows/load_average.cpp
+    src/platform/windows/memory.cpp
+    src/platform/windows/network.cpp
+    src/platform/windows/processes.cpp
+    src/platform/windows/swap.cpp
+    src/platform/windows/system_information.cpp
+    src/platform/windows/user_accounting_database.cpp
     src/posix_sysctl_information.cpp
-    src/posix_system_information.cpp
     src/processes.cpp
     src/swap.cpp
+    src/system_details.cpp
+    src/system_information.cpp
     src/users_logged_in.cpp
     src/weather_info.cpp
     )

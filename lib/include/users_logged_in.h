@@ -18,9 +18,9 @@ public:
     std::optional<mmotd::ComputerValues> GetInformation() const override;
 
 private:
-    bool GetUsersLoggedIn();
-
     mmotd::ComputerValues details_;
+
+    bool GetUsersLoggedIn();
 };
 
 } // namespace mmotd

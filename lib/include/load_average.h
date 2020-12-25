@@ -18,9 +18,8 @@ public:
     std::optional<mmotd::ComputerValues> GetInformation() const override;
 
 private:
-    bool GetLoadAverage();
-
     mmotd::ComputerValues details_;
 };
 
 } // namespace mmotd
+

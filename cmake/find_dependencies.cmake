@@ -13,11 +13,9 @@ if (APPLE)
     set (ZLIB_ROOT /usr/local/opt/zlib)
 endif ()
 
-#include(FindPkgConfig)
-#pkg_check_modules(CURL libcurl REQUIRED)
-
+find_package(Threads REQUIRED)
 find_package(ZLIB 1.2.11 REQUIRED)
-find_package(Boost 1.74.0 REQUIRED)
+find_package(Boost 1.71.0 REQUIRED)
 find_package(OpenSSL 1.1.1 REQUIRED)
 
 include(FetchContent)

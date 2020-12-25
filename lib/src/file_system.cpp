@@ -8,8 +8,6 @@
 #include <fmt/format.h>
 #include <plog/Log.h>
 
-#include <sys/sysctl.h>
-
 using fmt::format;
 using namespace std;
 using mmotd::algorithm::string::to_human_size;

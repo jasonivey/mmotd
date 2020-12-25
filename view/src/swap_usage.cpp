@@ -5,6 +5,8 @@
 
 #include <memory>
 
+#include <boost/algorithm/string.hpp>
+#include <boost/range/iterator.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -23,14 +25,26 @@ optional<string> mmotd::SwapUsage::QueryInformation() {
         return nullopt;
     }
     auto values = (*swap_usage_wrapper);
-    if (values.size() == 1) {
-        return make_optional(values.front());
-    }
-    auto combined_value = string{};
+    auto percent_used = string{};
+    auto total = string{};
     for (auto value : values) {
-        combined_value += format("{}{}", combined_value.empty() ? "" : ", ", value);
+        if (auto rng = boost::find_first(value, "percent: "); rng) {
+            percent_used = string(rng.end(), value.end());
+        }
+        if (auto rng = boost::find_first(value, "total: "); rng) {
+            total = string(rng.end(), value.end());
+        }
+        if (!percent_used.empty() && !total.empty()) {
+            break;
+        }
     }
-    return make_optional(combined_value);
+    if (!percent_used.empty() && !total.empty()) {
+        return make_optional(format("{} of {}", percent_used, total));
+    } else if (!percent_used.empty()) {
+        return make_optional(percent_used);
+    } else {
+        return nullopt;
+    }
 }
 
 string mmotd::SwapUsage::GetName() const {

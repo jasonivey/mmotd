@@ -18,8 +18,6 @@ public:
     std::optional<mmotd::ComputerValues> GetInformation() const override;
 
 private:
-    bool GetMemoryUsage();
-
     mmotd::ComputerValues details_;
 };
 
