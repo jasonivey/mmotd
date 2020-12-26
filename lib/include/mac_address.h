@@ -1,8 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 #include <string>
 
 namespace mmotd {

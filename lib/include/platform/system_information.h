@@ -13,4 +13,3 @@ using SystemInformationDetails = std::vector<SystemInformationDetail>;
 SystemInformationDetails GetSystemInformationDetails();
 
 } // namespace mmotd::platform
-

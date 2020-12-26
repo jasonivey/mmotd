@@ -1,5 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__)
 #include "common/include/human_size.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/swap.h"
@@ -41,17 +40,17 @@ optional<tuple<uint64_t, uint64_t, uint64_t, bool>> GetSwapUsage() {
                            swap_usage.xsu_avail);
     PLOG_VERBOSE << format("swap memory encrypted: {}", swap_usage.xsu_encrypted != 0 ? "true" : "false");
 
-    return make_optional(make_tuple(swap_usage.xsu_total,
-                                    swap_usage.xsu_used,
-                                    swap_usage.xsu_avail,
-                                    swap_usage.xsu_encrypted != 0));
+    return make_optional(
+        make_tuple(swap_usage.xsu_total, swap_usage.xsu_used, swap_usage.xsu_avail, swap_usage.xsu_encrypted != 0));
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
-bool Swap::GetSwapUsage() {
+SwapDetails GetSwapDetails() {
+    using mmotd::algorithm::string::to_human_size;
+
     auto swap_usage_wrapper = GetSwapUsage();
     if (!swap_usage_wrapper) {
         return SwapDetails{};
@@ -64,11 +63,13 @@ bool Swap::GetSwapUsage() {
     }
 
     auto details = SwapDetails{};
-    auto value = format("{:.01f}% ({})", percent_used, encrypted ? "encrypted" : "decrypted");
+    auto value = format("percent: {:.01f}% ({})", percent_used, encrypted ? "encrypted" : "decrypted");
     details.push_back(make_tuple("swap usage", value));
+    if (!encrypted) {
+        details.push_back(make_tuple("swap usage", format("total: {}", to_human_size(total))));
+        details.push_back(make_tuple("swap usage", format("free: {}", to_human_size(available))));
+    }
     return details;
 }
 
-} // namespace mmotd
-
-#endif
+} // namespace mmotd::platform

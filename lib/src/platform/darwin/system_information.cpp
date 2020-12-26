@@ -1,8 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__)
-
 #include "common/include/posix_error.h"
 #include "lib/include/platform/system_information.h"
+#include "lib/include/system_details.h"
 
 #include <optional>
 #include <sstream>
@@ -119,10 +118,10 @@ optional<KernelDetails> GetKernelDetails() {
     PLOG_DEBUG << "version: " << version;
     PLOG_DEBUG << "machine: " << machine;
 
-    return to_kernel_details(sys_name, node_name, release, version, machine);
+    return KernelDetails::from_string(sys_name, node_name, release, version, machine);
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -137,12 +136,13 @@ SystemInformationDetails GetSystemInformationDetails() {
         details.emplace_back(
             make_tuple("system information",
                        format("kernel release: {}", kernel_details.kernel_version.release.to_string())));
-        details.emplace_back(
-            make_tuple("system information", format("kernel type: {}", mmotd::system::to_string(kernel_details.kernel))));
         details.emplace_back(make_tuple("system information",
-                                         format("architecture: {}", mmotd::system::to_string(kernel_details.architecture))));
+                                        format("kernel type: {}", mmotd::system::to_string(kernel_details.kernel))));
         details.emplace_back(
-            make_tuple("system information", format("byte order: {}", mmotd::system::to_string(kernel_details.endian))));
+            make_tuple("system information",
+                       format("architecture: {}", mmotd::system::to_string(kernel_details.architecture))));
+        details.emplace_back(make_tuple("system information",
+                                        format("byte order: {}", mmotd::system::to_string(kernel_details.endian))));
     }
     auto os_version = GetOsVersion();
     if (os_version) {
@@ -159,6 +159,4 @@ SystemInformationDetails GetSystemInformationDetails() {
     return details;
 }
 
-}
-
-#endif
+} // namespace mmotd::platform

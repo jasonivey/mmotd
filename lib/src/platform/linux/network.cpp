@@ -1,9 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__linux__)
-
-#include "lib/include/platform/network.h"
-#include "lib/include/mac_address.h"
 #include "common/include/posix_error.h"
+#include "lib/include/mac_address.h"
+#include "lib/include/platform/network.h"
 
 #include <optional>
 #include <regex>
@@ -14,19 +12,20 @@
 #include <plog/Log.h>
 #include <scope_guard.hpp>
 
-#include <linux/if_packet.h>
-#include <sys/ioctl.h>
+#include <ifaddrs.h>
 #include <net/if.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <ifaddrs.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+
+#include <linux/if_packet.h>
 
 using boost::asio::ip::make_address;
 using fmt::format;
 using namespace std;
-using mmotd::platform::NetworkDevices;
 using mmotd::MacAddress;
+using mmotd::platform::NetworkDevices;
 
 namespace {
 
@@ -40,7 +39,7 @@ void SetActiveInterfaces(NetworkDevices &devices) {
     auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
 
     for (auto &[name, device] : devices) {
-        struct ifreq req{};
+        struct ifreq req {};
         strncpy(req.ifr_ifrn.ifrn_name, name.c_str(), IFNAMSIZ);
 
         if (ioctl(sock, SIOCGIFFLAGS, &req) == -1) {
@@ -58,7 +57,7 @@ void SetActiveInterfaces(NetworkDevices &devices) {
 }
 
 optional<NetworkDevices> GetNetworkDevices() {
-    struct ifaddrs *addrs= nullptr;
+    struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
         PLOG_ERROR << format("getifaddrs failed, {}", mmotd::error::posix_error::to_string());
         return nullopt;
@@ -132,7 +131,7 @@ optional<NetworkDevices> GetNetworkDevices() {
     return make_optional(network_devices);
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -155,5 +154,3 @@ NetworkDetails GetNetworkDetails() {
 }
 
 } // namespace mmotd::platform
-
-#endif

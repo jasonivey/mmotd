@@ -1,10 +1,9 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__)
-
 #include "common/include/posix_error.h"
 #include "lib/include/platform/network.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <iterator>
 #include <optional>
 #include <stdexcept>
@@ -22,7 +21,6 @@
 #include <net/if_media.h>
 #include <netinet/in.h>
 #include <netinet6/in6_var.h>
-#include <cstdio>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -31,11 +29,13 @@
 using boost::asio::ip::make_address;
 using fmt::format;
 using namespace std;
-using mmotd::platform::NetworkDevices;
 using mmotd::MacAddress;
+using mmotd::platform::IpAddress;
+using mmotd::platform::NetworkDevices;
 
 namespace {
 
+#if 0
 optional<IpAddress> GetActiveInterface() {
     auto sock = socket(AF_INET, SOCK_DGRAM, 0);
     if (sock == -1) {
@@ -82,6 +82,7 @@ optional<IpAddress> GetActiveInterface() {
     auto ip_address = make_address(address_str);
     return make_optional(ip_address);
 }
+#endif
 
 bool IsInterfaceActive(const string &name, sa_family_t family) {
     if (family != AF_INET && family != AF_INET6) {
@@ -149,6 +150,7 @@ optional<NetworkDevices> GetNetworkDevices() {
         //auto flags = ptr->ifa_flags;
         const auto interface_name = string{ptr->ifa_name};
         const auto address_family = ptr->ifa_addr->sa_family;
+        network_devices.AddInterface(interface_name);
         if (address_family == AF_LINK) {
             const auto *sock_addr = reinterpret_cast<const struct sockaddr_dl *>(ptr->ifa_addr);
             const auto ntoa_str = string(link_ntoa(sock_addr));
@@ -159,9 +161,8 @@ optional<NetworkDevices> GetNetworkDevices() {
                                      ntoa_str);
                 continue;
             }
-            network_devices.AddInterface(interface_name);
             auto mac_address = ntoa_str.substr(index + 1);
-            network_devices.AddMacAddress(MacAddress::from_string(mac_address));
+            network_devices.AddMacAddress(interface_name, MacAddress::from_string(mac_address));
         } else if (address_family == AF_INET || address_family == AF_INET6) {
             auto ip_str = string{};
             buffer.fill(0);
@@ -178,19 +179,12 @@ optional<NetworkDevices> GetNetworkDevices() {
             }
             const auto family_name = address_family == AF_INET ? string{"ipv4"} : string{"ipv6"};
             PLOG_DEBUG << format("{} found ip {} for family {}", interface_name, ip_str, family_name);
-            network_devices.AddInterface(interface_name);
-            NetworkDevice *network_device = iter == end(network_devices) ? nullptr : &(iter->second);
-            if (iter == end(network_devices)) {
-                iter = network_devices.insert(cbegin(network_devices), {interface_name, NetworkDevice{}});
-                network_device = &(iter->second);
-                network_device->interface_name = interface_name;
-            }
             auto active = network_devices.GetActive(interface_name);
             PLOG_DEBUG << format("has network device {} been checked for active status? {} ",
                                  interface_name,
                                  boost::indeterminate(active) ? "no" :
                                  static_cast<bool>(active)    ? "yes, active{true}" :
-                                                                                "yes, active{false}");
+                                                                "yes, active{false}");
             if (boost::indeterminate(active)) {
                 auto active_status = IsInterfaceActive(interface_name, address_family);
                 network_devices.SetActive(interface_name, active_status);
@@ -224,7 +218,7 @@ optional<NetworkDevices> GetNetworkDevices() {
                                  ip_address.to_string(),
                                  interface_name);
 
-            network_device->ip_addresses.push_back(ip_address);
+            network_devices.AddIpAddress(interface_name, ip_address);
         }
     }
 
@@ -232,7 +226,7 @@ optional<NetworkDevices> GetNetworkDevices() {
     return make_optional(network_devices);
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -243,17 +237,15 @@ NetworkDetails GetNetworkDetails() {
     }
 
     auto details = NetworkDetails{};
-    for (const auto &[name, device] : *network_devices) {
+    for (const auto &[name, device] : *network_devices_wrappter) {
         const auto &mac_addr = device.mac_address.to_string();
-        details.push_back(make_tuple("network info", format("{}:{}", name, mac_addr)));
+        details.push_back(make_tuple("network info", format("{}*{}", name, mac_addr)));
         for (const auto &ip_address : device.ip_addresses) {
             const auto &ip_addr = ip_address.to_string();
-            network_information.push_back(make_tuple("network info", format("{}:{}", name, ip_addr)));
+            details.push_back(make_tuple("network info", format("{}*{}", name, ip_addr)));
         }
     }
     return details;
 }
 
 } // namespace mmotd::platform
-
-#endif

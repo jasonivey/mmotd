@@ -1,17 +1,15 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__linux__)
-
-#include "lib/include/platform/swap.h"
-#include "common/include/posix_error.h"
 #include "common/include/human_size.h"
+#include "common/include/posix_error.h"
+#include "lib/include/platform/swap.h"
 
 #include <cstdint>
 #include <optional>
 #include <string>
 #include <tuple>
 
-#include <plog/Log.h>
 #include <fmt/format.h>
+#include <plog/Log.h>
 
 #include <sys/sysinfo.h>
 
@@ -39,7 +37,7 @@ namespace {
 optional<tuple<uint64_t, uint64_t>> GetSwapMemoryUsage() {
     using mmotd::algorithm::string::to_human_size;
 
-    struct sysinfo info{};
+    struct sysinfo info {};
     if (sysinfo(&info) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
         PLOG_ERROR << format("error calling sysinfo, {}", error_str);
@@ -55,7 +53,7 @@ optional<tuple<uint64_t, uint64_t>> GetSwapMemoryUsage() {
     return make_optional(make_tuple(total, free));
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -81,5 +79,3 @@ SwapDetails GetSwapDetails() {
 }
 
 } // namespace mmotd::platform
-
-#endif

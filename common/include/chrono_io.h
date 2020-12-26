@@ -18,17 +18,17 @@ enum class FromStringFormat {
 namespace detail {
 
 struct DateTimeFields {
-    int seconds = 0;             /* seconds after the minute [0-60] */
-    int minutes = 0;             /* minutes after the hour [0-59] */
-    int hours = 0;               /* hours since midnight [0-23] */
-    int month_day = 0;           /* day of the month [1-31] */
-    int month = 0;               /* months since January [0-11] */
-    int year = 0;                /* years since 1900 */
-    int week_day = 0;            /* days since Sunday [0-6] */
-    int year_day = 0;            /* days since January 1 [0-365] */
-    int is_daylight_savings = 0; /* Daylight Savings Time flag */
-    long offset_from_gmt = 0;    /* offset from UTC in seconds */
-    const char *timezone_abbr = 0;     /* timezone abbreviation */
+    int seconds = 0;               /* seconds after the minute [0-60] */
+    int minutes = 0;               /* minutes after the hour [0-59] */
+    int hours = 0;                 /* hours since midnight [0-23] */
+    int month_day = 0;             /* day of the month [1-31] */
+    int month = 0;                 /* months since January [0-11] */
+    int year = 0;                  /* years since 1900 */
+    int week_day = 0;              /* days since Sunday [0-6] */
+    int year_day = 0;              /* days since January 1 [0-365] */
+    int is_daylight_savings = 0;   /* Daylight Savings Time flag */
+    long offset_from_gmt = 0;      /* offset from UTC in seconds */
+    const char *timezone_abbr = 0; /* timezone abbreviation */
 
     enum Field {
         NONE = 0,
@@ -99,7 +99,7 @@ inline void DateTimeFields::UpdateTm(tm &tm_time) {
         tm_time.tm_gmtoff = offset_from_gmt;
     }
     if (IsFieldSet(DateTimeFields::Field::TIMEZONE_ABBR)) {
-        tm_time.tm_zone = timezone_abbr;
+        tm_time.tm_zone = const_cast<char *>(timezone_abbr);
     }
 }
 
@@ -158,7 +158,7 @@ inline std::optional<DateTimeFields> from_string(std::string input_str, FromStri
     return std::nullopt;
 }
 
-}
+} // namespace detail
 
 inline std::string to_string(std::chrono::system_clock::time_point time_point, std::string chrono_format) {
     auto local_time = fmt::localtime(std::chrono::system_clock::to_time_t(time_point));
@@ -175,7 +175,8 @@ inline std::string to_string(std::chrono::system_clock::time_point time_point, s
     return time_point_str;
 }
 
-inline std::optional<std::chrono::system_clock::time_point> from_string(std::string date_time_str, FromStringFormat format_type) {
+inline std::optional<std::chrono::system_clock::time_point> from_string(std::string date_time_str,
+                                                                        FromStringFormat format_type) {
     using sys_clock = std::chrono::system_clock;
 
     auto date_time_fields_wrapper = detail::from_string(date_time_str, format_type);

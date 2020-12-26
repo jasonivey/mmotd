@@ -1,6 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__)
-
 #include "common/include/chrono_io.h"
 #include "common/include/posix_error.h"
 
@@ -42,5 +40,3 @@ optional<string> GetBootTime() {
 }
 
 } // namespace mmotd::platform
-
-#endif

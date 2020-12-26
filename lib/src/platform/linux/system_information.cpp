@@ -1,13 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__linux__)
-#if !defined(_GNU_SOURCE)
-#define _GNU_SOURCE
-#endif
-
+#include "common/include/iostream_error.h"
+#include "common/include/posix_error.h"
 #include "lib/include/platform/system_information.h"
 #include "lib/include/system_details.h"
-#include "common/include/posix_error.h"
-#include "common/include/iostream_error.h"
 
 #include <filesystem>
 #include <fstream>
@@ -170,18 +165,18 @@ string ParseCodename(const string &input) {
 
 optional<tuple<string, int, int, int>> GetOsVersion() {
     //File: /etc/os-release
-	// NAME="Ubuntu"
-	// VERSION="20.04.1 LTS (Focal Fossa)"
-	// ID=ubuntu
-	// ID_LIKE=debian
-	// PRETTY_NAME="Ubuntu 20.04.1 LTS"
-	// VERSION_ID="20.04"
-	// HOME_URL="https://www.ubuntu.com/"
-	// SUPPORT_URL="https://help.ubuntu.com/"
-	// BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
-	// PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
-	// VERSION_CODENAME=focal
-	// UBUNTU_CODENAME=focal
+    // NAME="Ubuntu"
+    // VERSION="20.04.1 LTS (Focal Fossa)"
+    // ID=ubuntu
+    // ID_LIKE=debian
+    // PRETTY_NAME="Ubuntu 20.04.1 LTS"
+    // VERSION_ID="20.04"
+    // HOME_URL="https://www.ubuntu.com/"
+    // SUPPORT_URL="https://help.ubuntu.com/"
+    // BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+    // PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+    // VERSION_CODENAME=focal
+    // UBUNTU_CODENAME=focal
     //
     // Welcome to Ubuntu 20.04.1 LTS focal (GNU/Linux 5.4.0-58-generic x86_64)
     // Welcome to macOS 10 Catalina 10.15.7.19H15 (Darwin 19.6.0 x86_64)
@@ -202,14 +197,12 @@ optional<tuple<string, int, int, int>> GetOsVersion() {
         }
         if (auto i = boost::ifind_first(file_line, "version="); !i.empty() && i.begin() == file_line.begin()) {
             codename = ParseCodename(string{i.end(), file_line.end()});
-
         }
     }
     return make_optional(make_tuple(format("{} {}", name, codename), major, minor, patch));
-
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -231,15 +224,17 @@ SystemInformationDetails GetSystemInformationDetails() {
 
     details.emplace_back(make_tuple(SYS_INFO, format("host name: {}", kernel_details.host_name)));
     details.emplace_back(make_tuple(SYS_INFO, format("kernel version: {}", kernel_details.kernel_version.version)));
-    details.emplace_back(make_tuple(SYS_INFO, format("kernel release: {}", kernel_details.kernel_version.release.to_string())));
-    details.emplace_back(make_tuple(SYS_INFO, format("kernel type: {}", mmotd::system::to_string(kernel_details.kernel))));
-    details.emplace_back(make_tuple(SYS_INFO, format("architecture: {}", mmotd::system::to_string(kernel_details.architecture))));
-    details.emplace_back(make_tuple(SYS_INFO, format("byte order: {}", mmotd::system::to_string(kernel_details.endian))));
+    details.emplace_back(
+        make_tuple(SYS_INFO, format("kernel release: {}", kernel_details.kernel_version.release.to_string())));
+    details.emplace_back(
+        make_tuple(SYS_INFO, format("kernel type: {}", mmotd::system::to_string(kernel_details.kernel))));
+    details.emplace_back(
+        make_tuple(SYS_INFO, format("architecture: {}", mmotd::system::to_string(kernel_details.architecture))));
+    details.emplace_back(
+        make_tuple(SYS_INFO, format("byte order: {}", mmotd::system::to_string(kernel_details.endian))));
     details.emplace_back(make_tuple(SYS_INFO, format("platform version: {}.{:02}.{}", major, minor, patch)));
     details.emplace_back(make_tuple(SYS_INFO, format("platform name: {}", platform_name)));
     return details;
 }
 
-}
-
-#endif
+} // namespace mmotd::platform

@@ -1,6 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__linux__)
-
 #include "common/include/iostream_error.h"
 #include "lib/include/platform/load_average.h"
 
@@ -11,11 +9,11 @@
 #include <tuple>
 #include <vector>
 
-#include <sys/sysinfo.h>
-
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
+
+#include <sys/sysinfo.h>
 
 using namespace std;
 using fmt::format;
@@ -76,7 +74,7 @@ optional<double> GetLoadAverage() {
     return ParseLoadAverage(load_average_str);
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -98,5 +96,3 @@ LoadAverageDetails GetLoadAverageDetails() {
 }
 
 } // namespace mmotd::platform
-
-#endif

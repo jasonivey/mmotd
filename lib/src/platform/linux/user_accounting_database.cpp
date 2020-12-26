@@ -1,26 +1,25 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__) || defined(__linux__)
-
-#include "common/include/posix_error.h"
 #include "common/include/chrono_io.h"
+#include "common/include/posix_error.h"
 #include "lib/include/platform/user_accounting_database.h"
 
 #include <cstring>
 #include <string>
 #include <vector>
 
+#include <boost/asio/ip/address.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 #include <scope_guard.hpp>
-#include <boost/asio/ip/address.hpp>
 
+#include <errno.h>
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <errno.h>
-#include <utmp.h>
 #include <utmpx.h>
+
+#include <utmp.h>
 
 using boost::asio::ip::make_address;
 using ip_address = boost::asio::ip::address;
@@ -29,7 +28,6 @@ using fmt::format;
 using namespace std;
 
 namespace {
-
 
 mmotd::platform::UserAccountEntries GetUserAccountEntriesImpl() {
     // resets the database, so that the next getutxent() call will get the first entry
@@ -41,7 +39,8 @@ mmotd::platform::UserAccountEntries GetUserAccountEntriesImpl() {
     auto retval = getutent_r(&utmp_buf, &utmp_ptr);
     if (retval != 0 || utmp_ptr == nullptr) {
         auto error_str = retval != 0 ? errorp::to_string(retval) : errorp::to_string();
-        PLOG_ERROR << format("attempting to read first value in user accounting database (utmp) and failed, {}", error_str);
+        PLOG_ERROR << format("attempting to read first value in user accounting database (utmp) and failed, {}",
+                             error_str);
         return mmotd::platform::UserAccountEntries{};
     }
 
@@ -70,7 +69,8 @@ mmotd::platform::UserAccountEntries GetUserAccountEntriesImpl() {
             if (error_value == ENOENT) {
                 PLOG_VERBOSE << format("found the end of user accounting database (utmp), {}", error_str);
             } else {
-                PLOG_ERROR << format("attempting to read next value in user accounting database (utmp) and failed, {}", error_str);
+                PLOG_ERROR << format("attempting to read next value in user accounting database (utmp) and failed, {}",
+                                     error_str);
             }
             utmp_ptr = nullptr;
         }
@@ -81,8 +81,8 @@ mmotd::platform::UserAccountEntries GetUserAccountEntriesImpl() {
 
 mmotd::platform::UserInformation GetUserInformationImpl() {
     auto bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-    if (bufsize == -1) {          /* Value was indeterminate */
-        bufsize = 16384;        /* Should be more than enough */
+    if (bufsize == -1) {
+        bufsize = 16 * 1024;
     }
 
     auto buf = vector<char>(static_cast<size_t>(bufsize));
@@ -101,11 +101,14 @@ mmotd::platform::UserInformation GetUserInformationImpl() {
     return mmotd::platform::UserInformation::from_passwd(pwd);
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
 string UserAccountEntry::to_type_string(int ut_type) {
+    static_assert(UAE_TYPE::None == static_cast<UAE_TYPE>(EMPTY));
+    static_assert(UAE_TYPE::Login == static_cast<UAE_TYPE>(LOGIN_PROCESS));
+    static_assert(UAE_TYPE::User == static_cast<UAE_TYPE>(USER_PROCESS));
     switch (ut_type) {
         case EMPTY:
             return "empty";
@@ -144,8 +147,12 @@ string UserAccountEntry::to_string() const {
     auto time_point = std::chrono::system_clock::from_time_t(seconds);
     auto time_str = mmotd::chrono::io::to_string(time_point, "{:%d-%h-%Y %I:%M:%S%p %Z}");
     return format("user: {}, device: {}, hostname: {}, time: {}, ip: {}, type: {}",
-                  user, device_name, hostname, time_str, ip.to_string(), UserAccountEntry::to_type_string(type));
-
+                  user,
+                  device_name,
+                  hostname,
+                  time_str,
+                  ip.to_string(),
+                  UserAccountEntry::to_type_string(static_cast<int>(type)));
 }
 
 UserAccountEntry UserAccountEntry::from_utmp(const utmp &db) {
@@ -164,7 +171,8 @@ UserAccountEntry UserAccountEntry::from_utmp(const utmp &db) {
     if (ec) {
         ip = ip_address{};
     }
-    auto entry = UserAccountEntry{db.ut_type, device_name, username, hostname, db.ut_tv.tv_sec, ip};
+    auto entry =
+        UserAccountEntry{static_cast<UAE_TYPE>(db.ut_type), device_name, username, hostname, db.ut_tv.tv_sec, ip};
     PLOG_VERBOSE << format("parsed entry: {}", entry.to_string());
     return entry;
 }
@@ -180,6 +188,3 @@ UserInformation UserInformation::from_passwd(const passwd &pw) {
 }
 
 } // namespace mmotd::platform
-
-#endif
-

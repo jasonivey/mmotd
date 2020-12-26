@@ -1,7 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-
-#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__NT__)
-
 #include "lib/include/platform/user_accounting_database.h"
 
 #include <string>
@@ -21,17 +18,9 @@ mmotd::platform::UserInformation GetUserInformationImpl() {
 
 namespace mmotd::platform {
 
-UserAccountEntry UserAccountEntry::from_utmp(const utmp &db) {
-    return UserAccountEntry{};
-}
-
 UserAccountEntries GetUserAccountEnteries() {
     static auto user_account_enteries = GetUserAccountEntriesImpl();
     return user_account_enteries;
-}
-
-UserInformation UserInformation::from_passwd(const passwd &pw) {
-    return UserInformation{};
 }
 
 const UserInformation &GetUserInformation() {
@@ -40,5 +29,3 @@ const UserInformation &GetUserInformation() {
 }
 
 } // namespace mmotd::platform
-
-#endif

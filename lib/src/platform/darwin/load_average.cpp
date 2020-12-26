@@ -1,6 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__)
-
 #include "lib/include/platform/load_average.h"
 
 #include <ctime>
@@ -43,14 +41,14 @@ optional<double> GetSystemLoadAverage() {
     }
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
 LoadAverageDetails GetLoadAverageDetails() {
     auto details = LoadAverageDetails{};
 
-    auto cpu_count_wrapper = detail::GetCpuCount();
+    auto cpu_count_wrapper = GetCpuCount();
     if (cpu_count_wrapper) {
         auto cpu_count = *cpu_count_wrapper;
         details.push_back(make_tuple("processor count", to_string(cpu_count)));
@@ -66,5 +64,3 @@ LoadAverageDetails GetLoadAverageDetails() {
 }
 
 } // namespace mmotd::platform
-
-#endif

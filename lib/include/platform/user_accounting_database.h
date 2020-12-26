@@ -1,9 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 
-#include <ctime>
+#include <algorithm>
 #include <climits>
 #include <cstdint>
+#include <ctime>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <vector>
@@ -12,11 +14,15 @@
 
 struct passwd;
 struct utmp;
+struct utmpx;
 
 namespace mmotd::platform {
 
+// User Account Entry Type
+enum class UAE_TYPE : int { None = 0, Login = 6, User = 7 };
+
 struct UserAccountEntry {
-    int type = 0;
+    UAE_TYPE type = UAE_TYPE::None;
     // also tty
     std::string device_name;
     std::string user;
@@ -27,11 +33,12 @@ struct UserAccountEntry {
     std::string to_string() const;
     static std::string to_type_string(int);
     std::string type_str() const;
-    bool empty() const { return type == 0; }
-    bool is_login() const { return type == 6; }
-    bool is_user() const { return type == 7; }
+    bool empty() const { return type == UAE_TYPE::None; }
+    bool is_login() const { return type == UAE_TYPE::Login; }
+    bool is_user() const { return type == UAE_TYPE::User; }
 
     static UserAccountEntry from_utmp(const utmp &db);
+    static UserAccountEntry from_utmpx(const utmpx &db);
 };
 
 struct UserInformation {
@@ -51,7 +58,15 @@ using UserAccountEntries = std::vector<UserAccountEntry>;
 
 const UserAccountEntries &GetUserAccountEntries();
 
+inline UserAccountEntries GetUserAccountEntries(UAE_TYPE type) {
+    auto entries = GetUserAccountEntries();
+    auto i = std::remove_if(std::begin(entries), std::end(entries), [type](const auto &entry) {
+        return entry.type != type;
+    });
+    entries.erase(i, end(entries));
+    return entries;
+}
+
 const UserInformation &GetUserInformation();
 
 } // namespace mmotd::platform
-

@@ -177,5 +177,4 @@ KernelDetails KernelDetails::from_string(const string &kernel_type,
     return kernel_details;
 }
 
-}
-
+} // namespace mmotd::system

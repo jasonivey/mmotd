@@ -8,7 +8,7 @@
 namespace mmotd::platform {
 
 using LoadAverageDetail = std::tuple<std::string, std::string>;
-using LoadAverageDetails  = std::vector<LoadAverageDetail>;
+using LoadAverageDetails = std::vector<LoadAverageDetail>;
 
 LoadAverageDetails GetLoadAverageDetails();
 

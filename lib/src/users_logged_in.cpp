@@ -1,7 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "lib/include/computer_information.h"
-#include "lib/include/users_logged_in.h"
 #include "lib/include/platform/user_accounting_database.h"
+#include "lib/include/users_logged_in.h"
 
 #include <algorithm>
 #include <iterator>
@@ -45,12 +45,13 @@ bool UsersLoggedIn::GetUsersLoggedIn() {
     auto user_count = count_if(begin(user_account_enteries),
                                end(user_account_enteries),
                                [&username, &user_account_entry_ptr](const auto &user_account_entry) {
-        if (user_account_entry.is_user() && username == user_account_entry.user) {
-            user_account_entry_ptr = user_account_entry_ptr == nullptr ? &user_account_entry : nullptr;
-            return true;
-        }
-        return false;
-    });
+                                   if (user_account_entry.is_user() && username == user_account_entry.user) {
+                                       user_account_entry_ptr =
+                                           user_account_entry_ptr == nullptr ? &user_account_entry : nullptr;
+                                       return true;
+                                   }
+                                   return false;
+                               });
 
     if (user_count == 0 || user_account_entry_ptr == nullptr) {
         // should never happen
@@ -58,10 +59,7 @@ bool UsersLoggedIn::GetUsersLoggedIn() {
     }
 
     const auto &user_account_entry = *user_account_entry_ptr;
-    auto session_str = format("{} logged in {} time{}",
-                              user_account_entry.user,
-                              user_count,
-                              user_count > 1 ? "s" : "");
+    auto session_str = format("{} logged in {} time{}", user_account_entry.user, user_count, user_count > 1 ? "s" : "");
     if (!user_account_entry.hostname.empty()) {
         session_str += format(" from {}", user_account_entry.hostname);
     }

@@ -1,13 +1,13 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
-#include "lib/include/mac_address.h"
 #include "common/include/algorithm.h"
+#include "lib/include/mac_address.h"
 
 #include <algorithm>
 #include <iterator>
 #include <string>
-#include <unordered_map>
 #include <tuple>
+#include <unordered_map>
 #include <vector>
 
 #include <boost/asio/ip/address.hpp>
@@ -82,7 +82,7 @@ inline void NetworkDevices::SetActive(const std::string &interface_name, bool ac
 }
 
 inline void NetworkDevices::FilterWorthless() {
-    mmotd::algorithms::erase_if(devices_, [](const auto& item) {
+    mmotd::algorithms::erase_if(devices_, [](const auto &item) {
         auto const &[name, device] = item;
         if (name.empty() || device.interface_name.empty()) {
             return true;
@@ -93,9 +93,9 @@ inline void NetworkDevices::FilterWorthless() {
         } else if (device.ip_addresses.empty()) {
             return true;
         } else {
-            auto j = std::find_if(std::begin(device.ip_addresses),
-                                  std::end(device.ip_addresses),
-                                  [](const auto &ip) { return ip.is_v4(); });
+            auto j = std::find_if(std::begin(device.ip_addresses), std::end(device.ip_addresses), [](const auto &ip) {
+                return ip.is_v4();
+            });
             return j == std::end(device.ip_addresses);
         }
         return false;
@@ -117,4 +117,4 @@ inline const NetworkDevice &NetworkDevices::CreateOrFindInterface(const std::str
     return const_cast<NetworkDevices *>(this)->CreateOrFindInterface(interface_name);
 }
 
-} // namespace mmotd
+} // namespace mmotd::platform
