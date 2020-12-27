@@ -53,6 +53,7 @@ static constexpr const uint32_t STRFILE_VERSION = 1;
 static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(uint64_t);
 static constexpr const size_t STRFILE_HEADER_PADDING = sizeof(uint64_t);
 static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = true;
+using strfile_type = uint64_t;
 
 string GetPlatformFortunesPath() {
     return string{"/usr/local/opt/fortune/share/games/fortunes"};
@@ -64,6 +65,7 @@ static constexpr const uint32_t STRFILE_VERSION = 2;
 static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(uint32_t);
 static constexpr const size_t STRFILE_HEADER_PADDING = 0;
 static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = false;
+using strfile_type = uint32_t;
 
 string GetPlatformFortunesPath() {
     return string{"/usr/share/games/fortunes"};
@@ -71,25 +73,22 @@ string GetPlatformFortunesPath() {
 
 #endif
 
-struct StrFileHeader { // information table
-#if defined(__linux__)
-#else
-#endif
-    enum class Flags : uint32_t {
+struct StrFileHeader {
+    enum class Flags : strfile_type {
         None = 0x00,
         Random = 0x01,  // randomized pointers
         Ordered = 0x02, // ordered pointers
         Rotated = 0x04  // rot-13'd text
     };
     friend constexpr Flags operator&(Flags a, Flags b) {
-        return static_cast<Flags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        return static_cast<Flags>(static_cast<strfile_type>(a) & static_cast<strfile_type>(b));
     }
 
-    uint32_t version = 0;      // version number
-    uint32_t count = 0;        // count of strings in the fortune file
-    uint32_t longest_str = 0;  // length of longest fortune
-    uint32_t shortest_str = 0; // length of shortest shortest fortune
-    Flags flags = Flags::None; // flags
+    strfile_type version = 0;      // version number
+    strfile_type count = 0;        // count of strings in the fortune file
+    strfile_type longest_str = 0;  // length of longest fortune
+    strfile_type shortest_str = 0; // length of shortest shortest fortune
+    Flags flags = Flags::None;     // flags
     union {
         char delim;                        // delimeter between fortunes
         uint8_t padding[4] = {0, 0, 0, 0}; // padding
@@ -129,7 +128,7 @@ struct StrFileHeader { // information table
         count = ntohl(count);
         longest_str = ntohl(longest_str);
         shortest_str = ntohl(shortest_str);
-        flags = static_cast<Flags>(ntohl(static_cast<uint32_t>(flags)));
+        flags = static_cast<Flags>(ntohl(static_cast<strfile_type>(flags)));
         PLOG_VERBOSE << format("STRFILE: {}", to_string());
     }
 };

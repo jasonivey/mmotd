@@ -142,9 +142,9 @@ string DbEntry::entry_type_to_string(int ut_type) {
     }
 }
 
-const UserAccountEntries &detail::GetUserAccountEntries() {
-    static auto user_account_enteries = GetUserAccountEntriesImpl();
-    return user_account_enteries;
+const DbEntries &detail::GetUserAccountEntries() {
+    static const auto &entries = GetUserAccountEntriesImpl();
+    return entries;
 }
 
 } // namespace mmotd::platform::user_account_database

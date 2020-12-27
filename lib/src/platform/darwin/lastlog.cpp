@@ -18,7 +18,10 @@ using namespace std;
 namespace mmotd::platform {
 
 LastLogDetails GetLastLogDetails() {
-    auto entries = GetUserAccountEntries(UAE_TYPE::User);
+    using namespace mmotd::platform::user_account_database;
+    using namespace mmotd::platform::user;
+
+    auto entries = GetDbEntries<ENTRY_TYPE::User>();
     auto user_info = GetUserInformation();
     PLOG_VERBOSE << format("last login: entries size: {}, user info: {}",
                            entries.size(),
