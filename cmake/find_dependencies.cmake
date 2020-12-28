@@ -24,7 +24,6 @@ FetchContent_Declare(
     certify
     GIT_REPOSITORY https://github.com/djarek/certify.git
 )
-
 FetchContent_GetProperties(certify)
 if (NOT certify_POPULATED)
     FetchContent_Populate(certify)
@@ -37,7 +36,6 @@ FetchContent_Declare(
     GIT_REPOSITORY  https://github.com/fmtlib/fmt.git
     GIT_TAG         7.1.3
 )
-
 FetchContent_GetProperties(fmt)
 if (NOT fmt_POPULATED)
     FetchContent_Populate(fmt)
@@ -50,7 +48,6 @@ FetchContent_Declare(
     GIT_REPOSITORY  https://github.com/SergiusTheBest/plog.git
     GIT_TAG         1.1.5
 )
-
 FetchContent_GetProperties(plog)
 if (NOT plog_POPULATED)
     FetchContent_Populate(plog)
@@ -66,7 +63,6 @@ FetchContent_Declare(
     #  rely on that tag
     #GIT_TAG         v1.9.1
 )
-
 FetchContent_GetProperties(cli11)
 if (NOT cli11_POPULATED)
     FetchContent_Populate(cli11)
@@ -79,7 +75,6 @@ FetchContent_Declare(
     GIT_REPOSITORY  https://github.com/ricab/scope_guard.git
     GIT_TAG         v0.2.3
 )
-
 FetchContent_GetProperties(scope_guard)
 if (NOT scope_guard_POPULATED)
     FetchContent_Populate(scope_guard)
@@ -92,10 +87,24 @@ FetchContent_Declare(
     GIT_REPOSITORY  https://github.com/effolkronium/random.git
     GIT_TAG         v1.3.1
 )
-
 FetchContent_GetProperties(random)
 if (NOT random_POPULATED)
     FetchContent_Populate(random)
     add_library(random INTERFACE)
     target_include_directories(random INTERFACE ${random_SOURCE_DIR}/include)
 endif ()
+
+if (CMAKE_VERSION VERSION_LESS 3.2)
+    set (UPDATE_DISCONNECTED_IF_AVAILABLE "")
+else ()
+    set (UPDATE_DISCONNECTED_IF_AVAILABLE "UPDATE_DISCONNECTED 1")
+endif ()
+
+include(download-project)
+download_project(PROJ                googletest
+                 GIT_REPOSITORY      https://github.com/google/googletest.git
+                 GIT_TAG             master
+                 ${UPDATE_DISCONNECTED_IF_AVAILABLE})
+
+add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR})
+
