@@ -43,3 +43,7 @@ add_definitions(-DPLOG_OMIT_LOG_DEFINES)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)
 endif ()
+
+# Common compiler options which need to be set for every C++ module
+add_compile_options(-std=c++17 -Wall -Werror -Wpedantic -Wextra -Wformat=2 -fPIC)
+

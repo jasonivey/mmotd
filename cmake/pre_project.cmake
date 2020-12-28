@@ -12,6 +12,3 @@ cmake_minimum_required (VERSION 3.8)
 set (CMAKE_OSX_SYSROOT "/" CACHE STRING "")
 set (CMAKE_OSX_DEPLOYMENT_TARGET "" CACHE STRING "")
 
-# Common compiler options which need to be set for every C++ module
-add_compile_options(-std=c++17 -Wall -Werror -Wpedantic -Wextra -Wformat=2 -fPIC)
-

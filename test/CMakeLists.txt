@@ -1,0 +1,38 @@
+# mmotd/test/CMakeLists.txt
+cmake_minimum_required (VERSION 3.8)
+
+# update the module path so the include directive finds the module correctly
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
+
+include (pre_project)
+
+set (MMOTD_TARGET_NAME mmotd_test)
+
+project (mmotd_test)
+
+include (GoogleTest)
+
+add_executable(${MMOTD_TARGET_NAME}
+               src/main.cpp
+               ../lib/test/src/test_mac_address.cpp)
+
+target_link_libraries(${MMOTD_TARGET_NAME} gtest gmock_main)
+
+include (target_common)
+
+get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
+
+target_include_directories(
+    ${MMOTD_TARGET_NAME}
+    PRIVATE ${PROJECT_ROOT_INCLUDE_PATH}
+    )
+
+target_include_directories(
+    ${MMOTD_TARGET_NAME} SYSTEM
+    PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${scope_guard_SOURCE_DIR}
+    PRIVATE ${fmt_SOURCE_DIR}/include
+    )
+
+gtest_discover_tests(${MMOTD_TARGET_NAME})
+
