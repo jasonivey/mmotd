@@ -8,4 +8,4 @@ namespace mmotd::platform {
 
 std::optional<std::string> GetBootTime();
 
-} // namespace mmotd
+} // namespace mmotd::platform

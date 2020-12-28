@@ -10,8 +10,8 @@ set (MMOTD_TARGET_NAME mmotd_lib)
 
 project (mmotd_lib)
 
-add_library (
-    ${MMOTD_TARGET_NAME} STATIC
+
+set (MMOTD_LIB_SOURCES
     src/boot_time.cpp
     src/computer_information.cpp
     src/external_network.cpp
@@ -24,41 +24,51 @@ add_library (
     src/mac_address.cpp
     src/memory.cpp
     src/network.cpp
-    src/platform/darwin/boot_time.cpp
-    src/platform/darwin/lastlog.cpp
-    src/platform/darwin/load_average.cpp
-    src/platform/darwin/memory.cpp
-    src/platform/darwin/network.cpp
-    src/platform/darwin/processes.cpp
-    src/platform/darwin/swap.cpp
-    src/platform/darwin/system_information.cpp
-    src/platform/darwin/user_accounting_database.cpp
-    src/platform/linux/boot_time.cpp
-    src/platform/linux/lastlog.cpp
-    src/platform/linux/load_average.cpp
-    src/platform/linux/memory.cpp
-    src/platform/linux/network.cpp
-    src/platform/linux/processes.cpp
-    src/platform/linux/swap.cpp
-    src/platform/linux/system_information.cpp
-    src/platform/linux/user_accounting_database.cpp
-    src/platform/windows/boot_time.cpp
-    src/platform/windows/lastlog.cpp
-    src/platform/windows/load_average.cpp
-    src/platform/windows/memory.cpp
-    src/platform/windows/network.cpp
-    src/platform/windows/processes.cpp
-    src/platform/windows/swap.cpp
-    src/platform/windows/system_information.cpp
-    src/platform/windows/user_accounting_database.cpp
     src/posix_sysctl_information.cpp
     src/processes.cpp
     src/swap.cpp
     src/system_details.cpp
     src/system_information.cpp
     src/users_logged_in.cpp
-    src/weather_info.cpp
-    )
+    src/weather_info.cpp)
+
+
+if (APPLE)
+    list(APPEND MMOTD_LIB_SOURCES
+        src/platform/darwin/boot_time.cpp
+        src/platform/darwin/lastlog.cpp
+        src/platform/darwin/load_average.cpp
+        src/platform/darwin/memory.cpp
+        src/platform/darwin/network.cpp
+        src/platform/darwin/processes.cpp
+        src/platform/darwin/swap.cpp
+        src/platform/darwin/system_information.cpp
+        src/platform/darwin/user_accounting_database.cpp)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    list(APPEND MMOTD_LIB_SOURCES
+        src/platform/linux/boot_time.cpp
+        src/platform/linux/lastlog.cpp
+        src/platform/linux/load_average.cpp
+        src/platform/linux/memory.cpp
+        src/platform/linux/network.cpp
+        src/platform/linux/processes.cpp
+        src/platform/linux/swap.cpp
+        src/platform/linux/system_information.cpp
+        src/platform/linux/user_accounting_database.cpp)
+elseif (WIN32)
+    list(APPEND MMOTD_LIB_SOURCES
+        src/platform/windows/boot_time.cpp
+        src/platform/windows/lastlog.cpp
+        src/platform/windows/load_average.cpp
+        src/platform/windows/memory.cpp
+        src/platform/windows/network.cpp
+        src/platform/windows/processes.cpp
+        src/platform/windows/swap.cpp
+        src/platform/windows/system_information.cpp
+        src/platform/windows/user_accounting_database.cpp)
+endif ()
+
+add_library (${MMOTD_TARGET_NAME} STATIC ${MMOTD_LIB_SOURCES})
 
 include (target_common)
 
@@ -79,4 +89,3 @@ target_include_directories(
     PRIVATE ${plog_SOURCE_DIR}/include
     PRIVATE ${random_SOURCE_DIR}/include
     )
-

@@ -1,7 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "lib/include/computer_information.h"
-#include "lib/include/swap.h"
 #include "lib/include/platform/swap.h"
+#include "lib/include/swap.h"
 
 using namespace std;
 

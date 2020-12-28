@@ -1,8 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/human_size.h"
 #include "lib/include/computer_information.h"
 #include "view/include/computer_information_provider_factory.h"
 #include "view/include/memory_usage.h"
-#include "common/include/human_size.h"
 
 #include <memory>
 

@@ -1,10 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__linux__) || defined(__APPLE__)
-
+#include "common/include/chrono_io.h"
 #include "lib/include/platform/lastlog.h"
 #include "lib/include/platform/user_accounting_database.h"
-#include "common/include/chrono_io.h"
 
+#include <algorithm>
+#include <chrono>
+#include <iterator>
 #include <string>
 #include <tuple>
 #include <vector>
@@ -18,24 +19,24 @@ using namespace std;
 namespace mmotd::platform {
 
 LastLogDetails GetLastLogDetails() {
-    const auto &entries = GetUserAccountEntries();
-    const auto &user_info = GetUserInformation();
-    PLOG_VERBOSE << format("last login: entries size: {}, user info: {}", entries.size(), user_info.empty() ? "empty" : user_info.username);
+    using namespace mmotd::platform::user_account_database;
+    using namespace mmotd::platform::user;
+
+    auto entries = GetDbEntries<ENTRY_TYPE::User>();
+    auto user_info = GetUserInformation();
+    PLOG_VERBOSE << format("last login: entries size: {}, user info: {}",
+                           entries.size(),
+                           user_info.empty() ? "empty" : user_info.username);
 
     if (entries.empty() || user_info.empty()) {
-        PLOG_ERROR << format("last login: entries size: {}, user info: {}", entries.size(), user_info.empty() ? "empty" : "valid");
+        PLOG_ERROR << format("last login: entries size: {}, user info: {}",
+                             entries.size(),
+                             user_info.empty() ? "empty" : "valid");
         return LastLogDetails{};
     }
 
-    auto i = max_element(begin(entries), end(entries), [](const auto &a, const auto &b) {
-        if ((a.is_user() && b.is_user()) || (!a.is_user() && !b.is_user())) {
-            return a.seconds < b.seconds;
-        } else if (a.is_user() && !b.is_user()) {
-            return false;
-        } else { // !a.is_user() && b.is_user()
-            return true;
-        }
-    });
+    auto i =
+        min_element(begin(entries), end(entries), [](const auto &a, const auto &b) { return a.seconds < b.seconds; });
 
     if (i == end(entries)) {
         PLOG_ERROR << "last login: unable to find a user process to use";
@@ -67,5 +68,3 @@ LastLogDetails GetLastLogDetails() {
 }
 
 } // namespace mmotd::platform
-
-#endif

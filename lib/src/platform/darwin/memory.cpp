@@ -1,9 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__)
-
 #include "common/include/human_size.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/memory.h"
+
+#include <optional>
+#include <string>
+#include <tuple>
+#include <vector>
 
 #include <fmt/format.h>
 #include <plog/Log.h>
@@ -53,7 +56,7 @@ optional<tuple<uint64_t, uint64_t, double, uint64_t, uint64_t, uint64_t, uint64_
     }
 
     auto vm_statistics_data = vm_statistics_data_t{};
-    if (!detail::GetVmStat(&vm_statistics_data)) {
+    if (!GetVmStat(&vm_statistics_data)) {
         return nullopt;
     }
 
@@ -99,7 +102,7 @@ optional<tuple<uint64_t, uint64_t, double, uint64_t, uint64_t, uint64_t, uint64_
     return make_tuple(total, avail, percent, used, free, active, inactive, wired);
 }
 
-}
+} // namespace
 
 MemoryDetails GetMemoryDetails() {
     using mmotd::algorithm::string::to_human_size;
@@ -110,17 +113,15 @@ MemoryDetails GetMemoryDetails() {
     }
     const auto [total, avail, percent, used, free, active, inactive, wired] = *memory_usage_wrapper;
     auto details = MemoryDetails{};
-    details.push_back(make_tuple("memory usage", format("total: {} {}", to_human_size(total), total)));
-    details.push_back(make_tuple("memory usage", format("avail: {} {}", to_human_size(avail), avail)));
+    details.push_back(make_tuple("memory usage", format("total: {}", to_human_size(total))));
+    details.push_back(make_tuple("memory usage", format("avail: {}", to_human_size(avail))));
     details.push_back(make_tuple("memory usage", format("percent: {:.02f}%", percent)));
-    details.push_back(make_tuple("memory usage", format("used: {} {}", to_human_size(used), used)));
-    details.push_back(make_tuple("memory usage", format("free: {} {}", to_human_size(free), free)));
-    details.push_back(make_tuple("memory usage", format("active: {} {}", to_human_size(active), active)));
-    details.push_back(make_tuple("memory usage", format("inactive: {} {}", to_human_size(inactive), inactive)));
-    details.push_back(make_tuple("memory usage", format("wired: {} {}", to_human_size(wired), wired)));
+    details.push_back(make_tuple("memory usage", format("used: {}", to_human_size(used))));
+    details.push_back(make_tuple("memory usage", format("free: {}", to_human_size(free))));
+    details.push_back(make_tuple("memory usage", format("active: {}", to_human_size(active))));
+    details.push_back(make_tuple("memory usage", format("inactive: {}", to_human_size(inactive))));
+    details.push_back(make_tuple("memory usage", format("wired: {}", to_human_size(wired))));
     return details;
 }
 
 } // namespace mmotd::platform
-
-#endif

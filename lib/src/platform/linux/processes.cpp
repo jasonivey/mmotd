@@ -1,6 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__linux__)
-
 #include "lib/include/platform/processes.h"
 
 #include <algorithm>
@@ -62,7 +60,7 @@ optional<size_t> GetProcessDirectoriesCount() {
     return process_subdirs.empty() ? nullopt : make_optional(process_subdirs.size());
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -71,5 +69,3 @@ optional<size_t> GetProcessCount() {
 }
 
 } // namespace mmotd::platform
-
-#endif

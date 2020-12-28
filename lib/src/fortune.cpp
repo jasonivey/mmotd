@@ -48,39 +48,88 @@ optional<mmotd::ComputerValues> Fortune::GetInformation() const {
 namespace detail {
 
 #if defined(__APPLE__)
+
+static constexpr const uint32_t STRFILE_VERSION = 1;
+static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(uint64_t);
+static constexpr const size_t STRFILE_HEADER_PADDING = sizeof(uint64_t);
+static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = true;
+using strfile_type = uint64_t;
+
 string GetPlatformFortunesPath() {
     return string{"/usr/local/opt/fortune/share/games/fortunes"};
 }
+
 #elif defined(__linux__)
+
+static constexpr const uint32_t STRFILE_VERSION = 2;
+static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(uint32_t);
+static constexpr const size_t STRFILE_HEADER_PADDING = 0;
+static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = false;
+using strfile_type = uint32_t;
+
 string GetPlatformFortunesPath() {
     return string{"/usr/share/games/fortunes"};
 }
-#else
-#    error no platform fortune path implemented
+
 #endif
 
-struct StrFileHeader { // information table
-    static constexpr const unsigned long VERSION = 1;
-    enum class Flags : unsigned long {
-        RANDOM = 0x01,   // randomized pointers
-        ORDEREDD = 0x02, // ordered pointers
-        ROTATED = 0x04   // rot-13'd text
+struct StrFileHeader {
+    enum class Flags : strfile_type {
+        None = 0x00,
+        Random = 0x01,  // randomized pointers
+        Ordered = 0x02, // ordered pointers
+        Rotated = 0x04  // rot-13'd text
     };
-    unsigned long version = 0;               // version number
-    unsigned long numstr = 0;                // # of strings in the file
-    unsigned long longlen = 0;               // length of longest string
-    unsigned long shortlen = 0;              // length of shortest string
-    unsigned long flags = 0;                 // bit field for flags
-    unsigned char padding[4] = {0, 0, 0, 0}; // long aligned space
+    friend constexpr Flags operator&(Flags a, Flags b) {
+        return static_cast<Flags>(static_cast<strfile_type>(a) & static_cast<strfile_type>(b));
+    }
 
-    char get_delim() const { return padding[0]; }
+    strfile_type version = 0;      // version number
+    strfile_type count = 0;        // count of strings in the fortune file
+    strfile_type longest_str = 0;  // length of longest fortune
+    strfile_type shortest_str = 0; // length of shortest shortest fortune
+    Flags flags = Flags::None;     // flags
+    union {
+        char delim;                        // delimeter between fortunes
+        uint8_t padding[4] = {0, 0, 0, 0}; // padding
+    };
+
+    char get_delim() const { return delim; }
+
+    string flags_to_string() const {
+        auto flags_str = vector<string>{};
+        if (flags == Flags::None) {
+            flags_str.push_back("none");
+        }
+        if ((flags & Flags::Random) != Flags::None) {
+            flags_str.push_back("random");
+        }
+        if ((flags & Flags::Ordered) != Flags::None) {
+            flags_str.push_back("ordered");
+        }
+        if ((flags & Flags::Rotated) != Flags::None) {
+            flags_str.push_back("rotated");
+        }
+        return format("[{}]", boost::join(flags_str, ", "));
+    }
+
+    string to_string() const {
+        return format("version: {}, count: {}, longest: {}, shortest: {}, flags: {}, delim: {}",
+                      version,
+                      count,
+                      longest_str,
+                      shortest_str,
+                      flags_to_string(),
+                      get_delim());
+    }
 
     void update() {
         version = ntohl(version);
-        numstr = ntohl(numstr);
-        longlen = ntohl(longlen);
-        shortlen = ntohl(shortlen);
-        flags = ntohl(flags);
+        count = ntohl(count);
+        longest_str = ntohl(longest_str);
+        shortest_str = ntohl(shortest_str);
+        flags = static_cast<Flags>(ntohl(static_cast<strfile_type>(flags)));
+        PLOG_VERBOSE << format("STRFILE: {}", to_string());
     }
 };
 
@@ -120,23 +169,26 @@ optional<tuple<fs::path, fs::path>> GetFortuneFiles(const string &fortune_name) 
 }
 
 optional<uint32_t> ParseSingleFortuneDbData(const vector<uint8_t> &buffer) {
-    if (buffer.size() != sizeof(uint32_t) * 2) {
-        PLOG_ERROR << format("unable to parse STRFILE when the input is not {}", sizeof(uint32_t) * 2);
+    if (buffer.size() != STRFILE_ENTRY_SIZE) {
+        PLOG_ERROR << format("unable to parse STRFILE when the input is not {}", STRFILE_ENTRY_SIZE);
         return nullopt;
     }
 
     auto network_offset_value = *reinterpret_cast<const uint32_t *>(buffer.data());
     auto host_offset_value = ntohl(network_offset_value);
 
-    auto null_value = *reinterpret_cast<const uint32_t *>(buffer.data() + sizeof(uint32_t));
-    if (null_value != 0) {
-        auto error_str =
-            format("STRFILE appears corrupt, uint32_t value {} is not followed by NULL uint32_t (uint32_t={})",
-                   host_offset_value,
-                   null_value);
-        PLOG_ERROR << error_str;
-        return nullopt;
+    if (STRFILE_ENTRY_CONTAINS_NULL_INT) {
+        auto null_value = *reinterpret_cast<const uint32_t *>(buffer.data() + sizeof(uint32_t));
+        if (null_value != 0) {
+            auto error_str =
+                format("STRFILE appears corrupt, uint32_t value {} is not followed by NULL uint32_t (uint32_t={})",
+                       host_offset_value,
+                       null_value);
+            PLOG_ERROR << error_str;
+            return nullopt;
+        }
     }
+
     PLOG_VERBOSE << format("parsed the STRFILE database entry, offset: {}", host_offset_value);
     return make_optional(host_offset_value);
 }
@@ -153,11 +205,11 @@ ReadRandomFortuneOffset(const fs::path &fortune_db_path, std::ifstream &fortune_
         return nullopt;
     }
 
-    auto buffer = vector<uint8_t>(sizeof(uint64_t), 0);
+    auto buffer = vector<uint8_t>(STRFILE_ENTRY_SIZE, 0);
     fortune_db_file.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
     if (fortune_db_file.fail() || fortune_db_file.bad()) {
         PLOG_ERROR << format("unable to read {} bytes of STRFILE database {} at offset {}, {}",
-                             sizeof(uint64_t),
+                             STRFILE_ENTRY_SIZE,
                              fortune_db_path.string(),
                              file_offset,
                              mmotd::error::ios_flags::to_string(fortune_db_file));
@@ -169,11 +221,11 @@ ReadRandomFortuneOffset(const fs::path &fortune_db_path, std::ifstream &fortune_
 
 uint32_t ConvertDbIndexToFortuneFileOffset(size_t db_index, uint32_t file_size) {
     // adjust calculations for the STRFILE header and the following 2 uint32_t NULL's
-    auto file_offset = sizeof(StrFileHeader) + sizeof(uint64_t);
+    auto file_offset = sizeof(StrFileHeader) + STRFILE_HEADER_PADDING;
     // add to the header size the actual database index * sizeof(uint64_t)
-    file_offset += db_index * sizeof(uint64_t);
+    file_offset += db_index * STRFILE_ENTRY_SIZE;
     // just make sure we haven't gone over the end of the file...
-    return std::min(file_offset, file_size - sizeof(uint64_t));
+    return std::min(file_offset, file_size - STRFILE_ENTRY_SIZE);
 }
 
 optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path &fortune_db_path) {
@@ -206,22 +258,22 @@ optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path 
     }
 
     strfile_header.update();
-    if (strfile_header.version != StrFileHeader::VERSION) {
+    if (strfile_header.version != STRFILE_VERSION) {
         PLOG_ERROR << format("STRFILE database header is version {} not the expected version {}",
                              strfile_header.version,
-                             StrFileHeader::VERSION);
+                             STRFILE_VERSION);
         return nullopt;
     }
 
-    PLOG_VERBOSE << format("sizeof STRFILE header: {}", sizeof(StrFileHeader) + sizeof(uint64_t));
-    auto remaining_size = static_cast<size_t>(fortune_db_file_size) - sizeof(StrFileHeader) - sizeof(uint64_t);
+    PLOG_VERBOSE << format("sizeof STRFILE header: {}", sizeof(StrFileHeader) + STRFILE_HEADER_PADDING);
+    auto remaining_size = static_cast<size_t>(fortune_db_file_size) - sizeof(StrFileHeader) - STRFILE_ENTRY_SIZE;
     PLOG_VERBOSE << format("remaining size : {}", remaining_size);
-    PLOG_VERBOSE << format("number of strs : {}", strfile_header.numstr);
+    PLOG_VERBOSE << format("number of strs : {}", strfile_header.count);
     PLOG_VERBOSE << format("calculated strs: {} with {} bytes remaining",
-                           remaining_size / sizeof(uint64_t),
-                           remaining_size % sizeof(uint64_t));
+                           remaining_size / STRFILE_ENTRY_SIZE,
+                           remaining_size % STRFILE_ENTRY_SIZE);
 
-    auto random_index = effing_random::get<size_t>(0, static_cast<size_t>(strfile_header.numstr));
+    auto random_index = effing_random::get<size_t>(0, static_cast<size_t>(strfile_header.count));
     PLOG_VERBOSE << format("random STRFILE database index: {}", random_index);
     auto file_offset = ConvertDbIndexToFortuneFileOffset(random_index, fortune_db_file_size);
 
@@ -230,7 +282,7 @@ optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path 
         return nullopt;
     }
 
-    return make_optional(make_tuple(*fortune_offset, strfile_header.longlen, strfile_header.get_delim()));
+    return make_optional(make_tuple(*fortune_offset, strfile_header.longest_str, strfile_header.get_delim()));
 }
 
 optional<string> ReadFortune(const fs::path &fortune_path, uint32_t offset, uint32_t max_size, char delimeter) {

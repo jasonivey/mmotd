@@ -2,6 +2,7 @@
 #pragma once
 #include <string>
 #include <system_error>
+
 #include <errno.h>
 
 namespace mmotd::error::posix_error {

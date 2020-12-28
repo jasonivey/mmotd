@@ -1,6 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#if defined(__APPLE__)
-
 #include "common/include/posix_error.h"
 #include "lib/include/platform/processes.h"
 
@@ -58,7 +56,7 @@ optional<vector<int32_t>> GetProcessesInfo() {
     return nullopt;
 }
 
-}
+} // namespace
 
 namespace mmotd::platform {
 
@@ -76,5 +74,3 @@ optional<size_t> GetProcessCount() {
 }
 
 } // namespace mmotd::platform
-
-#endif

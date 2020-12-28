@@ -11,8 +11,8 @@
 #include <plog/Log.h>
 
 using namespace std;
-using fmt::format;
 using boost::numeric_cast;
+using fmt::format;
 
 namespace mmotd {
 
@@ -90,4 +90,4 @@ string MacAddress::to_string() const {
                   static_cast<uint32_t>(data_[5]));
 }
 
-}
+} // namespace mmotd
