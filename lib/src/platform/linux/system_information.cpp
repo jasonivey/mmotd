@@ -219,21 +219,15 @@ SystemInformationDetails GetSystemInformationDetails() {
     }
     auto [platform_name, major, minor, patch] = *os_version_wrapper;
 
-    constexpr static const char *SYS_INFO = "system information";
     auto details = SystemInformationDetails{};
-
-    details.emplace_back(make_tuple(SYS_INFO, format("host name: {}", kernel_details.host_name)));
-    details.emplace_back(make_tuple(SYS_INFO, format("kernel version: {}", kernel_details.kernel_version.version)));
-    details.emplace_back(
-        make_tuple(SYS_INFO, format("kernel release: {}", kernel_details.kernel_version.release.to_string())));
-    details.emplace_back(
-        make_tuple(SYS_INFO, format("kernel type: {}", mmotd::system::to_string(kernel_details.kernel))));
-    details.emplace_back(
-        make_tuple(SYS_INFO, format("architecture: {}", mmotd::system::to_string(kernel_details.architecture))));
-    details.emplace_back(
-        make_tuple(SYS_INFO, format("byte order: {}", mmotd::system::to_string(kernel_details.endian))));
-    details.emplace_back(make_tuple(SYS_INFO, format("platform version: {}.{:02}.{}", major, minor, patch)));
-    details.emplace_back(make_tuple(SYS_INFO, format("platform name: {}", platform_name)));
+    details.emplace_back(make_tuple("host name", kernel_details.host_name));
+    details.emplace_back(make_tuple("kernel version", kernel_details.kernel_version.version));
+    details.emplace_back(make_tuple("kernel release", kernel_details.kernel_version.release.to_string()));
+    details.emplace_back(make_tuple("kernel type", mmotd::system::to_string(kernel_details.kernel)));
+    details.emplace_back(make_tuple("architecture", mmotd::system::to_string(kernel_details.architecture)));
+    details.emplace_back(make_tuple("byte order", mmotd::system::to_string(kernel_details.endian)));
+    details.emplace_back(make_tuple("platform version", format("{}.{:02}.{}", major, minor, patch)));
+    details.emplace_back(make_tuple("platform name", platform_name));
     return details;
 }
 

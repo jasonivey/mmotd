@@ -70,25 +70,24 @@ optional<tuple<uint64_t, uint64_t>> GetMemoryUsage() {
 
 namespace mmotd::platform {
 
-MemoryDetails GetMemoryDetails() {
+Details GetMemoryDetails() {
     using mmotd::algorithm::string::to_human_size;
 
-    auto usage_wrapper = GetMemoryUsage();
-    if (!usage_wrapper) {
-        return MemoryDetails{};
-    }
+    if (auto usage_wrapper = GetMemoryUsage(); !usage_wrapper) {
+        return Details{};
+    } else {
+        auto [total, free] = *usage_wrapper;
+        auto percent_used = 0.0;
+        if (total != 0) {
+            percent_used = (static_cast<double>(total - free) / static_cast<double>(total)) * 100.0;
+        }
 
-    auto [total, free] = *usage_wrapper;
-    auto percent_used = 0.0;
-    if (total != 0) {
-        percent_used = (static_cast<double>(total - free) / static_cast<double>(total)) * 100.0;
+        auto details = Details{};
+        details.push_back(make_tuple("total", format("{}", to_human_size(total))));
+        details.push_back(make_tuple("percent", format("{:.02f}% of {}", percent, to_human_size(total))));
+        details.push_back(make_tuple("free", format("{}", to_human_size(free))));
+        return details;
     }
-
-    auto details = MemoryDetails{};
-    details.push_back(make_tuple("memory usage", format("total: {}", to_human_size(total))));
-    details.push_back(make_tuple("memory usage", format("percent: {:.02f}%", percent_used)));
-    details.push_back(make_tuple("memory usage", format("free: {}", to_human_size(free))));
-    return details;
 }
 
 } // namespace mmotd::platform

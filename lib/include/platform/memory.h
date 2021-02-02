@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "common/include/information_objects.h"
 
 #include <string>
 #include <tuple>
@@ -7,9 +8,9 @@
 
 namespace mmotd::platform {
 
-using MemoryDetail = std::tuple<std::string, std::string>;
-using MemoryDetails = std::vector<MemoryDetail>;
+using Detail = std::tuple<std::string, std::string>;
+using Details = std::vector<Detail>;
 
-MemoryDetails GetMemoryDetails();
+Details GetMemoryDetails();
 
 } // namespace mmotd::platform

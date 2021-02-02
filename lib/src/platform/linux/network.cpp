@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/mac_address.h"
 #include "common/include/posix_error.h"
-#include "lib/include/mac_address.h"
 #include "lib/include/platform/network.h"
 
 #include <optional>
@@ -24,8 +24,9 @@
 using boost::asio::ip::make_address;
 using fmt::format;
 using namespace std;
-using mmotd::MacAddress;
-using mmotd::platform::NetworkDevices;
+using mmotd::networking::IpAddress;
+using mmotd::networking::MacAddress;
+using mmotd::networking::NetworkDevices;
 
 namespace {
 
@@ -56,11 +57,15 @@ void SetActiveInterfaces(NetworkDevices &devices) {
     }
 }
 
-optional<NetworkDevices> GetNetworkDevices() {
+} // namespace
+
+namespace mmotd::platform {
+
+NetworkDevices GetNetworkDevices() {
     struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
         PLOG_ERROR << format("getifaddrs failed, {}", mmotd::error::posix_error::to_string());
-        return nullopt;
+        return NetworkDevices{};
     }
     auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() { freeifaddrs(addrs); });
 
@@ -128,29 +133,7 @@ optional<NetworkDevices> GetNetworkDevices() {
 
     SetActiveInterfaces(network_devices);
     network_devices.FilterWorthless();
-    return make_optional(network_devices);
-}
-
-} // namespace
-
-namespace mmotd::platform {
-
-NetworkDetails GetNetworkDetails() {
-    auto network_devices_wrapper = GetNetworkDevices();
-    if (!network_devices_wrapper) {
-        return NetworkDetails{};
-    }
-
-    auto details = NetworkDetails{};
-    for (const auto &[name, device] : *network_devices_wrapper) {
-        const auto &mac_addr = device.mac_address.to_string();
-        details.push_back(make_tuple("network info", format("{}*{}", name, mac_addr)));
-        for (const auto &ip_address : device.ip_addresses) {
-            const auto &ip_addr = ip_address.to_string();
-            details.push_back(make_tuple("network info", format("{}*{}", name, ip_addr)));
-        }
-    }
-    return details;
+    return network_devices;
 }
 
 } // namespace mmotd::platform

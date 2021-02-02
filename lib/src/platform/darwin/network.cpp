@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/network_device.h"
 #include "common/include/posix_error.h"
-#include "lib/include/platform/network.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
+#include <boost/asio/ip/address.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 #include <scope_guard.hpp>
@@ -29,9 +30,9 @@
 using boost::asio::ip::make_address;
 using fmt::format;
 using namespace std;
-using mmotd::MacAddress;
-using mmotd::platform::IpAddress;
-using mmotd::platform::NetworkDevices;
+using mmotd::networking::IpAddress;
+using mmotd::networking::MacAddress;
+using mmotd::networking::NetworkDevices;
 
 namespace {
 
@@ -132,11 +133,15 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
     return active;
 }
 
-optional<NetworkDevices> GetNetworkDevices() {
+} // namespace
+
+namespace mmotd::platform {
+
+NetworkDevices GetNetworkDevices() {
     struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
         PLOG_ERROR << format("getifaddrs failed, {}", mmotd::error::posix_error::to_string());
-        return nullopt;
+        return NetworkDevices{};
     }
     auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() { freeifaddrs(addrs); });
 
@@ -179,13 +184,12 @@ optional<NetworkDevices> GetNetworkDevices() {
             }
             const auto family_name = address_family == AF_INET ? string{"ipv4"} : string{"ipv6"};
             PLOG_DEBUG << format("{} found ip {} for family {}", interface_name, ip_str, family_name);
-            auto active = network_devices.GetActive(interface_name);
             PLOG_DEBUG << format("has network device {} been checked for active status? {} ",
                                  interface_name,
-                                 boost::indeterminate(active) ? "no" :
-                                 static_cast<bool>(active)    ? "yes, active{true}" :
-                                                                "yes, active{false}");
-            if (boost::indeterminate(active)) {
+                                 network_devices.HasActiveBeenTested(interface_name) ? "no" :
+                                 network_devices.IsActive(interface_name)            ? "yes, {active}" :
+                                                                                       "yes, {inactive}");
+            if (!network_devices.HasActiveBeenTested(interface_name)) {
                 auto active_status = IsInterfaceActive(interface_name, address_family);
                 network_devices.SetActive(interface_name, active_status);
             }
@@ -223,29 +227,7 @@ optional<NetworkDevices> GetNetworkDevices() {
     }
 
     network_devices.FilterWorthless();
-    return make_optional(network_devices);
-}
-
-} // namespace
-
-namespace mmotd::platform {
-
-NetworkDetails GetNetworkDetails() {
-    auto network_devices_wrappter = GetNetworkDevices();
-    if (!network_devices_wrappter) {
-        return NetworkDetails{};
-    }
-
-    auto details = NetworkDetails{};
-    for (const auto &[name, device] : *network_devices_wrappter) {
-        const auto &mac_addr = device.mac_address.to_string();
-        details.push_back(make_tuple("network info", format("{}*{}", name, mac_addr)));
-        for (const auto &ip_address : device.ip_addresses) {
-            const auto &ip_addr = ip_address.to_string();
-            details.push_back(make_tuple("network info", format("{}*{}", name, ip_addr)));
-        }
-    }
-    return details;
+    return network_devices;
 }
 
 } // namespace mmotd::platform

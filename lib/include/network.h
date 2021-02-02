@@ -1,23 +1,20 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "common/include/big_five_macros.h"
+#include "common/include/information_definitions.h"
 #include "lib/include/information_provider.h"
 
 #include <optional>
 #include <string>
 
-namespace mmotd {
+namespace mmotd::information {
 
 class NetworkInfo : public InformationProvider {
 public:
-    NetworkInfo() = default;
-    virtual ~NetworkInfo() = default;
+    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(NetworkInfo);
 
-    std::string GetName() const override { return std::string{"network"}; }
-    bool QueryInformation() override;
-    std::optional<mmotd::ComputerValues> GetInformation() const override;
-
-private:
-    ComputerValues network_information_;
+protected:
+    bool FindInformation() override;
 };
 
-} // namespace mmotd
+} // namespace mmotd::information

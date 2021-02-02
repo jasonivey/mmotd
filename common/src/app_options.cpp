@@ -2,12 +2,44 @@
 #include "common/include/app_options.h"
 #include "common/include/app_options_creator.h"
 
+#include <filesystem>
 #include <string_view>
+#include <system_error>
 
 #include <fmt/format.h>
+#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
+
+namespace {
+
+optional<string> GetEnvironmentVariableValue(string variable_name) {
+    auto env_value = getenv(variable_name.c_str());
+    if (env_value == nullptr) {
+        PLOG_ERROR << format("getenv failed when attempting to look up variable {}", variable_name);
+        return nullopt;
+    }
+    return make_optional(string{env_value});
+}
+
+auto GetDefaultTemplatePath() {
+    namespace fs = std::filesystem;
+    auto home_dir_holder = GetEnvironmentVariableValue("HOME");
+    if (!home_dir_holder) {
+        return fs::path{};
+    }
+    auto template_path = fs::path{*home_dir_holder} / ".config" / "mmotd" / "template.json";
+    auto ec = error_code{};
+    if (fs::exists(template_path, ec) && !ec &&
+        ((fs::is_regular_file(template_path, ec) && !ec) || (fs::is_symlink(template_path, ec) && !ec))) {
+        PLOG_VERBOSE << format("found the default mmotd template ({})", template_path.string());
+        return template_path;
+    } else {
+        PLOG_ERROR << format("unable to locate the default mmotd template ({})", template_path.string());
+        return fs::path{};
+    }
+}
 
 template<typename T, typename U>
 void append_option(string &existing_options_str, const string &name, T is_set, U get_value) {
@@ -17,9 +49,15 @@ void append_option(string &existing_options_str, const string &name, T is_set, U
     existing_options_str += format("  {} [{}]: {}", name, is_set() ? "SET" : "UNSET", get_value());
 }
 
+} // namespace
+
 std::string Options::to_string() const {
     auto options_str = string{};
     append_option(options_str, "verbose", bind(&Options::IsVerboseSet, this), bind(&Options::GetVerbosityLevel, this));
+    append_option(options_str,
+                  "template_path",
+                  bind(&Options::IsTemplatePathSet, this),
+                  bind(&Options::GetTemplatePath, this));
     append_option(options_str,
                   "last_login",
                   bind(&Options::IsLastLoginSet, this),
@@ -78,15 +116,26 @@ std::string Options::to_string() const {
     return options_str;
 }
 
-const AppOptions &AppOptions::Instance() {
+AppOptions &AppOptions::CreateInstance() {
     static auto app_options = AppOptions{};
     return app_options;
 }
 
+const AppOptions &AppOptions::Instance() {
+    return CreateInstance();
+}
+
 const AppOptions *AppOptions::Initialize(const AppOptionsCreator &creator) {
-    const auto &app_options = AppOptions::Instance();
-    // BAD, BAD, BAD -- find another way!
-    const_cast<AppOptions &>(app_options).AddOptions(creator);
+    auto &app_options = AppOptions::CreateInstance();
+    app_options.AddOptions(creator);
+
+    auto &options = app_options.GetOptions();
+    if (!options.IsTemplatePathSet()) {
+        auto template_path = GetDefaultTemplatePath();
+        if (!template_path.empty()) {
+            options.SetTemplatePath(vector<string>{1, template_path.string()});
+        }
+    }
     return &app_options;
 }
 

@@ -18,10 +18,10 @@ using namespace std;
 
 bool gLinkExternalNetwork = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool external_network_information_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::ExternalNetwork>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::ExternalNetwork>(); });
 
 #if 0
 static void walk_ptree(const pt::ptree &tree, size_t indent) {
@@ -35,28 +35,16 @@ static void walk_ptree(const pt::ptree &tree, size_t indent) {
 }
 #endif
 
-bool ExternalNetwork::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        return RequestExternalIpAddress();
-    }
-    return has_queried;
-}
+// const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
+bool ExternalNetwork::FindInformation() {
+    using mmotd::networking::HttpRequest, mmotd::networking::HttpProtocol;
 
-optional<mmotd::ComputerValues> ExternalNetwork::GetInformation() const {
-    return !details_.empty() ? make_optional(details_) : nullopt;
-}
-
-bool ExternalNetwork::RequestExternalIpAddress() {
-    // const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
-    auto request = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"};
-    const auto response = request.MakeRequest("/json");
-    if (response.empty()) {
+    if (const auto response = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"}.MakeRequest("/json"); response) {
+        return ParseJsonResponse(*response);
+    } else {
         PLOG_ERROR << "querying 'http://ipinfo.io/json' failed";
         return false;
     }
-    return ParseJsonResponse(response);
 }
 
 bool ExternalNetwork::ParseJsonResponse(const string &response) {
@@ -71,45 +59,53 @@ bool ExternalNetwork::ParseJsonResponse(const string &response) {
         PLOG_ERROR << "http response is empty after converting to json";
         return false;
     }
+
     auto retval = false;
-    auto ip_address_value = tree.get_optional<string>("ip");
-    if (ip_address_value) {
+    if (auto ip_address_value = tree.get_optional<string>("ip"); ip_address_value) {
         PLOG_DEBUG << format("found ip address: {} in json response body", *ip_address_value);
         auto ip_address = make_address(*ip_address_value);
-        details_.push_back(make_tuple("public ip", ip_address.to_string()));
+        auto ip = GetInfoTemplate(InformationId::ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP);
+        ip.information = ip_address.to_string();
+        AddInformation(ip);
         retval = true;
     }
-    auto city_value = tree.get_optional<string>("city");
-    if (city_value) {
+    if (auto city_value = tree.get_optional<string>("city"); city_value) {
         PLOG_DEBUG << format("found city: {} in json response body", *city_value);
-        details_.push_back(make_tuple("city", *city_value));
+        auto city = GetInfoTemplate(InformationId::ID_LOCATION_INFO_CITY);
+        city.information = *city_value;
+        AddInformation(city);
     }
-    auto country_value = tree.get_optional<string>("country");
-    if (country_value) {
+    if (auto country_value = tree.get_optional<string>("country"); country_value) {
         PLOG_DEBUG << format("found country: {} in json response body", *country_value);
-        details_.push_back(make_tuple("country", *country_value));
+        auto country = GetInfoTemplate(InformationId::ID_LOCATION_INFO_COUNTRY);
+        country.information = *country_value;
+        AddInformation(country);
     }
-    auto gps_location_value = tree.get_optional<string>("loc");
-    if (gps_location_value) {
+    if (auto gps_location_value = tree.get_optional<string>("loc"); gps_location_value) {
         PLOG_DEBUG << format("found gps location: {} in json response body", *gps_location_value);
-        details_.push_back(make_tuple("gps location", *gps_location_value));
+        auto gps = GetInfoTemplate(InformationId::ID_LOCATION_INFO_GPS_LOCATION);
+        gps.information = *gps_location_value;
+        AddInformation(gps);
     }
-    auto zip_code_value = tree.get_optional<string>("postal");
-    if (zip_code_value) {
+    if (auto zip_code_value = tree.get_optional<string>("postal"); zip_code_value) {
         PLOG_DEBUG << format("found zip code: {} in json response body", *zip_code_value);
-        details_.push_back(make_tuple("zip code", *zip_code_value));
+        auto zipcode = GetInfoTemplate(InformationId::ID_LOCATION_INFO_ZIP_CODE);
+        zipcode.information = *zip_code_value;
+        AddInformation(zipcode);
     }
-    auto state_value = tree.get_optional<string>("region");
-    if (state_value) {
+    if (auto state_value = tree.get_optional<string>("region"); state_value) {
         PLOG_DEBUG << format("found state: {} in json response body", *state_value);
-        details_.push_back(make_tuple("state", *state_value));
+        auto state = GetInfoTemplate(InformationId::ID_LOCATION_INFO_STATE);
+        state.information = *state_value;
+        AddInformation(state);
     }
-    auto timezone_value = tree.get_optional<string>("timezone");
-    if (timezone_value) {
+    if (auto timezone_value = tree.get_optional<string>("timezone"); timezone_value) {
         PLOG_DEBUG << format("found timezone: {} in json response body", *timezone_value);
-        details_.push_back(make_tuple("timezone", *timezone_value));
+        auto tz = GetInfoTemplate(InformationId::ID_LOCATION_INFO_TIMEZONE);
+        tz.information = *timezone_value;
+        AddInformation(tz);
     }
     return retval;
 }
 
-} // namespace mmotd
+} // namespace mmotd::information

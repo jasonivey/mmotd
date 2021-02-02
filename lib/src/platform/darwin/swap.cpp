@@ -63,12 +63,15 @@ SwapDetails GetSwapDetails() {
     }
 
     auto details = SwapDetails{};
-    auto value = format("percent: {:.01f}% ({})", percent_used, encrypted ? "encrypted" : "decrypted");
-    details.push_back(make_tuple("swap usage", value));
+    auto percent_used_str = format("{:.01f}%", percent_used);
     if (!encrypted) {
-        details.push_back(make_tuple("swap usage", format("total: {}", to_human_size(total))));
-        details.push_back(make_tuple("swap usage", format("free: {}", to_human_size(available))));
+        percent_used_str += format(" {}", to_human_size(total));
+        details.push_back(make_tuple("total", format("{}", to_human_size(total))));
+        details.push_back(make_tuple("free", format("{}", to_human_size(available))));
     }
+    percent_used_str += format(" ({})", encrypted ? "encrypted" : "decrypted");
+    details.push_back(make_tuple("percent", percent_used_str));
+
     return details;
 }
 

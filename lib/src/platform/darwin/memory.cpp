@@ -1,5 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/human_size.h"
+#include "common/include/information_definitions.h"
+#include "common/include/information_objects.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/memory.h"
 
@@ -104,24 +106,25 @@ optional<tuple<uint64_t, uint64_t, double, uint64_t, uint64_t, uint64_t, uint64_
 
 } // namespace
 
-MemoryDetails GetMemoryDetails() {
+Details GetMemoryDetails() {
     using mmotd::algorithm::string::to_human_size;
 
-    auto memory_usage_wrapper = GetMemoryUsageImpl();
-    if (!memory_usage_wrapper) {
-        return MemoryDetails{};
+    if (auto memory_usage_wrapper = GetMemoryUsageImpl(); !memory_usage_wrapper) {
+        return Details{};
+    } else {
+        const auto [total, avail, percent, used, free, active, inactive, wired] = *memory_usage_wrapper;
+
+        auto details = Details{};
+        details.push_back(make_tuple("total", format("{}", to_human_size(total))));
+        details.push_back(make_tuple("avail", format(": {}", to_human_size(avail))));
+        details.push_back(make_tuple("percent", format("{:.02f}% of {}", percent, to_human_size(total))));
+        details.push_back(make_tuple("used", format("{}", to_human_size(used))));
+        details.push_back(make_tuple("free", format("{}", to_human_size(free))));
+        details.push_back(make_tuple("active", format("{}", to_human_size(active))));
+        details.push_back(make_tuple("inactive", format("{}", to_human_size(inactive))));
+        details.push_back(make_tuple("wired", format("{}", to_human_size(wired))));
+        return details;
     }
-    const auto [total, avail, percent, used, free, active, inactive, wired] = *memory_usage_wrapper;
-    auto details = MemoryDetails{};
-    details.push_back(make_tuple("memory usage", format("total: {}", to_human_size(total))));
-    details.push_back(make_tuple("memory usage", format("avail: {}", to_human_size(avail))));
-    details.push_back(make_tuple("memory usage", format("percent: {:.02f}%", percent)));
-    details.push_back(make_tuple("memory usage", format("used: {}", to_human_size(used))));
-    details.push_back(make_tuple("memory usage", format("free: {}", to_human_size(free))));
-    details.push_back(make_tuple("memory usage", format("active: {}", to_human_size(active))));
-    details.push_back(make_tuple("memory usage", format("inactive: {}", to_human_size(inactive))));
-    details.push_back(make_tuple("memory usage", format("wired: {}", to_human_size(wired))));
-    return details;
 }
 
 } // namespace mmotd::platform

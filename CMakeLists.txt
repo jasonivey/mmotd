@@ -20,9 +20,9 @@ set_property(GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 include (target_common)
 
 add_subdirectory (common)
-add_subdirectory (view)
 add_subdirectory (lib)
-add_subdirectory (app)
+add_subdirectory (apps/mmotd)
+add_subdirectory (apps/mmotd_raw)
 
 enable_testing ()
 add_subdirectory (test)

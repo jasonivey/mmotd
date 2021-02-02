@@ -1,24 +1,20 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "common/include/big_five_macros.h"
 #include "lib/include/information_provider.h"
 
 #include <cstdint>
 #include <optional>
 #include <string>
 
-namespace mmotd {
+namespace mmotd::information {
 
 class Processes : public InformationProvider {
 public:
-    Processes() = default;
-    virtual ~Processes() = default;
+    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(Processes);
 
-    std::string GetName() const override { return std::string{"processes"}; }
-    bool QueryInformation() override;
-    std::optional<mmotd::ComputerValues> GetInformation() const override;
-
-private:
-    mmotd::ComputerValues details_;
+protected:
+    bool FindInformation() override;
 };
 
-} // namespace mmotd
+} // namespace mmotd::information

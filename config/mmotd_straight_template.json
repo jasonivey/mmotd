@@ -1,0 +1,178 @@
+{
+    "config": {
+        "columns": [
+            0
+        ],
+        "default_settings": {
+            "indent_size": 2,
+            "column": 0,
+            "prepend_newlines": 0,
+            "append_newlines": 1,
+            "is_repeatable": false,
+            "is_optional": false,
+            "name_width": "max",
+            "name": [],
+            "name_color": "bold_bright_cyan",
+            "value": [],
+            "value_color": "bold_bright_white"
+        }
+    },
+    "column_items": [
+        {
+            "indent_size": 0,
+            "row_index": 1,
+            "name": [],
+            "value": [
+                "%ID_GENERAL_GREETING%, %ID_GENERAL_USER_NAME%! %ID_GENERAL_LOCAL_TIME_EMOJI% Welcome to %ID_SYSTEM_INFORMATION_PLATFORM_NAME% %ID_SYSTEM_INFORMATION_PLATFORM_VERSION% (%ID_SYSTEM_INFORMATION_KERNEL_TYPE% %ID_SYSTEM_INFORMATION_KERNEL_RELEASE% %ID_SYSTEM_INFORMATION_ARCHITECTURE%)"
+            ],
+            "value_color": "bold_bright_green",
+            "append_newlines": 2
+        },
+        {
+            "indent_size": 0,
+            "row_index": 2,
+            "name": [],
+            "value": [
+                "System information as of %ID_GENERAL_LOCAL_DATE_TIME%"
+            ],
+            "value_color": "bold_bright_yellow",
+            "append_newlines": 2
+        },
+        {
+            "row_index": 3,
+            "name": [
+                "%ID_WEATHER_LOCATION%:"
+            ],
+            "value": [
+                "%ID_WEATHER_WEATHER%, %color:bold_bright_green%Sunrise:%color:bold_bright_white% %ID_WEATHER_SUNRISE%, %color:bold_bright_green%Sunset:%color:bold_bright_white% %ID_WEATHER_SUNSET%"
+            ]
+        },
+        {
+            "row_index": 4,
+            "name": [
+                "Last Login:",
+                "",
+                ""
+            ],
+            "value": [
+                "%color:bold_bright_white%%ID_LAST_LOGIN_LOGIN_SUMMARY%",
+                "%color:bold_bright_green%Log in: %color:bold_bright_white%%ID_LAST_LOGIN_LOGIN_TIME%",
+                "%color:bold_bright_green%Log out: %color:bold_bright_white%%ID_LAST_LOGIN_LOGOUT_TIME%"
+            ]
+        },
+        {
+            "row_index": 5,
+            "name": [
+                "Boot Time:"
+            ],
+            "value": [
+                "%ID_BOOT_TIME_BOOT_TIME%"
+            ],
+            "append_newlines": 2
+        },
+        {
+            "row_index": 6,
+            "name": [
+                "Computer Name:"
+            ],
+            "value": [
+                "%ID_SYSTEM_INFORMATION_COMPUTER_NAME%"
+            ]
+        },
+        {
+            "row_index": 7,
+            "name": [
+                "Hostname:"
+            ],
+            "value": [
+                "%ID_SYSTEM_INFORMATION_HOST_NAME%"
+            ]
+        },
+        {
+            "row_index": 8,
+            "name": [
+                "Public IP:"
+            ],
+            "value": [
+                "%ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP%"
+            ]
+        },
+        {
+            "row_index": 9,
+            "name": [
+                "System Load:"
+            ],
+            "value": [
+                "%ID_LOAD_AVERAGE_LOAD_AVERAGE%"
+            ]
+        },
+        {
+            "row_index": 10,
+            "name": [
+                "Processes:"
+            ],
+            "value": [
+                "%ID_PROCESSES_PROCESS_COUNT%"
+            ]
+        },
+        {
+            "row_index": 11,
+            "name": [
+                "Users Logged In:"
+            ],
+            "value": [
+                "%ID_LOGGED_IN_USER_LOGGED_IN%"
+            ]
+        },
+        {
+            "row_index": 12,
+            "name": [
+                "Usage of /:"
+            ],
+            "value": [
+                "%ID_FILE_SYSTEM_USAGE%"
+            ]
+        },
+        {
+            "row_index": 13,
+            "name": [
+                "Memory Usage:"
+            ],
+            "value": [
+                "%ID_MEMORY_USAGE_PERCENT_USED%"
+            ]
+        },
+        {
+            "row_index": 14,
+            "name": [
+                "Swap Usage:"
+            ],
+            "value": [
+                "%ID_SWAP_USAGE_PERCENT_USED%"
+            ]
+        },
+        {
+            "row_index": 15,
+            "is_repeatable": true,
+            "is_optional": true,
+            "name": [
+                "IP %ID_NETWORK_INFO_INTERFACE_NAME%:",
+                "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"
+            ],
+            "value": [
+                "%ID_NETWORK_INFO_IP%",
+                "%ID_NETWORK_INFO_MAC%"
+            ]
+        },
+        {
+            "indent_size": 0,
+            "row_index": 16,
+            "name": [],
+            "value": [
+                "%color:bold_bright_cyan%%ID_FORTUNE_FORTUNE%"
+            ],
+            "append_newlines": 2,
+            "prepend_newlines": 1
+        }
+    ]
+}

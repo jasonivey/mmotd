@@ -15,25 +15,23 @@ using namespace std;
 
 bool gLinkUsersLoggedIn = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool users_logged_in_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::UsersLoggedIn>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::UsersLoggedIn>(); });
 
-bool UsersLoggedIn::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        return GetUsersLoggedIn();
+bool UsersLoggedIn::FindInformation() {
+    if (auto logged_in = GetUsersLoggedIn(); !logged_in.empty()) {
+        auto logged = GetInfoTemplate(InformationId::ID_LOGGED_IN_USER_LOGGED_IN);
+        logged.information = logged_in;
+        AddInformation(logged);
+        return true;
+    } else {
+        return false;
     }
-    return has_queried;
 }
 
-optional<mmotd::ComputerValues> UsersLoggedIn::GetInformation() const {
-    return !details_.empty() ? make_optional(details_) : nullopt;
-}
-
-bool UsersLoggedIn::GetUsersLoggedIn() {
+string UsersLoggedIn::GetUsersLoggedIn() {
     using namespace mmotd::platform::user_account_database;
     using namespace mmotd::platform::user;
 
@@ -44,7 +42,7 @@ bool UsersLoggedIn::GetUsersLoggedIn() {
                              user_information.empty(),
                              user_account_enteries.size());
         // should never happen
-        return false;
+        return string{};
     }
 
     const auto &username = user_information.username;
@@ -64,7 +62,7 @@ bool UsersLoggedIn::GetUsersLoggedIn() {
     if (user_count == 0 || user_account_entry_ptr == nullptr) {
         PLOG_ERROR << format("user count: {}, user account ptr: {}", user_count, fmt::ptr(user_account_entry_ptr));
         // should never happen
-        return false;
+        return string{};
     }
 
     const auto &user_account_entry = *user_account_entry_ptr;
@@ -72,8 +70,7 @@ bool UsersLoggedIn::GetUsersLoggedIn() {
     if (!user_account_entry.hostname.empty()) {
         session_str += format(" from {}", user_account_entry.hostname);
     }
-    details_.push_back(make_tuple("user session", session_str));
-    return !details_.empty();
+    return session_str;
 }
 
-} // namespace mmotd
+} // namespace mmotd::information

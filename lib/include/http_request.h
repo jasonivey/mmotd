@@ -1,25 +1,27 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "common/include/big_five_macros.h"
+
 #include <cstdint>
 #include <optional>
 #include <string>
+
+namespace mmotd::networking {
 
 enum class HttpProtocol { HTTP, HTTPS };
 
 class HttpRequest {
 public:
+    DEFAULT_DESTRUCTOR_DELETE_CONSTRUCTORS_COPY_MOVE_OPERATORS(HttpRequest);
+
     HttpRequest(HttpProtocol protocol, std::string host, std::string port = std::string{});
 
-    std::string MakeRequest(std::string path);
+    std::optional<std::string> MakeRequest(std::string path);
 
 private:
-    //std::optional<std::string> TryMakeRequest(std::string path);
-    std::optional<std::string> TryMakeSecureRequest(HttpProtocol protocol,
-                                                    const std::string &host,
-                                                    const std::string &port,
-                                                    const std::string &path);
-
-    HttpProtocol protocol_;
+    HttpProtocol protocol_ = HttpProtocol::HTTPS;
     std::string host_;
-    std::string port_;
+    std::string port_ = "443";
 };
+
+} // namespace mmotd::networking

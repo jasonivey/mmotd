@@ -17,67 +17,92 @@ using namespace std;
 
 bool gLinkWeatherInfo = false;
 
-namespace mmotd {
+namespace mmotd::information {
+
+static constexpr const char *LOCATION = "Lehi UT US";
 
 static const bool users_logged_in_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::WeatherInfo>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::WeatherInfo>(); });
 
-bool WeatherInfo::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        return GetWeatherInfo();
+bool WeatherInfo::FindInformation() {
+    auto [location_str, weather_str, sunrise_str, sunset_str] = GetWeatherInfo();
+    if (empty(weather_str)) {
+        return false;
     }
-    return has_queried;
-}
 
-optional<mmotd::ComputerValues> WeatherInfo::GetInformation() const {
-    return !details_.empty() ? make_optional(details_) : nullopt;
-}
+    auto weather = GetInfoTemplate(InformationId::ID_WEATHER_WEATHER);
+    weather.information = weather_str;
+    AddInformation(weather);
 
-bool WeatherInfo::GetWeatherInfo() {
-    //"http://wttr.in/?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
-    //"http://wttr.in/Lehi%20UT%20US?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
-    auto http_request = HttpRequest(HttpProtocol::HTTP, "wttr.in");
-    auto response = http_request.MakeRequest("/Lehi%20UT%20US?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en");
+    if (!empty(sunrise_str)) {
+        auto sunrise = GetInfoTemplate(InformationId::ID_WEATHER_SUNRISE);
+        sunrise.information = sunrise_str;
+        AddInformation(sunrise);
+    }
 
-    auto match = smatch{};
-    const char *regex_str = "(\\d{2}:\\d{2}:\\d{2}) (\\d{2}:\\d{2}:\\d{2})";
-    // R"regex(
-    // (\d{2}:\d{2}:\d{2}) (\d{2}:\d{2}:\d{2})
-    // )regex";
-    auto sunrise_sunset_regex = regex(regex_str, std::regex_constants::ECMAScript);
-    if (!regex_search(response, match, sunrise_sunset_regex)) {
-        PLOG_ERROR << "weather information does not seem to include sunrise and sunset";
-        details_.push_back(make_tuple("weather", boost::trim_copy(response)));
+    if (!empty(sunset_str)) {
+        auto sunset = GetInfoTemplate(InformationId::ID_WEATHER_SUNSET);
+        sunset.information = sunset_str;
+        AddInformation(sunset);
+    }
+
+    if (empty(location_str)) {
         return true;
     }
 
-    auto weather = boost::trim_copy(response.substr(0, match.position(0)));
-    PLOG_INFO << format("weather: '{}'", weather);
-    auto sunrise = response.substr(match.position(1), match.length(1));
-    PLOG_INFO << format("sunrise: '{}'", sunrise);
-    auto sunset = response.substr(match.position(2), match.length(2));
-    PLOG_INFO << format("sunset: '{}'", sunset);
+    auto location = GetInfoTemplate(InformationId::ID_WEATHER_LOCATION);
+    location.information = location_str;
+    AddInformation(location);
 
-    auto surise_time_point = mmotd::chrono::io::from_string(sunrise, mmotd::chrono::io::FromStringFormat::TimeFormat);
-    auto sunset_time_point = mmotd::chrono::io::from_string(sunset, mmotd::chrono::io::FromStringFormat::TimeFormat);
-
-    if (surise_time_point) {
-        auto sunrise_str = mmotd::chrono::io::to_string(*surise_time_point, "{:%I:%M:%S%p}");
-        weather += format(", {}", sunrise_str);
-    } else {
-        weather += format(", {}", sunrise);
-    }
-    if (sunset_time_point) {
-        auto sunset_str = mmotd::chrono::io::to_string(*sunset_time_point, "{:%I:%M:%S%p}");
-        weather += format(", {}", sunset_str);
-    } else {
-        weather += format(", {}", sunset);
-    }
-    PLOG_INFO << format("weather: '{}'", weather);
-    details_.push_back(make_tuple("weather", weather));
     return true;
 }
 
-} // namespace mmotd
+tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
+    using boost::trim_copy, boost::replace_all_copy;
+    using namespace mmotd::chrono::io;
+    using namespace mmotd::networking;
+
+    //"http://wttr.in/?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
+    //"http://wttr.in/Lehi%20UT%20US?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
+    auto http_request = HttpRequest(HttpProtocol::HTTP, "wttr.in");
+    auto url = format("/{}?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en", replace_all_copy(string{LOCATION}, " ", "%20"));
+    auto http_response = http_request.MakeRequest(url);
+    if (!http_response) {
+        return make_tuple(string{}, string{}, string{}, string{});
+    }
+
+    auto location_str = string{LOCATION};
+    auto weather_str = *http_response;
+    if (auto i = weather_str.find_first_of(':'); i != string::npos) {
+        location_str = boost::trim_copy(weather_str.substr(0, i));
+        weather_str = boost::trim_copy(weather_str.substr(i + 1));
+    }
+
+    const auto sunrise_sunset_regex = regex(R"((\d{2}:\d{2}:\d{2}) (\d{2}:\d{2}:\d{2}))", std::regex::ECMAScript);
+    auto match = smatch{};
+    if (!regex_search(weather_str, match, sunrise_sunset_regex)) {
+        PLOG_ERROR << "weather information does not seem to include sunrise and sunset";
+        return make_tuple(location_str, weather_str, string{}, string{});
+    }
+
+    auto weather = trim_copy(weather_str.substr(0, match.position(0)));
+    PLOG_INFO << format("weather: '{}'", weather);
+    auto sunrise_str = weather_str.substr(match.position(1), match.length(1));
+    PLOG_INFO << format("sunrise: '{}'", sunrise_str);
+    auto sunset_str = weather_str.substr(match.position(2), match.length(2));
+    PLOG_INFO << format("sunset: '{}'", sunset_str);
+
+    auto surise_time_point = from_string(sunrise_str, FromStringFormat::TimeFormat);
+    auto sunset_time_point = from_string(sunset_str, FromStringFormat::TimeFormat);
+
+    if (surise_time_point) {
+        sunrise_str = to_string(*surise_time_point, "{:%I:%M:%S%p}");
+    }
+    if (sunset_time_point) {
+        sunset_str = to_string(*sunset_time_point, "{:%I:%M:%S%p}");
+    }
+    PLOG_INFO << format("weather: '{}, Sunrise: {}, Sunset: {}'", weather, sunrise_str, sunset_str);
+    return make_tuple(location_str, weather, sunrise_str, sunset_str);
+}
+
+} // namespace mmotd::information

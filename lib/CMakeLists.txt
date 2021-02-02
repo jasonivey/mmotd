@@ -17,11 +17,11 @@ set (MMOTD_LIB_SOURCES
     src/external_network.cpp
     src/file_system.cpp
     src/fortune.cpp
+    src/general.cpp
     src/http_request.cpp
-    src/http_secure_request.cpp
+    src/information_provider.cpp
     src/lastlog.cpp
     src/load_average.cpp
-    src/mac_address.cpp
     src/memory.cpp
     src/network.cpp
     src/posix_sysctl_information.cpp
@@ -82,7 +82,9 @@ target_include_directories(
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
     PRIVATE ${OPENSSL_INCLUDE_DIR}
+    PRIVATE ${json_SOURCE_DIR}/include
     PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${ranges_SOURCE_DIR}/include
     PRIVATE ${scope_guard_SOURCE_DIR}
     PRIVATE ${certify_SOURCE_DIR}/include
     PRIVATE ${fmt_SOURCE_DIR}/include

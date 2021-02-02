@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "common/include/algorithm.h"
 
 #include <cstdint>
 #include <iosfwd>
@@ -18,7 +19,9 @@ struct Options {
 
     int verbose = 0;
     std::optional<std::string> output_config_path;
+    std::optional<std::string> output_template_path;
     std::string config_path;
+    std::string template_path;
     boost::tribool last_login = boost::indeterminate;
     boost::tribool computer_name = boost::indeterminate;
     boost::tribool host_name = boost::indeterminate;
@@ -43,6 +46,18 @@ struct Options {
         }
         return true;
     }
+    bool SetOutputTemplatePath(const std::vector<std::string> &paths) {
+        if (!paths.empty()) {
+            output_template_path = paths.front();
+        }
+        return true;
+    }
+    bool SetTemplatePath(const std::vector<std::string> &paths) {
+        if (!paths.empty()) {
+            template_path = paths.front();
+        }
+        return true;
+    }
     void SetLastLogin(int value) { last_login = value == -1 ? false : true; }
     void SetComputerName(int value) { computer_name = value == -1 ? false : true; }
     void SetHostName(int value) { host_name = value == -1 ? false : true; }
@@ -62,6 +77,8 @@ struct Options {
 
     bool IsVerboseSet() const { return verbose > 0; }
     int GetVerbosityLevel() const { return verbose; }
+    bool IsTemplatePathSet() const { return !std::empty(template_path); }
+    std::string GetTemplatePath() const { return template_path; }
     bool IsLastLoginSet() const { return !indeterminate(last_login); }
     bool GetLastLoginValue() const { return last_login.value; }
     bool IsComputerNameSet() const { return !indeterminate(computer_name); }
@@ -104,10 +121,8 @@ public:
     const Options &GetOptions() const { return options_; }
     Options &GetOptions() { return options_; }
 
-    template<typename T>
-    T GetValue(const std::string &name) const;
-
 private:
+    static AppOptions &CreateInstance();
     AppOptions() = default;
 
     void AddOptions(const AppOptionsCreator &creator);

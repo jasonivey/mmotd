@@ -14,42 +14,38 @@ using mmotd::algorithm::string::to_human_size;
 
 bool gLinkFileSystem = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool file_system_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::FileSystem>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::FileSystem>(); });
 
-bool FileSystem::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        return GetFileSystemDetails();
-    }
-    return has_queried;
-}
-
-optional<mmotd::ComputerValues> FileSystem::GetInformation() const {
-    return !file_system_details_.empty() ? make_optional(file_system_details_) : nullopt;
-}
-
-bool FileSystem::GetFileSystemDetails() {
+bool FileSystem::FindInformation() {
     auto ec = error_code{};
     auto root_fs = std::filesystem::space("/", ec);
     if (ec) {
         PLOG_ERROR << format("getting fs::space on root file system, details: {}", ec.message());
         return false;
     }
-    auto used = root_fs.capacity - root_fs.available;
-    auto percent_used = (used * 100) / static_cast<double>(root_fs.capacity);
-    file_system_details_.push_back(
-        make_tuple("file system", format("Usage of /: {:.01f}% of {}", percent_used, to_human_size(root_fs.capacity))));
-    file_system_details_.push_back(
-        make_tuple("file system", format("capacity: {}, {}", to_human_size(root_fs.capacity), root_fs.capacity)));
-    file_system_details_.push_back(
-        make_tuple("file system", format("free: {}, {}", to_human_size(root_fs.free), root_fs.free)));
-    file_system_details_.push_back(
-        make_tuple("file system", format("available: {}, {}", to_human_size(root_fs.available), root_fs.available)));
+
+    auto usage = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_USAGE);
+    usage.name = "Usage of /";
+    auto percent_used = ((root_fs.capacity - root_fs.available) * 100) / static_cast<double>(root_fs.capacity);
+    usage.information = format(usage.format_str, percent_used, to_human_size(root_fs.capacity));
+    AddInformation(usage);
+
+    auto capacity = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_CAPACITY);
+    capacity.information = root_fs.capacity;
+    AddInformation(capacity);
+
+    auto free = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_FREE);
+    free.information = root_fs.free;
+    AddInformation(free);
+
+    auto available = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_AVAILABLE);
+    available.information = root_fs.available;
+    AddInformation(available);
+
     return true;
 }
 
-} // namespace mmotd
+} // namespace mmotd::information

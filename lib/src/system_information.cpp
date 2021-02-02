@@ -11,23 +11,60 @@ using namespace std;
 
 bool gLinkSystemInformation = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool system_information_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::SystemInformation>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::SystemInformation>(); });
 
-bool SystemInformation::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        details_ = mmotd::platform::GetSystemInformationDetails();
-        return !details_.empty();
+bool SystemInformation::FindInformation() {
+    if (auto details = mmotd::platform::GetSystemInformationDetails(); !details.empty()) {
+        CreateInformationObjects(details);
+        return true;
     }
-    return has_queried;
+    return false;
 }
 
-optional<ComputerValues> SystemInformation::GetInformation() const {
-    return details_.empty() ? nullopt : make_optional(details_);
+void SystemInformation::CreateInformationObjects(const mmotd::platform::SystemInformationDetails &details) {
+    for (const auto &[name, value] : details) {
+        if (name == "host name") {
+            auto hostname = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_HOST_NAME);
+            hostname.information = value;
+            AddInformation(hostname);
+
+            auto computername = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_COMPUTER_NAME);
+            auto i = value.find('.');
+            computername.information = value.substr(0, i);
+            AddInformation(computername);
+        } else if (name == "kernel version") {
+            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_VERSION);
+            obj.information = value;
+            AddInformation(obj);
+        } else if (name == "kernel release") {
+            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_RELEASE);
+            obj.information = value;
+            AddInformation(obj);
+        } else if (name == "kernel type") {
+            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_TYPE);
+            obj.information = value;
+            AddInformation(obj);
+        } else if (name == "architecture") {
+            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_ARCHITECTURE);
+            obj.information = value;
+            AddInformation(obj);
+        } else if (name == "byte order") {
+            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_BYTEORDER);
+            obj.information = value;
+            AddInformation(obj);
+        } else if (name == "platform version") {
+            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_PLATFORM_VERSION);
+            obj.information = value;
+            AddInformation(obj);
+        } else if (name == "platform name") {
+            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_PLATFORM_NAME);
+            obj.information = value;
+            AddInformation(obj);
+        }
+    }
 }
 
-} // namespace mmotd
+} // namespace mmotd::information

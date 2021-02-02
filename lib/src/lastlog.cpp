@@ -10,23 +10,28 @@ using namespace std;
 
 bool gLinkLastLog = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool last_log_information_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::LastLog>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::LastLog>(); });
 
-bool LastLog::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        details_ = mmotd::platform::GetLastLogDetails();
-        return !details_.empty();
+bool LastLog::FindInformation() {
+    for (auto [name, value] : mmotd::platform::GetLastLogDetails()) {
+        if (name == "last log") {
+            auto last_log = GetInfoTemplate(InformationId::ID_LAST_LOGIN_LOGIN_SUMMARY);
+            last_log.information = value;
+            AddInformation(last_log);
+        } else if (name == "log in") {
+            auto log_in = GetInfoTemplate(InformationId::ID_LAST_LOGIN_LOGIN_TIME);
+            log_in.information = value;
+            AddInformation(log_in);
+        } else if (name == "log out") {
+            auto log_out = GetInfoTemplate(InformationId::ID_LAST_LOGIN_LOGOUT_TIME);
+            log_out.information = value;
+            AddInformation(log_out);
+        }
     }
-    return has_queried;
+    return true;
 }
 
-std::optional<mmotd::ComputerValues> LastLog::GetInformation() const {
-    return !details_.empty() ? make_optional(details_) : nullopt;
-}
-
-} // namespace mmotd
+} // namespace mmotd::information

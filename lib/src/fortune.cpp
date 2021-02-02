@@ -12,12 +12,11 @@
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
+#include <effolkronium/random.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
 #include <arpa/inet.h>
-
-#include <effolkronium/random.hpp>
 
 namespace fs = std::filesystem;
 using effing_random = effolkronium::random_static;
@@ -27,25 +26,14 @@ using boost::trim_right_copy;
 
 bool gLinkFortuneGenerator = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool fortune_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::Fortune>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::Fortune>(); });
 
-bool Fortune::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        return GetFortune();
-    }
-    return has_queried;
-}
+} // namespace mmotd::information
 
-optional<mmotd::ComputerValues> Fortune::GetInformation() const {
-    return !details_.empty() ? make_optional(details_) : nullopt;
-}
-
-namespace detail {
+namespace {
 
 #if defined(__APPLE__)
 
@@ -369,18 +357,18 @@ optional<string> GetRandomFortune(const string &fortune_name) {
     return ReadFortune(fortune_path, fortune_offset, max_fortune_size, fortune_delimeter);
 }
 
-} // namespace detail
+} // namespace
 
-bool Fortune::GetFortune() {
-    details_.clear();
-    auto random_fortune_wrapper = detail::GetRandomFortune("softwareengineering");
-    if (!random_fortune_wrapper) {
-        return false;
+namespace mmotd::information {
+
+bool Fortune::FindInformation() {
+    if (auto fortune_wrapper = GetRandomFortune("softwareengineering"); fortune_wrapper) {
+        auto fortune = GetInfoTemplate(InformationId::ID_FORTUNE_FORTUNE);
+        fortune.information = *fortune_wrapper;
+        AddInformation(fortune);
+        return true;
     }
-
-    auto fortune = *random_fortune_wrapper;
-    details_.push_back(make_tuple("fortune", fortune));
-    return !details_.empty();
+    return false;
 }
 
-} // namespace mmotd
+} // namespace mmotd::information
