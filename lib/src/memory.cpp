@@ -14,23 +14,32 @@ using namespace std;
 
 bool gLinkMemoryUsage = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool memory_information_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::Memory>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::Memory>(); });
 
-bool Memory::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        details_ = mmotd::platform::GetMemoryDetails();
-        return !details_.empty();
+bool Memory::FindInformation() {
+    using mmotd::platform::Detail, mmotd::platform::Details;
+
+    if (auto details = mmotd::platform::GetMemoryDetails(); !details.empty()) {
+        for (const auto &[name, value] : details) {
+            if (name == "total") {
+                auto obj = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_TOTAL);
+                obj.information = value;
+                AddInformation(obj);
+            } else if (name == "percent") {
+                auto obj = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_PERCENT_USED);
+                obj.information = value;
+                AddInformation(obj);
+            } else if (name == "free") {
+                auto obj = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_FREE);
+                obj.information = value;
+                AddInformation(obj);
+            }
+        }
     }
-    return has_queried;
+    return true;
 }
 
-optional<mmotd::ComputerValues> Memory::GetInformation() const {
-    return !details_.empty() ? make_optional(details_) : nullopt;
-}
-
-} // namespace mmotd
+} // namespace mmotd::information

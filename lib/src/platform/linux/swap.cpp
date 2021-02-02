@@ -72,9 +72,9 @@ SwapDetails GetSwapDetails() {
     }
 
     auto details = SwapDetails{};
-    details.push_back(make_tuple("swap usage", format("total: {}", to_human_size(total))));
-    details.push_back(make_tuple("swap usage", format("free: {}", to_human_size(free))));
-    details.push_back(make_tuple("swap usage", format("percent: {:.01f}%", percent_used)));
+    details.push_back(make_tuple("total", format("{}", to_human_size(total))));
+    details.push_back(make_tuple("free", format("{}", to_human_size(free))));
+    details.push_back(make_tuple("percent", format("{:.01f}% of {}", percent_used, to_human_size(total))));
     return details;
 }
 

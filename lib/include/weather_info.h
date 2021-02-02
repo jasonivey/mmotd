@@ -1,26 +1,23 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "common/include/big_five_macros.h"
 #include "lib/include/information_provider.h"
 
 #include <cstdint>
-#include <optional>
 #include <string>
+#include <tuple>
 
-namespace mmotd {
+namespace mmotd::information {
 
 class WeatherInfo : public InformationProvider {
 public:
-    WeatherInfo() = default;
-    virtual ~WeatherInfo() = default;
+    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(WeatherInfo);
 
-    std::string GetName() const override { return std::string{"weather info"}; }
-    bool QueryInformation() override;
-    std::optional<mmotd::ComputerValues> GetInformation() const override;
+protected:
+    bool FindInformation() override;
 
 private:
-    bool GetWeatherInfo();
-
-    mmotd::ComputerValues details_;
+    std::tuple<std::string, std::string, std::string, std::string> GetWeatherInfo();
 };
 
-} // namespace mmotd
+} // namespace mmotd::information

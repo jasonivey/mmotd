@@ -103,7 +103,13 @@
 			"forward_list": "cpp",
 			"regex": "cpp",
 			"shared_mutex": "cpp",
-			"semaphore": "cpp"
+			"semaphore": "cpp",
+			"charconv": "cpp",
+			"coroutine": "cpp",
+			"source_location": "cpp",
+			"valarray": "cpp",
+			"*.inc": "cpp",
+			"version": "cpp"
 		},
 		"cmake.cmakePath": "/usr/local/bin/cmake",
 		"C_Cpp.default.compilerPath": "/usr/local/opt/llvm/bin/clang++",

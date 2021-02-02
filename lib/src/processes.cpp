@@ -13,26 +13,19 @@ using namespace std;
 
 bool gLinkProcessesInfo = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool processes_information_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::Processes>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::Processes>(); });
 
-bool Processes::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        auto count_wrapper = mmotd::platform::GetProcessCount();
-        if (count_wrapper) {
-            details_.push_back(make_tuple("processes", format("count: {}", *count_wrapper)));
-        }
-        return !details_.empty();
+bool Processes::FindInformation() {
+    if (auto count_wrapper = mmotd::platform::GetProcessCount(); count_wrapper) {
+        auto obj = GetInfoTemplate(InformationId::ID_PROCESSES_PROCESS_COUNT);
+        obj.information = *count_wrapper;
+        AddInformation(obj);
+        return true;
     }
-    return has_queried;
+    return false;
 }
 
-std::optional<mmotd::ComputerValues> Processes::GetInformation() const {
-    return details_.empty() ? nullopt : make_optional(details_);
-}
-
-} // namespace mmotd
+} // namespace mmotd::information

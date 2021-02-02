@@ -1,5 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
+#include "common/include/information.h"
+#include "common/include/information_definitions.h"
 #include "common/include/posix_error.h"
 #include "lib/include/boot_time.h"
 #include "lib/include/computer_information.h"
@@ -13,6 +15,7 @@
 #include <tuple>
 #include <vector>
 
+#include <boost/preprocessor/cat.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -21,34 +24,20 @@ using namespace std;
 
 bool gLinkBootTime = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool boot_time_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::BootTime>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::BootTime>(); });
 
-bool BootTime::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        return GetBootTime();
-    }
-    return has_queried;
-}
-
-optional<mmotd::ComputerValues> BootTime::GetInformation() const {
-    return !details_.empty() ? make_optional(details_) : nullopt;
-}
-
-bool BootTime::GetBootTime() {
-    details_.clear();
-    auto random_boot_time_wrapper = mmotd::platform::GetBootTime();
-    if (!random_boot_time_wrapper) {
+bool BootTime::FindInformation() {
+    if (auto boot_time_wrapper = mmotd::platform::GetBootTime(); !boot_time_wrapper) {
         return false;
+    } else {
+        auto info = GetInfoTemplate(InformationId::ID_BOOT_TIME_BOOT_TIME);
+        info.information = *boot_time_wrapper;
+        AddInformation(info);
+        return true;
     }
-
-    auto boot_time = *random_boot_time_wrapper;
-    details_.push_back(make_tuple("boot time", boot_time));
-    return !details_.empty();
 }
 
-} // namespace mmotd
+} // namespace mmotd::information

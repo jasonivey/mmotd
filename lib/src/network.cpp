@@ -7,27 +7,36 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
+using fmt::format;
 using namespace std;
 
 bool gLinkNetworkInformation = false;
 
-namespace mmotd {
+namespace mmotd::information {
 
 static const bool network_information_factory_registered =
-    RegisterInformationProvider([]() { return make_unique<mmotd::NetworkInfo>(); });
+    RegisterInformationProvider([]() { return make_unique<mmotd::information::NetworkInfo>(); });
 
-bool NetworkInfo::QueryInformation() {
-    static bool has_queried = false;
-    if (!has_queried) {
-        has_queried = true;
-        network_information_ = mmotd::platform::GetNetworkDetails();
-        return !network_information_.empty();
+bool NetworkInfo::FindInformation() {
+    auto network_devices = mmotd::platform::GetNetworkDevices();
+    for (const auto &network_device : network_devices) {
+        auto interface_name_info = GetInfoTemplate(InformationId::ID_NETWORK_INFO_INTERFACE_NAME);
+        interface_name_info.information = network_device.interface_name;
+        AddInformation(interface_name_info);
+
+        auto mac_info = GetInfoTemplate(InformationId::ID_NETWORK_INFO_MAC);
+        mac_info.information = network_device.mac_address.to_string();
+        AddInformation(mac_info);
+
+        for (const auto &ip : network_device.ip_addresses) {
+            auto ip_info = GetInfoTemplate(InformationId::ID_NETWORK_INFO_IP);
+            ip_info.information = ip.to_string();
+            AddInformation(ip_info);
+        }
     }
-    return has_queried;
+    return true;
 }
 
-std::optional<mmotd::ComputerValues> NetworkInfo::GetInformation() const {
-    return network_information_.empty() ? nullopt : make_optional(network_information_);
-}
-
-} // namespace mmotd
+} // namespace mmotd::information

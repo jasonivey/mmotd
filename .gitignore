@@ -6,6 +6,5 @@
 .vscode/settings.json
 .vscode/tasks.json
 build/
-vs-build/
+vsbuild/
 common/include/version_number.h
-

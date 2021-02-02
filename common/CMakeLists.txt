@@ -15,6 +15,21 @@ include (git_version)
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     src/app_options.cpp
+    src/information.cpp
+    src/information_decls.cpp
+    src/information_definitions.cpp
+    src/information_objects.cpp
+    src/informations.cpp
+    src/logging.cpp
+    src/mac_address.cpp
+    src/network_device.cpp
+    src/tty_template.cpp
+    src/tty_template_data.cpp
+    src/tty_template_io.cpp
+    src/tty_template_string.cpp
+    src/tty_template_substring.cpp
+    src/tty_template_substring_range.cpp
+    src/tty_template_substrings.cpp
     src/version.cpp
     )
 
@@ -29,7 +44,9 @@ target_include_directories(
 
 target_include_directories(
     ${MMOTD_TARGET_NAME} SYSTEM
+    PRIVATE ${json_SOURCE_DIR}/include
     PRIVATE ${Boost_INCLUDE_DIRS}
+    PRIVATE ${ranges_SOURCE_DIR}/include
     PRIVATE ${scope_guard_SOURCE_DIR}
     PRIVATE ${fmt_SOURCE_DIR}/include
     PRIVATE ${plog_SOURCE_DIR}/include

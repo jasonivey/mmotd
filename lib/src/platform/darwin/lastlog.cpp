@@ -49,20 +49,21 @@ LastLogDetails GetLastLogDetails() {
     if (!entry.hostname.empty()) {
         last_log_str += format(" from {}", entry.hostname);
     }
+    auto details = LastLogDetails{};
 
+    // last login:
+    details.emplace_back(make_tuple("last log", last_log_str));
     PLOG_VERBOSE << format("last login: {}", last_log_str);
+    // log in:
     auto time_point = std::chrono::system_clock::from_time_t(entry.seconds);
-    auto login_str = format("Log in: {}", mmotd::chrono::io::to_string(time_point, "{:%d-%h-%Y %I:%M:%S%p %Z}"));
-    auto logout_str = string{"Log out: still logged in"};
-
-    PLOG_VERBOSE << format("last login: {}", last_log_str);
+    auto login_str = mmotd::chrono::io::to_string(time_point, "{:%d-%h-%Y %I:%M:%S%p %Z}");
+    details.emplace_back(make_tuple("log in", login_str));
     PLOG_VERBOSE << format("last login: {}", login_str);
+    // log out:
+    auto logout_str = string{"still logged in"};
+    details.emplace_back(make_tuple("log out", logout_str));
     PLOG_VERBOSE << format("last login: {}", logout_str);
 
-    auto details = LastLogDetails{};
-    details.emplace_back(make_tuple("last login", last_log_str));
-    details.emplace_back(make_tuple("last login", login_str));
-    details.emplace_back(make_tuple("last login", logout_str));
     return details;
 }
 
