@@ -58,7 +58,7 @@ optional<Information> ComputerInformation::FindInformation(InformationId id) con
         CacheAllInformation();
     }
     auto i = find_if(begin(information_cache_), end(information_cache_), [id](const Information &info) {
-        return id == info.information_id;
+        return id == info.GetId();
     });
     return i == end(information_cache_) ? nullopt : make_optional(*i);
 }

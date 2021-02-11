@@ -46,21 +46,13 @@ optional<double> GetSystemLoadAverage() {
 namespace mmotd::platform {
 
 LoadAverageDetails GetLoadAverageDetails() {
-    auto details = LoadAverageDetails{};
+    auto cpu_count_holder = GetCpuCount();
+    int32_t cpu_count = cpu_count_holder ? *cpu_count_holder : int32_t{0};
 
-    auto cpu_count_wrapper = GetCpuCount();
-    if (cpu_count_wrapper) {
-        auto cpu_count = *cpu_count_wrapper;
-        details.push_back(make_tuple("processor count", to_string(cpu_count)));
-    }
+    auto load_average_holder = GetSystemLoadAverage();
+    double load_average = load_average_holder ? *load_average_holder : double{0.0};
 
-    auto system_load_average_wrapper = GetSystemLoadAverage();
-    if (system_load_average_wrapper) {
-        auto system_load_average = *system_load_average_wrapper;
-        details.push_back(make_tuple("load average", format("{:.02f}%", system_load_average)));
-    }
-
-    return details;
+    return make_tuple(cpu_count, load_average);
 }
 
 } // namespace mmotd::platform

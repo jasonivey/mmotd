@@ -15,7 +15,6 @@
 #include <tuple>
 #include <vector>
 
-#include <boost/preprocessor/cat.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -30,14 +29,14 @@ static const bool boot_time_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::BootTime>(); });
 
 bool BootTime::FindInformation() {
-    if (auto boot_time_wrapper = mmotd::platform::GetBootTime(); !boot_time_wrapper) {
-        return false;
-    } else {
-        auto info = GetInfoTemplate(InformationId::ID_BOOT_TIME_BOOT_TIME);
-        info.information = *boot_time_wrapper;
-        AddInformation(info);
-        return true;
-    }
+    auto boot_time_holder = mmotd::platform::GetBootTime();
+    auto boot_time = boot_time_holder ? *boot_time_holder : std::chrono::system_clock::now();
+
+    auto info = GetInfoTemplate(InformationId::ID_BOOT_TIME_BOOT_TIME);
+    info.SetValue(boot_time);
+    AddInformation(info);
+
+    return true;
 }
 
 } // namespace mmotd::information

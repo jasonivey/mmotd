@@ -39,7 +39,8 @@ void SetActiveInterfaces(NetworkDevices &devices) {
     };
     auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
 
-    for (auto &[name, device] : devices) {
+    for (auto &device : devices) {
+        const auto &name = device.interface_name;
         struct ifreq req {};
         strncpy(req.ifr_ifrn.ifrn_name, name.c_str(), IFNAMSIZ);
 

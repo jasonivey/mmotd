@@ -28,21 +28,21 @@ bool FileSystem::FindInformation() {
     }
 
     auto usage = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_USAGE);
-    usage.name = "Usage of /";
+    usage.SetName("Usage of /");
     auto percent_used = ((root_fs.capacity - root_fs.available) * 100) / static_cast<double>(root_fs.capacity);
-    usage.information = format(usage.format_str, percent_used, to_human_size(root_fs.capacity));
+    usage.SetValue(percent_used, to_human_size(root_fs.capacity));
     AddInformation(usage);
 
     auto capacity = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_CAPACITY);
-    capacity.information = root_fs.capacity;
+    capacity.SetValue(root_fs.capacity);
     AddInformation(capacity);
 
     auto free = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_FREE);
-    free.information = root_fs.free;
+    free.SetValue(root_fs.free);
     AddInformation(free);
 
     auto available = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_AVAILABLE);
-    available.information = root_fs.available;
+    available.SetValue(root_fs.available);
     AddInformation(available);
 
     return true;

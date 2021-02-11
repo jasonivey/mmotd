@@ -6,11 +6,6 @@
 #include <iterator>
 #include <string>
 
-// #include <fmt/format.h>
-// #include <fmt/ostream.h>
-// #include <plog/Log.h>
-
-//using fmt::format;
 using namespace std;
 
 namespace mmotd::information {
@@ -32,9 +27,7 @@ Informations::size_type Informations::size() const noexcept {
 }
 
 Informations::size_type Informations::count(InformationId id) const {
-    return count_if(informations_.begin(), informations_.end(), [id](const auto &info) {
-        return info.information_id == id;
-    });
+    return count_if(informations_.begin(), informations_.end(), [id](const auto &info) { return info.GetId() == id; });
 }
 
 Informations::reference Informations::front() noexcept {

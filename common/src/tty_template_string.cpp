@@ -45,25 +45,29 @@ optional<Information> TemplateString::FindInformation(const string &information_
                    boost::iequals(information_id_str, string{"InformationId::"} + information_id);
         },
         [&information_ptrs](const auto &information) { information_ptrs.push_back(&information); });
-    if (information_index > std::size(information_ptrs)) {
+    if (information_index >= std::size(information_ptrs)) {
         PLOG_ERROR << format("attempting to find the index={} of id={} when there is only {} of that id",
                              information_index,
                              information_id,
                              std::size(information_ptrs));
         return nullopt;
+    } else if (information_ptrs[information_index] == nullptr) {
+        return nullopt;
+    } else {
+        return make_optional(*(information_ptrs[information_index]));
     }
-    return make_optional(*(information_ptrs[information_index]));
 }
 
 optional<string> TemplateString::GetInformationValue(const string &information_id,
                                                      const Informations &informations,
                                                      size_t information_index) {
-    auto information = TemplateString::FindInformation(information_id, informations, information_index);
-    if (!information) {
+    auto information_holder = TemplateString::FindInformation(information_id, informations, information_index);
+    if (!information_holder) {
         PLOG_ERROR << format("unable to find information id {}", information_id);
         return nullopt;
     }
-    auto information_value = information.value().to_string();
+    const auto &information = *information_holder;
+    auto information_value = information.GetValue();
     PLOG_VERBOSE << format("found {} with value {}", information_id, information_value);
     return make_optional(information_value);
 }
@@ -109,7 +113,7 @@ InformationId TemplateString::FindFirstInformationId(const string &text, const I
     auto matches = smatch{};
     if (regex_search(cbegin(text), cend(text), matches, information_id_regex)) {
         if (auto info = TemplateString::FindInformation(matches.str(1), informations, 0); info) {
-            return info.value().information_id;
+            return info.value().GetId();
         }
     }
     return InformationId::ID_INVALID_INVALID_INFORMATION;

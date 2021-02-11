@@ -44,8 +44,8 @@ target_include_directories(
 # This should include all sub-directory static libraries or shared libraries
 target_link_libraries(
     ${MMOTD_TARGET_NAME}
-    PRIVATE mmotd_common
     PRIVATE mmotd_lib
+    PRIVATE mmotd_common
     )
 
 if (APPLE)

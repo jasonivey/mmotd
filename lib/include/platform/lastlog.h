@@ -8,9 +8,12 @@
 
 namespace mmotd::platform {
 
-using LastLogDetail = std::tuple<std::string, std::string>;
-using LastLogDetails = std::vector<LastLogDetail>;
+struct LastLoginDetails {
+    std::string summary;
+    std::chrono::system_clock::time_point log_in;
+    std::chrono::system_clock::time_point log_out;
+};
 
-LastLogDetails GetLastLogDetails();
+LastLoginDetails GetLastLogDetails();
 
 } // namespace mmotd::platform

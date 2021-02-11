@@ -1,9 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/human_size.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/platform/swap.h"
 #include "lib/include/swap.h"
 
 using namespace std;
+using mmotd::algorithm::string::to_human_size;
 
 bool gLinkSwapUsage = false;
 
@@ -13,25 +15,21 @@ static const bool swap_usage_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::Swap>(); });
 
 bool Swap::FindInformation() {
-    if (auto details = mmotd::platform::GetSwapDetails(); !details.empty()) {
-        for (const auto &[name, value] : details) {
-            if (name == "total") {
-                auto obj = GetInfoTemplate(InformationId::ID_SWAP_USAGE_TOTAL);
-                obj.information = value;
-                AddInformation(obj);
-            } else if (name == "percent") {
-                auto obj = GetInfoTemplate(InformationId::ID_SWAP_USAGE_PERCENT_USED);
-                obj.information = value;
-                AddInformation(obj);
-            } else if (name == "free") {
-                auto obj = GetInfoTemplate(InformationId::ID_SWAP_USAGE_FREE);
-                obj.information = value;
-                AddInformation(obj);
-            }
-        }
-        return true;
-    }
-    return false;
+    auto details = mmotd::platform::GetSwapDetails();
+
+    auto total = GetInfoTemplate(InformationId::ID_SWAP_USAGE_TOTAL);
+    total.SetValue(details.total);
+    AddInformation(total);
+
+    auto free = GetInfoTemplate(InformationId::ID_SWAP_USAGE_FREE);
+    free.SetValue(details.free);
+    AddInformation(free);
+
+    auto percent_used = GetInfoTemplate(InformationId::ID_SWAP_USAGE_PERCENT_USED);
+    percent_used.SetValue(details.percent_used, to_human_size(details.total));
+    AddInformation(percent_used);
+
+    return true;
 }
 
 } // namespace mmotd::information

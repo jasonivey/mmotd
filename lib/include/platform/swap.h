@@ -7,8 +7,12 @@
 
 namespace mmotd::platform {
 
-using SwapDetail = std::tuple<std::string, std::string>;
-using SwapDetails = std::vector<SwapDetail>;
+struct SwapDetails {
+    uint64_t total = 0ull;
+    uint64_t free = 0ull;
+    double percent_used = 0.0;
+    bool encrypted = false;
+};
 
 SwapDetails GetSwapDetails();
 

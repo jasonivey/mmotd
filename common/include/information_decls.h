@@ -27,7 +27,7 @@ inline constexpr size_t PrepValueForInformationId(size_t id) {
 
 enum class CategoryId : size_t {
     ID_INVALID = MakeCategoryId(1ull),
-#define INFO_DEF(cat, id_descriptor, name, fmttr, variant_type, id)
+#define INFO_DEF(cat, id_descriptor, name, fmttr, id)
 #define CATEGORY_INFO_DEF(cat_name, description, cat_value) BOOST_PP_CAT(ID_, cat_name) = MakeCategoryId(cat_value),
 #include "common/include/information_defs.h"
 };
@@ -45,7 +45,7 @@ inline constexpr size_t MakeInformationId(CategoryId category, size_t id) {
 
 enum class InformationId : size_t {
     ID_INVALID_INVALID_INFORMATION = MakeInformationId(CategoryId::ID_INVALID, 1ull),
-#define INFO_DEF(cat, id_descriptor, name, fmttr, variant_type, id)        \
+#define INFO_DEF(cat, id_descriptor, name, fmttr, id)                      \
     BOOST_PP_CAT(ID_, BOOST_PP_CAT(cat, BOOST_PP_CAT(_, id_descriptor))) = \
         MakeInformationId(BOOST_PP_CAT(CategoryId::ID_, cat), id),
 #define CATEGORY_INFO_DEF(name, description, value)

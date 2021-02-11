@@ -19,13 +19,14 @@ static const bool processes_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::Processes>(); });
 
 bool Processes::FindInformation() {
-    if (auto count_wrapper = mmotd::platform::GetProcessCount(); count_wrapper) {
-        auto obj = GetInfoTemplate(InformationId::ID_PROCESSES_PROCESS_COUNT);
-        obj.information = *count_wrapper;
-        AddInformation(obj);
-        return true;
-    }
-    return false;
+    auto processes_count_holder = mmotd::platform::GetProcessCount();
+    auto processes_count = processes_count_holder ? *processes_count_holder : size_t{0};
+
+    auto obj = GetInfoTemplate(InformationId::ID_PROCESSES_PROCESS_COUNT);
+    obj.SetValue(processes_count);
+    AddInformation(obj);
+
+    return true;
 }
 
 } // namespace mmotd::information

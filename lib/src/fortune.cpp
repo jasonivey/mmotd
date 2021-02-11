@@ -364,7 +364,7 @@ namespace mmotd::information {
 bool Fortune::FindInformation() {
     if (auto fortune_wrapper = GetRandomFortune("softwareengineering"); fortune_wrapper) {
         auto fortune = GetInfoTemplate(InformationId::ID_FORTUNE_FORTUNE);
-        fortune.information = *fortune_wrapper;
+        fortune.SetValue(*fortune_wrapper);
         AddInformation(fortune);
         return true;
     }

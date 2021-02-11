@@ -23,16 +23,16 @@ bool NetworkInfo::FindInformation() {
     auto network_devices = mmotd::platform::GetNetworkDevices();
     for (const auto &network_device : network_devices) {
         auto interface_name_info = GetInfoTemplate(InformationId::ID_NETWORK_INFO_INTERFACE_NAME);
-        interface_name_info.information = network_device.interface_name;
+        interface_name_info.SetValue(network_device.interface_name);
         AddInformation(interface_name_info);
 
         auto mac_info = GetInfoTemplate(InformationId::ID_NETWORK_INFO_MAC);
-        mac_info.information = network_device.mac_address.to_string();
+        mac_info.SetValue(network_device.mac_address.to_string());
         AddInformation(mac_info);
 
         for (const auto &ip : network_device.ip_addresses) {
             auto ip_info = GetInfoTemplate(InformationId::ID_NETWORK_INFO_IP);
-            ip_info.information = ip.to_string();
+            ip_info.SetValue(ip.to_string());
             AddInformation(ip_info);
         }
     }

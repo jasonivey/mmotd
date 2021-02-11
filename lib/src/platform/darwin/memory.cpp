@@ -18,11 +18,11 @@
 #include <mach/mach_types.h>
 #include <mach/vm_statistics.h>
 #include <sys/sysctl.h>
+#include <unistd.h>
 
 using fmt::format;
 using namespace std;
-
-namespace mmotd::platform {
+using mmotd::algorithm::string::to_human_size;
 
 namespace {
 
@@ -42,9 +42,7 @@ bool GetVmStat(vm_statistics_data_t *vmstat) {
     return true;
 }
 
-optional<tuple<uint64_t, uint64_t, double, uint64_t, uint64_t, uint64_t, uint64_t, uint64_t>> GetMemoryUsageImpl() {
-    using mmotd::algorithm::string::to_human_size;
-
+optional<uint64_t> GetTotalMemory() {
     int mib[2] = {CTL_HW, HW_MEMSIZE};
     auto total = uint64_t{0};
     auto len = sizeof(uint64_t);
@@ -56,13 +54,23 @@ optional<tuple<uint64_t, uint64_t, double, uint64_t, uint64_t, uint64_t, uint64_
         PLOG_ERROR << error_str;
         return nullopt;
     }
+    return make_optional(total);
+}
+
+optional<mmotd::platform::MemoryDetails> GetMemoryUsage() {
+    auto total_memory_holder = GetTotalMemory();
+    if (!total_memory_holder) {
+        return nullopt;
+    }
+    auto total = *total_memory_holder;
 
     auto vm_statistics_data = vm_statistics_data_t{};
     if (!GetVmStat(&vm_statistics_data)) {
         return nullopt;
     }
 
-    int pagesize = getpagesize();
+    const auto pagesize = getpagesize();
+
     PLOG_VERBOSE << format("pagesize: {}", pagesize);
     PLOG_VERBOSE << format("active count: {}, {}",
                            to_human_size(vm_statistics_data.active_count),
@@ -99,31 +107,20 @@ optional<tuple<uint64_t, uint64_t, double, uint64_t, uint64_t, uint64_t, uint64_
     PLOG_VERBOSE << format("free = free - speculative: {}, {}", to_human_size(free), free);
 
     auto percent = (static_cast<double>(total - avail) / static_cast<double>(total)) * 100.0;
-    PLOG_VERBOSE << format("percent: {:.01f}", percent);
+    PLOG_VERBOSE << format("percent used: {:.01f}", percent);
 
-    return make_tuple(total, avail, percent, used, free, active, inactive, wired);
+    return make_optional(mmotd::platform::MemoryDetails{total, avail, percent, used, free, active, inactive, wired});
 }
 
 } // namespace
 
-Details GetMemoryDetails() {
-    using mmotd::algorithm::string::to_human_size;
+namespace mmotd::platform {
 
-    if (auto memory_usage_wrapper = GetMemoryUsageImpl(); !memory_usage_wrapper) {
-        return Details{};
+MemoryDetails GetMemoryDetails() {
+    if (auto memory_details_holder = GetMemoryUsage(); memory_details_holder) {
+        return *memory_details_holder;
     } else {
-        const auto [total, avail, percent, used, free, active, inactive, wired] = *memory_usage_wrapper;
-
-        auto details = Details{};
-        details.push_back(make_tuple("total", format("{}", to_human_size(total))));
-        details.push_back(make_tuple("avail", format(": {}", to_human_size(avail))));
-        details.push_back(make_tuple("percent", format("{:.02f}% of {}", percent, to_human_size(total))));
-        details.push_back(make_tuple("used", format("{}", to_human_size(used))));
-        details.push_back(make_tuple("free", format("{}", to_human_size(free))));
-        details.push_back(make_tuple("active", format("{}", to_human_size(active))));
-        details.push_back(make_tuple("inactive", format("{}", to_human_size(inactive))));
-        details.push_back(make_tuple("wired", format("{}", to_human_size(wired))));
-        return details;
+        return MemoryDetails{};
     }
 }
 
