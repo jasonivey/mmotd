@@ -8,6 +8,8 @@ include (pre_project)
 
 project (mmotd_root)
 
+get_filename_component(ROOT_CMAKE_PROJECT_DIR . ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
+
 define_property(
     GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR INHERITED
     BRIEF_DOCS "mmotd root directory" FULL_DOCS "root directory for the mmotd project"

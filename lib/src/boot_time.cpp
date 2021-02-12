@@ -33,7 +33,7 @@ bool BootTime::FindInformation() {
     auto boot_time = boot_time_holder ? *boot_time_holder : std::chrono::system_clock::now();
 
     auto info = GetInfoTemplate(InformationId::ID_BOOT_TIME_BOOT_TIME);
-    info.SetValue(boot_time);
+    info.SetValueArgs(boot_time);
     AddInformation(info);
 
     return true;

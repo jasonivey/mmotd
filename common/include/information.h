@@ -20,61 +20,42 @@ class Information {
 public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(Information);
 
-    Information(CategoryId category_,
-                InformationId information_id_,
-                std::string repr_,
-                std::string name_,
-                std::string format_str_);
+    Information(CategoryId category,
+                InformationId information_id,
+                std::string id_str,
+                std::string name,
+                std::string format_str);
 
-    InformationId GetId() const { return information_id; }
-    std::string GetValue() const { return information; }
-    std::string GetName() const { return name; }
-    std::string GetFormat() const { return format_str; }
+    InformationId GetId() const { return information_id_; }
+    std::string GetIdStr() const { return id_str_; }
+    std::string GetName() const { return name_; }
+    std::string GetFormat() const { return format_str_; }
+    std::string GetValue() const { return value_; }
 
-    void SetName(const std::string &new_name) { name = new_name; }
+    void SetName(const std::string &new_name) { name_ = new_name; }
 
-    template<typename T>
-    void SetValue(T value, const std::string &fmt_str) {
-        SetValueImpl(fmt_str, value);
+    template<typename... Args>
+    void SetValueFormat(const std::string &fmt_str, Args &&...args) {
+        SetValueImpl(fmt_str, std::forward<Args>(args)...);
     }
 
-    template<typename T>
-    void SetValue(T value) {
-        SetValueImpl(format_str, value);
+    template<typename... Args>
+    void SetValueArgs(Args &&...args) {
+        SetValueImpl(format_str_, std::forward<Args>(args)...);
     }
-
-#if 0
-    template<class T, typename = std::enable_if_t<mmotd::type_traits::is_time_point<T>::value>
-    void SetValue(T timepoint) {
-        SetValueImpl(format_str, value);
-    }
-
-    template<class T, typename = std::enable_if_t<std::is_integral<T>::value || std::is_floating_point<T>::value>>
-    void SetValue(T value) {
-        SetValueImpl(format_str, value);
-    }
-
-    template<>
-    void SetValue<>(std::string value) {
-        SetValueImpl(format_str, value);
-    }
-#endif
-
-    //std::string to_string() const;
-    std::string to_repr() const { return repr; }
 
 private:
-    template<typename T>
-    void SetValueImpl(std::string_view fmt_str, T value) {
-        information = fmt::format(fmt_str, value);
+    template<typename... Args>
+    void SetValueImpl(std::string_view fmt_str, Args &&...args) {
+        value_ = fmt::format(fmt_str, std::forward<Args>(args)...);
     }
 
-    CategoryId category;
-    InformationId information_id;
-    std::string repr;
-    std::string name;
-    std::string format_str;
-    std::string information;
+    CategoryId category_;
+    InformationId information_id_;
+    std::string id_str_;
+    std::string name_;
+    std::string format_str_;
+    std::string value_;
 };
 
 } // namespace mmotd::information

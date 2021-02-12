@@ -37,18 +37,11 @@ include (target_common)
 
 get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
 
-target_include_directories(
-    ${MMOTD_TARGET_NAME}
-    PRIVATE ${PROJECT_ROOT_INCLUDE_PATH}
-    )
-
-target_include_directories(
-    ${MMOTD_TARGET_NAME} SYSTEM
-    PRIVATE ${json_SOURCE_DIR}/include
-    PRIVATE ${Boost_INCLUDE_DIRS}
-    PRIVATE ${ranges_SOURCE_DIR}/include
-    PRIVATE ${scope_guard_SOURCE_DIR}
-    PRIVATE ${fmt_SOURCE_DIR}/include
-    PRIVATE ${plog_SOURCE_DIR}/include
-    )
+add_cmake_c_cxx_include_directory(${PROJECT_ROOT_INCLUDE_PATH} FALSE)
+add_cmake_c_cxx_include_directory(${json_SOURCE_DIR}/include TRUE)
+add_cmake_c_cxx_include_directory(${Boost_INCLUDE_DIRS} TRUE)
+add_cmake_c_cxx_include_directory(${ranges_SOURCE_DIR}/include TRUE)
+add_cmake_c_cxx_include_directory(${scope_guard_SOURCE_DIR} TRUE)
+add_cmake_c_cxx_include_directory(${fmt_SOURCE_DIR}/include TRUE)
+add_cmake_c_cxx_include_directory(${plog_SOURCE_DIR}/include TRUE)
 

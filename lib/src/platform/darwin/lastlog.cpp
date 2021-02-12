@@ -11,6 +11,7 @@
 
 #include <fmt/format.h>
 #include <plog/Log.h>
+using mmotd::chrono::io::to_string;
 
 using fmt::format;
 using namespace std;

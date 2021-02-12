@@ -13,22 +13,18 @@ using namespace std;
 
 namespace mmotd::information {
 
-Information::Information(CategoryId category_,
-                         InformationId information_id_,
-                         std::string repr_,
-                         std::string name_,
-                         std::string format_str_) :
-    category(category_),
-    information_id(information_id_),
-    repr(repr_),
-    name(name_),
-    format_str(format_str_),
-    information(string{}) {
-    mmotd::algorithms::unused(category);
+Information::Information(CategoryId category,
+                         InformationId information_id,
+                         string id_str,
+                         string name,
+                         string format_str) :
+    category_(category),
+    information_id_(information_id),
+    id_str_(id_str),
+    name_(name),
+    format_str_(format_str),
+    value_() {
+    mmotd::algorithms::unused(category_);
 }
-
-//string Information::to_string() const {
-//    return information;
-//}
 
 } // namespace mmotd::information

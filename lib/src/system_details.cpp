@@ -14,6 +14,18 @@
 using namespace fmt;
 using namespace std;
 
+namespace {
+
+string TransformHostNameToComputerName(string host_name) {
+    if (empty(host_name)) {
+        return string{};
+    }
+    auto index = host_name.find('.');
+    return host_name.substr(0, index);
+}
+
+} // namespace
+
 namespace mmotd::system {
 
 string KernelRelease::to_string() const {
@@ -172,6 +184,7 @@ KernelDetails KernelDetails::from_string(const string &kernel_type,
     kernel_details.kernel = to_kernel_type(kernel_type);
     kernel_details.kernel_version = KernelVersion::from_string(version, release);
     kernel_details.host_name = host_name;
+    kernel_details.computer_name = TransformHostNameToComputerName(host_name);
     kernel_details.architecture = to_architecture_type(architecture);
     kernel_details.endian = detect_endian_type();
     return kernel_details;

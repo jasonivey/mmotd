@@ -23,7 +23,7 @@ static const bool users_logged_in_factory_registered =
 bool UsersLoggedIn::FindInformation() {
     if (auto logged_in = GetUsersLoggedIn(); !logged_in.empty()) {
         auto logged = GetInfoTemplate(InformationId::ID_LOGGED_IN_USER_LOGGED_IN);
-        logged.SetValue(logged_in);
+        logged.SetValueArgs(logged_in);
         AddInformation(logged);
         return true;
     } else {

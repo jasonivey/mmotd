@@ -31,18 +31,18 @@ bool WeatherInfo::FindInformation() {
     }
 
     auto weather = GetInfoTemplate(InformationId::ID_WEATHER_WEATHER);
-    weather.SetValue(weather_str);
+    weather.SetValueArgs(weather_str);
     AddInformation(weather);
 
     if (!empty(sunrise_str)) {
         auto sunrise = GetInfoTemplate(InformationId::ID_WEATHER_SUNRISE);
-        sunrise.SetValue(sunrise_str);
+        sunrise.SetValueArgs(sunrise_str);
         AddInformation(sunrise);
     }
 
     if (!empty(sunset_str)) {
         auto sunset = GetInfoTemplate(InformationId::ID_WEATHER_SUNSET);
-        sunset.SetValue(sunset_str);
+        sunset.SetValueArgs(sunset_str);
         AddInformation(sunset);
     }
 
@@ -51,7 +51,7 @@ bool WeatherInfo::FindInformation() {
     }
 
     auto location = GetInfoTemplate(InformationId::ID_WEATHER_LOCATION);
-    location.SetValue(location_str);
+    location.SetValueArgs(location_str);
     AddInformation(location);
 
     return true;

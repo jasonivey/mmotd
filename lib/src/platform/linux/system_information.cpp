@@ -134,18 +134,18 @@ optional<tuple<int, int, int>> ParseOsVersion(const string &version_str) {
         return nullopt;
     }
     int major, minor, patch = 0;
-    auto major_wrapper = ParseIndividualOsVersion(version_numbers[0]);
-    if (major_wrapper) {
-        major = *major_wrapper;
+    auto major_holder = ParseIndividualOsVersion(version_numbers[0]);
+    if (major_holder) {
+        major = *major_holder;
     }
-    auto minor_wrapper = ParseIndividualOsVersion(version_numbers[1]);
-    if (minor_wrapper) {
-        minor = *minor_wrapper;
+    auto minor_holder = ParseIndividualOsVersion(version_numbers[1]);
+    if (minor_holder) {
+        minor = *minor_holder;
     }
     if (version_numbers.size() > 2) {
-        auto patch_wrapper = ParseIndividualOsVersion(version_numbers[2]);
-        if (patch_wrapper) {
-            patch = *patch_wrapper;
+        auto patch_holder = ParseIndividualOsVersion(version_numbers[2]);
+        if (patch_holder) {
+            patch = *patch_holder;
         }
     }
     return make_optional(make_tuple(major, minor, patch));
@@ -206,28 +206,31 @@ optional<tuple<string, int, int, int>> GetOsVersion() {
 
 namespace mmotd::platform {
 
-SystemInformationDetails GetSystemInformationDetails() {
-    auto kernel_details_wrapper = GetKernelDetails();
-    if (!kernel_details_wrapper) {
-        return SystemInformationDetails{};
+SystemDetails GetSystemInformationDetails() {
+    auto kernel_details_holder = GetKernelDetails();
+    if (!kernel_details_holder) {
+        return SystemDetails{};
     }
-    auto kernel_details = *kernel_details_wrapper;
 
-    auto os_version_wrapper = GetOsVersion();
-    if (!os_version_wrapper) {
-        return SystemInformationDetails{};
+    auto os_version_holder = GetOsVersion();
+    if (!os_version_holder) {
+        return SystemDetails{};
     }
-    auto [platform_name, major, minor, patch] = *os_version_wrapper;
 
-    auto details = SystemInformationDetails{};
-    details.emplace_back(make_tuple("host name", kernel_details.host_name));
-    details.emplace_back(make_tuple("kernel version", kernel_details.kernel_version.version));
-    details.emplace_back(make_tuple("kernel release", kernel_details.kernel_version.release.to_string()));
-    details.emplace_back(make_tuple("kernel type", mmotd::system::to_string(kernel_details.kernel)));
-    details.emplace_back(make_tuple("architecture", mmotd::system::to_string(kernel_details.architecture)));
-    details.emplace_back(make_tuple("byte order", mmotd::system::to_string(kernel_details.endian)));
-    details.emplace_back(make_tuple("platform version", format("{}.{:02}.{}", major, minor, patch)));
-    details.emplace_back(make_tuple("platform name", platform_name));
+    auto kernel_details = *kernel_details_holder;
+    auto details = SystemDetails{};
+    details.host_name = kernel_details.host_name;
+    details.computer_name = kernel_details.computer_name;
+    details.kernel_version = kernel_details.kernel_version.version;
+    details.kernel_release = kernel_details.kernel_version.release.to_string();
+    details.kernel_type = mmotd::system::to_string(kernel_details.kernel);
+    details.architecture_type = mmotd::system::to_string(kernel_details.architecture);
+    details.byte_order = mmotd::system::to_string(kernel_details.endian);
+
+    auto [platform_name, major, minor, patch] = *os_version_holder;
+    details.platform_version = format("{}.{:02}.{}", major, minor, patch);
+    details.platform_name = platform_name;
+
     return details;
 }
 

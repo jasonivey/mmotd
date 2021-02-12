@@ -10,10 +10,7 @@
 
 namespace mmotd::platform {
 
-using SystemInformationDetail = std::tuple<std::string, std::string>;
-using SystemInformationDetails = std::vector<SystemInformationDetail>;
-
-SystemInformationDetails GetSystemInformationDetails();
+struct SystemDetails;
 
 } // namespace mmotd::platform
 
@@ -27,7 +24,7 @@ protected:
     bool FindInformation() override;
 
 private:
-    void CreateInformationObjects(const mmotd::platform::SystemInformationDetails &details);
+    void CreateInformationObjects(const mmotd::platform::SystemDetails &details);
 };
 
 } // namespace mmotd::information

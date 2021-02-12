@@ -40,7 +40,7 @@ optional<Information> TemplateString::FindInformation(const string &information_
         begin(informations),
         end(informations),
         [information_id](const auto &information) {
-            const auto &information_id_str = information.to_repr();
+            const auto &information_id_str = information.GetIdStr();
             return boost::iequals(information_id_str, information_id) ||
                    boost::iequals(information_id_str, string{"InformationId::"} + information_id);
         },

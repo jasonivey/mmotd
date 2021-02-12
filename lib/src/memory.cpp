@@ -24,15 +24,15 @@ bool Memory::FindInformation() {
     auto details = mmotd::platform::GetMemoryDetails();
 
     auto total = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_TOTAL);
-    total.SetValue(details.total);
+    total.SetValueArgs(details.total);
     AddInformation(total);
 
     auto free = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_FREE);
-    free.SetValue(details.free);
+    free.SetValueArgs(details.free);
     AddInformation(free);
 
     auto percent_used = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_PERCENT_USED);
-    percent_used.SetValue(details.percent_used, to_human_size(details.total));
+    percent_used.SetValueArgs(details.percent_used, to_human_size(details.total));
     AddInformation(percent_used);
 
     return true;

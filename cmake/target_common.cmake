@@ -5,6 +5,20 @@ cmake_minimum_required (VERSION 3.8)
 
 include (find_dependencies)
 
+macro (add_cmake_c_cxx_flags VALUE)
+    string(APPEND CMAKE_CXX_FLAGS " ${VALUE}")
+    string(APPEND CMAKE_C_FLAGS " ${VALUE}")
+endmacro ()
+
+macro (add_cmake_c_cxx_include_directory VALUE SYSTEM_INCLUDE)
+    if (${SYSTEM_INCLUDE})
+        add_cmake_c_cxx_flags("-isystem ${VALUE}")
+    else ()
+        add_cmake_c_cxx_flags("-I${VALUE}")
+    endif ()
+endmacro ()
+
+#endfunction()
 # MMOTD_TARGET_NAME needs to be defined in each CMakeLists.txt file
 set_target_properties(
     ${MMOTD_TARGET_NAME} PROPERTIES
@@ -20,19 +34,17 @@ set_target_properties(
 # If we are going to use clang and clang++ then we should also use
 #  (but are not forced to) use libc++ instead of stdlibc++.
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    string(APPEND CMAKE_CXX_FLAGS " -stdlib=libc++")
+    add_cmake_c_cxx_flags("-stdlib=libc++")
 endif ()
 
 message(STATUS "build type: ${CMAKE_BUILD_TYPE}")
 
 if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_definitions(-DDEBUG -D_DEBUG)
-    string(APPEND CMAKE_CXX_FLAGS " -Og -g3 -ggdb3")
-    string(APPEND CMAKE_C_FLAGS " -Og -g3 -ggdb3")
+    add_cmake_c_cxx_flags("-Og -g3 -ggdb3")
 else ()
     add_definitions(-DNDEBUG)
-    string(APPEND CMAKE_CXX_FLAGS " -O2")
-    string(APPEND CMAKE_C_FLAGS " -O2")
+    add_cmake_c_cxx_flags("-O2")
 endif ()
 
 add_definitions(-DFMT_HEADER_ONLY=1)
