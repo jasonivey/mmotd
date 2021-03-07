@@ -31,7 +31,7 @@ bool GetVmStat(vm_statistics_data_t *vmstat) {
     auto mach_port = mach_host_self();
     // auto deallocate the mach port
     auto mach_port_deallocator =
-        sg::make_scope_guard([&mach_port]() { mach_port_deallocate(mach_task_self(), mach_port); });
+        sg::make_scope_guard([&mach_port]() noexcept { mach_port_deallocate(mach_task_self(), mach_port); });
 
     auto retval = host_statistics(mach_port, HOST_VM_INFO, reinterpret_cast<host_info_t>(vmstat), &count);
     if (retval != KERN_SUCCESS) {

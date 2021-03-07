@@ -42,7 +42,7 @@ ComputerInformation &ComputerInformation::Instance() {
 
 void ComputerInformation::SetInformationProviders() {
     auto &creators = GetInformationProviderCreators();
-    information_providers_ = InformationProviders(creators.size());
+    information_providers_.resize(creators.size());
     transform(begin(creators), end(creators), begin(information_providers_), [](auto &creator) { return creator(); });
     PLOG_INFO << format("created {} information providers", information_providers_.size());
 }
@@ -74,33 +74,30 @@ bool ComputerInformation::IsInformationCached() const {
     return !information_cache_.empty();
 }
 
-void ComputerInformation::CacheAllInformation() const {
-#if defined(MMOTD_ASYNC_DISABLED)
-    for (auto &&provider : information_providers_) {
-        if (!provider->QueryInformation()) {
-            PLOG_ERROR << format("unable to query information for {}", provider->GetName());
-            continue;
-        }
-        auto information_wrapper = provider->GetInformation();
-        if (!information_wrapper) {
-            PLOG_ERROR << format("successfully queried information for {} but nothing was returned",
-                                 provider->GetName());
-            continue;
-        }
-        auto values = information_wrapper.value();
-        copy(begin(values), end(values), back_inserter(information_cache_));
-    }
-#else
+void ComputerInformation::CacheAllInformationAsync() const {
     auto thread_pool = boost::asio::thread_pool{std::thread::hardware_concurrency()};
     for (auto &&provider : information_providers_) {
         boost::asio::post(thread_pool, boost::bind(&InformationProvider::LookupInformation, provider.get()));
     }
     thread_pool.join();
+}
+
+void ComputerInformation::CacheAllInformationSerial() const {
+    for (auto &&provider : information_providers_) {
+        provider->LookupInformation();
+    }
+}
+
+void ComputerInformation::CacheAllInformation() const {
+#if defined(MMOTD_ASYNC_DISABLED)
+    CacheAllInformationSerial();
+#else
+    CacheAllInformationAsync();
+#endif
     for (const auto &provider : information_providers_) {
         const auto &informations = provider->GetInformations();
         copy(begin(informations), end(informations), back_inserter(information_cache_));
     }
-#endif
 }
 
 } // namespace mmotd::information

@@ -164,7 +164,7 @@ string ParseCodename(const string &input) {
 }
 
 optional<tuple<string, int, int, int>> GetOsVersion() {
-    //File: /etc/os-release
+    // File: /etc/os-release
     // NAME="Ubuntu"
     // VERSION="20.04.1 LTS (Focal Fossa)"
     // ID=ubuntu
@@ -177,12 +177,16 @@ optional<tuple<string, int, int, int>> GetOsVersion() {
     // PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
     // VERSION_CODENAME=focal
     // UBUNTU_CODENAME=focal
-    //
+
+    // Output:
     // Welcome to Ubuntu 20.04.1 LTS focal (GNU/Linux 5.4.0-58-generic x86_64)
     // Welcome to macOS 10 Catalina 10.15.7.19H15 (Darwin 19.6.0 x86_64)
     auto name = string{};
     auto codename = string{};
-    int major, minor, patch = 0;
+    auto major = int{0};
+    auto minor = int{0};
+    auto patch = int{0};
+
     const auto &file_data = GetOsVersionFile();
     for (const auto &file_line : file_data) {
         if (auto i = boost::ifind_first(file_line, "pretty_name="); !i.empty() && i.begin() == file_line.begin()) {

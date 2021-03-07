@@ -35,7 +35,7 @@ DbEntries GetUserAccountEntriesImpl() {
     setutxent();
 
     // auto close the database however we leave this function
-    auto endutxent_closer = sg::make_scope_guard([]() { endutxent(); });
+    auto endutxent_closer = sg::make_scope_guard([]() noexcept { endutxent(); });
 
     auto entries = DbEntries{};
 

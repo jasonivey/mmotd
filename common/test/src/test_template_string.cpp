@@ -11,274 +11,174 @@
 #include <string>
 #include <vector>
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
+using Catch::Matchers::Equals;
 using namespace std;
-
-namespace {
-
-bool StringsAreEqual(const string &a, const string &b) {
-    return a == b;
-}
-
-bool ContainersAreEqual(const vector<string> &a, const vector<string> &b) {
-    return std::equal(std::begin(a), std::end(a), std::begin(b), std::end(b));
-}
-
-} // namespace
 
 namespace mmotd::tty_template::tty_string::test {
 
-class TemplateStringTest : public ::testing::Test {
-protected:
-    TemplateStringTest() {}
+class TemplateStringTest {
+public:
+    static string ConvertTemplateString(string text) {
+        auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
+        return template_substrings.to_string();
+    }
 
-    ~TemplateStringTest() override {}
+    static vector<string> SplitColorStr(const string &text, const char delim) {
+        return TemplateString::SplitColorCodeDefinitions(text, delim);
+    }
 
-    void SetUp() override {}
-
-    void TearDown() override {}
-
-    string ConvertTemplateString(string text);
-    vector<string> SplitColorStr(const string &text, const char delim);
-    vector<string> SplitMultipleColorStrs(const vector<string> &color_strs, const char delimeter);
-
-    mmotd::information::Informations informations_;
-    mmotd::tty_template::data::TemplateColumnItem item_;
+    static vector<string> SplitMultipleColorStrs(const vector<string> &color_strs, const char delimeter) {
+        return TemplateString::SplitMultipleColorCodeDefinitions(color_strs, delimeter);
+    }
 };
 
-string TemplateStringTest::ConvertTemplateString(string text) {
-    auto template_string = mmotd::tty_template::tty_string::TemplateString{text};
-    auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
-    return template_substrings.to_string();
-}
 
-vector<string> TemplateStringTest::SplitColorStr(const string &text, const char delim) {
-    return TemplateString::SplitColorCodeDefinitions(text, delim);
-}
-
-vector<string> TemplateStringTest::SplitMultipleColorStrs(const vector<string> &color_strs, const char delimeter) {
-    return TemplateString::SplitMultipleColorCodeDefinitions(color_strs, delimeter);
-}
-
-TEST_F(TemplateStringTest, TestSplitColorCodeDefinitions) {
-    {
+TEST_CASE("color codes can be split", "[TemplateString]") {
+    SECTION("splitting empty string gives empty container") {
         auto string_container = vector<string>{};
-        auto color_definitions = SplitColorStr(string{}, '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitColorStr(string{}, '%');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
-    {
+    SECTION("splitting string{\"\"} gives empty container") {
         auto string_container = vector<string>{};
-        auto color_definitions = SplitColorStr("", '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitColorStr("", '%');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
-    {
+    SECTION("splitting string-no-delim gives container-one-element") {
         auto string_container = vector<string>{"asdf"};
-        auto color_definitions = SplitColorStr("asdf", '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitColorStr("asdf", '%');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
-    {
+    SECTION("splitting string-dual-back-to-back-delim gives container-two-elements") {
         auto string_container = vector<string>{"asdf", "asdf"};
-        auto color_definitions = SplitColorStr("^asdf^^asdf^", '^');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitColorStr("^asdf^^asdf^", '^');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
-    {
+    SECTION("splitting string-dual-back-to-back-delim different delim gives container-two-elements") {
         auto string_container = vector<string>{"asdf", "asdf"};
-        auto color_definitions = SplitColorStr("%asdf%%asdf%", '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitColorStr("%asdf%%asdf%", '%');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
-    {
+    SECTION("splitting color-string-with-two-elements gives container-two-elements") {
         auto string_container = vector<string>{"color:reset():purple", "color:reset()"};
-        auto color_definitions = SplitColorStr("%color:reset():purple%%color:reset()%", '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitColorStr("%color:reset():purple%%color:reset()%", '%');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
 }
 
-TEST_F(TemplateStringTest, TestSplitMultipleColorStrs) {
-    {
+TEST_CASE("multiple color codes can be split", "[TemplateString]") {
+    SECTION("splitting empty string gives empty container") {
         auto string_container = vector<string>{};
-        auto color_definitions = SplitMultipleColorStrs(vector<string>{}, '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitMultipleColorStrs(vector<string>{}, '%');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
-    {
-        // auto string_container = vector<string>{""};
-        // auto color_definitions = SplitMultipleColorStrs(vector<string>{""}, '%');
-        // EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
-    } {
+    SECTION("splitting multiple colors return multiple elements") {
         auto string_container = vector<string>{"color:asdf", "color:asdf", "color:asdf", "color:asdf"};
-        auto color_definitions = SplitMultipleColorStrs(vector<string>{"asdf:asdf:asdf", "asdf"}, ':');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+        auto color_definitions = TemplateStringTest::SplitMultipleColorStrs(vector<string>{"asdf:asdf:asdf", "asdf"}, ':');
+	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
-#if 0
-    {
-        auto string_container = vector<string>{"asdf", "asdf"};
-        auto color_definitions = SplitMultipleColorStrs("^asdf^^asdf^", '^');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+}
+
+TEST_CASE("converting empty template string", "[TemplateString]") {
+    SECTION("converting empty template string returns empty string") {
+        auto text = string{};
+        auto converted_text = TemplateStringTest::ConvertTemplateString(text);
+        CHECK_THAT(text, Catch::Matchers::Equals(converted_text));
     }
-    {
-        auto string_container = vector<string>{"asdf", "asdf"};
-        auto color_definitions = SplitMultipleColorStrs("%asdf%%asdf%", '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+}
+
+TEST_CASE("converting template without any color codes returns string", "[TemplateString]") {
+    SECTION("return string if no color codes found") {
+        auto text = string{"simple string here"};
+        auto converted_text = TemplateStringTest::ConvertTemplateString(text);
+        CHECK_THAT(text, Catch::Matchers::Equals(converted_text));
     }
-    {
-        auto string_container = vector<string>{"color:reset():purple", "color:reset()"};
-        auto color_definitions = SplitMultipleColorStrs("%color:reset():purple%%color:reset()%", '%');
-        EXPECT_PRED2(ContainersAreEqual, string_container, color_definitions);
+}
+
+TEST_CASE("convert template with single color code", "[TemplateString]") {
+    SECTION("converting template with single color code") {
+        auto src_text = string{"%color:purple%simple string here"};
+        auto dst_text = string{"[color:purple]simple string here"};
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
-#endif
 }
 
-TEST_F(TemplateStringTest, EmptyString) {
-    auto text = string{};
-    auto converted_text = ConvertTemplateString(text);
-
-    EXPECT_PRED2(StringsAreEqual, converted_text, text);
+TEST_CASE("convert template with a reset code", "[TemplateString]") {
+    SECTION("convert single reset code") {
+        auto src_text = string{"%color:reset()%simple string here"};
+        auto dst_text = string{"[color:reset()]simple string here"};
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
+    }
 }
 
-TEST_F(TemplateStringTest, TestSimpleString) {
-    auto text = string{"simple string here"};
-    auto converted_text = ConvertTemplateString(text);
-
-    EXPECT_PRED2(StringsAreEqual, converted_text, text);
-}
-
-TEST_F(TemplateStringTest, TestSingleTemplateParameter) {
-    auto src_text = string{"%color:purple%simple string here"};
-    auto dst_text = string{"[color:purple]simple string here"};
-    auto converted_text = ConvertTemplateString(src_text);
-
-    EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
-}
-
-TEST_F(TemplateStringTest, TestSingleResetTemplateParameter) {
-    auto src_text = string{"%color:reset()%simple string here"};
-    auto dst_text = string{"[color:reset()]simple string here"};
-    auto converted_text = ConvertTemplateString(src_text);
-
-    EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
-}
-
-TEST_F(TemplateStringTest, TestDoubleColorTemplateParameter) {
-    auto src_text =
+TEST_CASE("convert template with two color codes", "[TemplateString]") {
+    SECTION("converting empty template string returns empty string") {
+        auto src_text =
         string{"%color:hex(ffffff)%white text: %color:hex(AAAAAA)%the value which is another color%color:reset()%"};
-    auto dst_text =
+        auto dst_text =
         string{"[color:hex(ffffff)]white text: [color:hex(AAAAAA)]the value which is another color[color:reset()]"};
-    auto converted_text = ConvertTemplateString(src_text);
-
-    EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
+    }
 }
 
-TEST_F(TemplateStringTest, TestDoubledColorTemplateParameter) {
-    {
+TEST_CASE("converting color codes including resets", "[TemplateString]") {
+    SECTION("start color codes with a reset") {
         auto src_text = string{
             "%color:reset():hex(ffffff)%white text: %color:hex(AAAAAA)%the value which is another color%color:reset()%"};
         auto dst_text = string{
             "[color:reset()][color:hex(ffffff)]white text: [color:hex(AAAAAA)]the value which is another color[color:reset()]"};
-        auto converted_text = ConvertTemplateString(src_text);
-
-        EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
-    {
+    SECTION("color codes which include multiple resets") {
         auto src_text = string{
             "%color:reset():hex(ffffff)%white text: %color:reset():hex(AAAAAA)%the value which is another color%color:reset()%"};
         auto dst_text = string{
             "[color:reset()][color:hex(ffffff)]white text: [color:reset()][color:hex(AAAAAA)]the value which is another color[color:reset()]"};
-        auto converted_text = ConvertTemplateString(src_text);
-
-        EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
 }
 
-TEST_F(TemplateStringTest, TestRepeatedSplitColorTemplateParameter) {
-    {
+TEST_CASE("color codes are found and replaced", "[TemplateString]") {
+    SECTION("four color codes are converted") {
         auto src_text = string{
             "%color:reset()%%color:hex(ffffff)%white text: %color:hex(AAAAAA)%the value which is another color%color:reset()%"};
         auto dst_text = string{
             "[color:reset()][color:hex(ffffff)]white text: [color:hex(AAAAAA)]the value which is another color[color:reset()]"};
-        auto converted_text = ConvertTemplateString(src_text);
-
-        EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
-    {
+    SECTION("five color codes are converted") {
         auto src_text = string{
             "%color:reset()%%color:hex(ffffff)%white text: %color:reset()%%color:hex(AAAAAA)%the value which is another color%color:reset()%"};
         auto dst_text = string{
             "[color:reset()][color:hex(ffffff)]white text: [color:reset()][color:hex(AAAAAA)]the value which is another color[color:reset()]"};
-        auto converted_text = ConvertTemplateString(src_text);
-
-        EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
-    {
+    SECTION("eight color codes are converted") {
         auto src_text = string{
             "%color:reset()%%color:rgb(0,0,0)%%color:hex(ffffff)%white text: %color:reset()%%color:hex(AAAAAA)%the value which is another color%color:purple%%color:green%%color:reset()%"};
         auto dst_text = string{
             "[color:reset()][color:rgb(0,0,0)][color:hex(ffffff)]white text: [color:reset()][color:hex(AAAAAA)]the value which is another color[color:purple][color:green][color:reset()]"};
-        auto converted_text = ConvertTemplateString(src_text);
-
-        EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
 }
 
-TEST_F(TemplateStringTest, TestEmbeddedPercentCharacter) {
-    auto src_text = string{"%color:reset():hex(ffffff)%system load: %color:hex(FF0000)%4.58%%color:reset()%"};
-    auto dst_text = string{"[color:reset()][color:hex(ffffff)]system load: [color:hex(FF0000)]4.58%[color:reset()]"};
-    auto converted_text = ConvertTemplateString(src_text);
-
-    EXPECT_PRED2(StringsAreEqual, converted_text, dst_text);
+TEST_CASE("% character is ignored when splitting delim='%'", "[TemplateString]") {
+    SECTION("ensure double delim=%% is ignored when splitting") {
+        auto src_text = string{"%color:reset():hex(ffffff)%system load: %color:hex(FF0000)%4.58%%color:reset()%"};
+        auto dst_text = string{"[color:reset()][color:hex(ffffff)]system load: [color:hex(FF0000)]4.58%[color:reset()]"};
+        auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
+        CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
+    }
 }
-
-#if 0
-
-
-(color:(?!reset)[^%]+)
-
-(%(color(?::(reset\(\)))?(?::([^%]+))?)%)+
-
-simple string here
-
-%color:purple%simple string here
-
-%color:purple%%color:green%simple string here
-
-%color:reset()%simple string here
-
-%color:hex(32CD32)%Log in: %color:reset()%%color:hex(FFFFFF)%%ID_LAST_LOGIN_LOGIN_TIME%
-
-%color:hex(32CD32)%Log out: %color:reset()%%color:hex(FFFFFF)%%ID_LAST_LOGIN_LOGOUT_TIME%
-
-%color:reset():purple%simple string here
-
-%color:reset()%simple string here
-
-%color:reset():hex(32CD32)%Log in: %color:reset():hex(FFFFFF)%ID_LAST_LOGIN_LOGIN_TIME%
-
-%color:reset():hex(32CD32)%Log out: %color:reset():hex(FFFFFF)%%ID_LAST_LOGIN_LOGOUT_TIME%
-
-#endif
-
-#if 0
-
-(?:%color[^%]+%)+
-
-simple string here
-
-%color:purple%simple string here
-
-%color:purple%%color:green%simple string here
-
-%color:reset()%simple string here
-
-%color:hex(32CD32)%Log in: %color:reset()%%color:hex(FFFFFF)%%ID_LAST_LOGIN_LOGIN_TIME%
-
-%color:hex(32CD32)%Log out: %color:reset()%%color:hex(FFFFFF)%%ID_LAST_LOGIN_LOGOUT_TIME%
-
-%color:reset():purple%simple string here
-
-%color:reset()%simple string here
-
-%color:reset():hex(32CD32)%Log in: %color:reset():hex(FFFFFF)%ID_LAST_LOGIN_LOGIN_TIME%
-
-%color:reset():hex(32CD32)%Log out: %color:reset():hex(FFFFFF)%%ID_LAST_LOGIN_LOGOUT_TIME%
-#endif
 
 } // namespace mmotd::tty_template::tty_string::test

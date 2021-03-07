@@ -1,125 +1,10 @@
-# cmake/common.cmake
+# cmake/target_common.cmake
 include_guard (DIRECTORY)
 
 cmake_minimum_required (VERSION 3.8)
 
 include (find_dependencies)
-
-macro (get_cxx_system_include_paths CXX_SYSTEM_INCLUDE_PATHS)
-    set (CXX_SYSTEM_INCLUDE_PATHS "")
-    foreach (dir IN LISTS CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES)
-        get_filename_component(abs_path_dir "${dir}" REALPATH BASE_DIR "/")
-	set (${CXX_SYSTEM_INCLUDE_PATHS} "${CXX_SYSTEM_INCLUDE_PATHS} ${abs_path_dir}")
-        message (STATUS "added cxx system include=${abs_path_dir}")
-    endforeach ()
-    message (STATUS "entire cxx system include='${CXX_SYSTEM_INCLUDE_PATHS}'")
-endmacro ()
-
-macro (get_c_system_include_paths C_SYSTEM_INCLUDE_PATHS)
-    set (${C_SYSTEM_INCLUDE_PATHS} "")
-    foreach (dir IN LISTS CMAKE_C_IMPLICIT_INCLUDE_DIRECTORIES)
-        get_filename_component(abs_path_dir "${dir}" REALPATH BASE_DIR "/")
-	set (${C_SYSTEM_INCLUDE_PATHS} "${C_SYSTEM_INCLUDE_PATHS} ${abs_path_dir}")
-        message (STATUS "added c system include=${abs_path_dir}")
-    endforeach ()
-    message (STATUS "entire c system include='${C_SYSTEM_INCLUDE_PATHS}'")
-endmacro ()
-
-macro (is_include_in_c_flags INCLUDE ALREADY_ADDED)
-    get_c_system_include_paths(C_SYSTEM_INCLUDE_PATHS)
-    string (FIND "${C_SYSTEM_INCLUDE_PATHS}" "${INCLUDE}" FLAG_INDEX)
-    if ("${FLAG_INDEX}" EQUAL "-1")
-        message (STATUS "include '${INCLUDE}' was not found in c system path '${C_SYSTEM_INCLUDE_PATHS}'")
-        set (${ALREADY_ADDED} FALSE)
-    else ()
-	    message (STATUS "include '${INCLUDE}' was found in c system path: '${C_SYSTEM_INCLUDE_PATHS}'")
-        set (${ALREADY_ADDED} TRUE)
-    endif ()
-endmacro ()
-
-macro (is_include_in_cxx_flags INCLUDE ALREADY_ADDED)
-    get_cxx_system_include_paths(CXX_SYSTEM_INCLUDE_PATHS)
-    string (FIND "${CXX_SYSTEM_INCLUDE_PATHS}" "${INCLUDE}" FLAG_INDEX)
-    if ("${FLAG_INDEX}" EQUAL "-1")
-        message (STATUS "include '${INCLUDE}' was not found in cxx system path: '${CXX_SYSTEM_INCLUDE_PATHS}'")
-        set (${ALREADY_ADDED} FALSE)
-    else ()
-        message (STATUS "include '${INCLUDE}' was found in in cxx system path: '${CXX_SYSTEM_INCLUDE_PATHS}'")
-        set (${ALREADY_ADDED} TRUE)
-    endif ()
-endmacro ()
-
-macro (is_flag_in_c_flags FLAG ALREADY_ADDED)
-    string (FIND "${CMAKE_C_FLAGS}" "${FLAG}" FLAG_INDEX)
-    if ("${FLAG_INDEX}" EQUAL "-1")
-        message (STATUS "flag: '${FLAG}' was not found in cflags: '${CMAKE_C_FLAGS}'")
-        set (${ALREADY_ADDED} FALSE)
-    else ()
-        message (STATUS "flags: '${FLAG}' was found in cflags: '${CMAKE_C_FLAGS}'")
-        set (${ALREADY_ADDED} TRUE)
-    endif ()
-endmacro ()
-
-macro (is_flag_in_cxx_flags FLAG ALREADY_ADDED)
-    string (FIND "${CMAKE_CXX_FLAGS}" "${FLAG}" FLAG_INDEX)
-    if ("${FLAG_INDEX}" EQUAL "-1")
-        message (STATUS "flag: '${FLAG}' was not found in cxxflags: '${CMAKE_CXX_FLAGS}'")
-        set (${ALREADY_ADDED} FALSE)
-    else ()
-        message (STATUS "flag: '${FLAG}' was found in cxxflags: '${CMAKE_CXX_FLAGS}'")
-        set (${ALREADY_ADDED} TRUE)
-    endif ()
-endmacro ()
-
-macro (add_cmake_c_flags FLAG)
-    is_flag_in_c_flags("${FLAG}" ALREADY_ADDED)
-    message (STATUS "flag '${FLAG}' has been added to C_FLAGS: ${ALREADY_ADDED}")
-    if (${ALREADY_ADDED})
-       message (STATUS "flag: '${FLAG}' has already been added to C_FLAGS (${CMAKE_C_FLAGS})")
-    else ()
-        message (STATUS "flag: '${FLAG}' has not been added to C_FLAGS (${CMAKE_C_FLAGS})")
-	#set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FLAG}")
-        string(APPEND CMAKE_C_FLAGS " ${FLAG}")
-        message (STATUS "flag: '${FLAG}' is now part of C_FLAGS (${CMAKE_C_FLAGS})")
-    endif ()
-endmacro ()
-
-macro (add_cmake_cxx_flags FLAG)
-    is_flag_in_cxx_flags("${FLAG}" ALREADY_ADDED)
-    message (STATUS "flag: '${FLAG}' has been added to CXX_FLAGS: ${ALREADY_ADDED}")
-    if (${ALREADY_ADDED})
-        message (STATUS "flag: '${FLAG}' has already been added to CXX_FLAGS (${CMAKE_CXX_FLAGS})")
-    else ()
-        message (STATUS "flag: '${FLAG}' has not been added to CXX_FLAGS (${CMAKE_CXX_FLAGS})")
-	#set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG}")
-        string(APPEND CMAKE_CXX_FLAGS " ${FLAG}")
-        message (STATUS "flag: '${FLAG}' is now part of CXX_FLAGS (${CMAKE_CXX_FLAGS})")
-    endif ()
-endmacro ()
-
-macro (add_cmake_c_cxx_flags FLAG)
-    add_cmake_cxx_flags("${FLAG}")
-    add_cmake_c_flags("${FLAG}")
-endmacro ()
-
-macro (add_cmake_c_cxx_include_directory INCLUDE SYSTEM_INCLUDE)
-    is_include_in_cxx_flags(${INCLUDE} CXX_ALREADY_ADDED)
-    if (!${CXX_ALREADY_ADDED})
-        if (${SYSTEM_INCLUDE})
-            add_cmake_cxx_flags("-isystem ${INCLUDE}")
-        else ()
-            add_cmake_cxx_flags("-I${INCLUDE}")
-        endif ()
-    endif ()
-    is_include_in_c_flags(${INCLUDE} C_ALREADY_ADDED)
-    if (!${C_ALREADY_ADDED})
-        if (${SYSTEM_INCLUDE})
-            add_cmake_c_flags("-isystem ${INCLUDE}")
-        else ()
-            add_cmake_c_flags("-I${INCLUDE}")
-        endif ()
-    endif ()
-endmacro ()
+include (add_includes_and_flags)
 
 # MMOTD_TARGET_NAME needs to be defined in each CMakeLists.txt file
 set_target_properties(
@@ -135,7 +20,7 @@ set_target_properties(
 
 # If we are going to use clang and clang++ then we should also use (but are not forced to) use libc++ instead of stdlibc++.
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
-    add_cmake_c_cxx_flags("-stdlib=libc++")
+    add_cmake_cxx_flags("-stdlib=libc++")
 endif ()
 
 message(STATUS "build type: ${CMAKE_BUILD_TYPE}")
@@ -147,32 +32,45 @@ if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_cmake_c_cxx_flags("-g3")
     if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
         add_cmake_c_cxx_flags("-glldb")
-        add_cmake_c_cxx_flags("-glldb")
         add_cmake_c_cxx_flags("-fdebug-macro")
     else ()
         add_cmake_c_cxx_flags("-ggdb3")
     endif ()
 else ()
     add_definitions(-DNDEBUG)
-    add_cmake_c_flags("-O2")
-    add_cmake_cxx_flags("-O2")
+    add_cmake_c_cxx_flags("-O2")
 endif ()
 
-add_cmake_c_cxx_flags(-DFMT_HEADER_ONLY=1)
-add_cmake_c_cxx_flags(-DFMT_USE_STRING_VIEW)
-add_cmake_c_cxx_flags(-DPLOG_OMIT_LOG_DEFINES)
-add_cmake_c_cxx_flags(-DMMOTD_ASYNC_DISABLED=1)
+# When defined the fmtlib::fmt library will be treated as header-only library
+add_definitions(-DFMT_HEADER_ONLY=1)
+add_definitions(-DFMT_USE_STRING_VIEW)
 
+# When defined plog will not define generic macro names like:
+#  LOG, LOG_ERROR, LOGE, LOG_DEBUG, LOGI
+#  These macro names often conflict with other preprocessor macros
+#  and cause hard to track down errors.
+add_definitions(-DPLOG_OMIT_LOG_DEFINES)
+
+# When defined and compiler language is set to `-std=c++17` or higher,
+#  the lambda passed to scope_guard is required to be specified as `noexcept`.
+add_definitions(-DSG_REQUIRE_NOEXCEPT_IN_CPP17)
+
+# When defined the discovery of system properties will be done serially
+#add_definitions(-DMMOTD_ASYNC_DISABLED)
+
+# Avoids a compiler warning where the boost::placeholders::_1, _2, _3, etc. end up
+#  conflicting with the ones in the standard C++ library as they are unintendedly
+#  loaded into the global namespace (doh!).
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
-    add_cmake_c_cxx_flags(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)
+    add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)
 endif ()
 
 # Common compiler options which need to be set for every C++ module
 add_cmake_c_cxx_flags(-std=c++17)
 add_cmake_c_cxx_flags(-Wall)
-add_cmake_c_cxx_flags(--Werror)
-add_cmake_c_cxx_flags(---Wpedantic)
-add_cmake_c_cxx_flags(--Wextra
-add_cmake_c_cxx_flags(--Wformat=2)
-add_cmake_c_cxx_flags(--fPIC)
+add_cmake_c_cxx_flags(-Werror)
+add_cmake_c_cxx_flags(-Wpedantic)
+add_cmake_c_cxx_flags(-Wextra)
+add_cmake_c_cxx_flags(-Wformat=2)
+add_cmake_c_cxx_flags(-fPIC)
 

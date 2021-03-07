@@ -5,6 +5,7 @@
 
 #include <optional>
 #include <regex>
+#include <utility>
 #include <string>
 #include <vector>
 
@@ -37,12 +38,13 @@ void SetActiveInterfaces(NetworkDevices &devices) {
                              mmotd::error::posix_error::to_string());
         return;
     };
-    auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
+    auto socket_closer = sg::make_scope_guard([sock]() noexcept { close(sock); });
 
     for (auto &device : devices) {
         const auto &name = device.interface_name;
         struct ifreq req {};
-        strncpy(req.ifr_ifrn.ifrn_name, name.c_str(), IFNAMSIZ);
+        memset(req.ifr_ifrn.ifrn_name, 0, IFNAMSIZ);
+        memcpy(req.ifr_ifrn.ifrn_name, data(name), min(size(name), static_cast<size_t>(IFNAMSIZ - 1)));
 
         if (ioctl(sock, SIOCGIFFLAGS, &req) == -1) {
             PLOG_ERROR << format("ioctl SIOCGIFFLAGS failed on {}, details: {}",
@@ -68,7 +70,7 @@ NetworkDevices GetNetworkDevices() {
         PLOG_ERROR << format("getifaddrs failed, {}", mmotd::error::posix_error::to_string());
         return NetworkDevices{};
     }
-    auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() { freeifaddrs(addrs); });
+    auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() noexcept { freeifaddrs(addrs); });
 
     auto network_devices = NetworkDevices{};
     static constexpr size_t BUFFER_SIZE = max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1;

@@ -79,8 +79,8 @@ IncludeCategories:
   # Boost headers
   - Regex:    '^[<"]boost/'
     Priority: 30
-  # Range headers
-  - Regex:    '^[<"]range/'
+  # Catch2 unit test headers
+  - Regex:    '^[<"]catch2/'
     Priority: 30
   # fmt::format headers
   - Regex:    '^[<"]fmt/'
