@@ -34,37 +34,36 @@ public:
     }
 };
 
-
 TEST_CASE("color codes can be split", "[TemplateString]") {
     SECTION("splitting empty string gives empty container") {
         auto string_container = vector<string>{};
         auto color_definitions = TemplateStringTest::SplitColorStr(string{}, '%');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
     SECTION("splitting string{\"\"} gives empty container") {
         auto string_container = vector<string>{};
         auto color_definitions = TemplateStringTest::SplitColorStr("", '%');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
     SECTION("splitting string-no-delim gives container-one-element") {
         auto string_container = vector<string>{"asdf"};
         auto color_definitions = TemplateStringTest::SplitColorStr("asdf", '%');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
     SECTION("splitting string-dual-back-to-back-delim gives container-two-elements") {
         auto string_container = vector<string>{"asdf", "asdf"};
         auto color_definitions = TemplateStringTest::SplitColorStr("^asdf^^asdf^", '^');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
     SECTION("splitting string-dual-back-to-back-delim different delim gives container-two-elements") {
         auto string_container = vector<string>{"asdf", "asdf"};
         auto color_definitions = TemplateStringTest::SplitColorStr("%asdf%%asdf%", '%');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
     SECTION("splitting color-string-with-two-elements gives container-two-elements") {
         auto string_container = vector<string>{"color:reset():purple", "color:reset()"};
         auto color_definitions = TemplateStringTest::SplitColorStr("%color:reset():purple%%color:reset()%", '%');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
 }
 
@@ -72,12 +71,13 @@ TEST_CASE("multiple color codes can be split", "[TemplateString]") {
     SECTION("splitting empty string gives empty container") {
         auto string_container = vector<string>{};
         auto color_definitions = TemplateStringTest::SplitMultipleColorStrs(vector<string>{}, '%');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
     SECTION("splitting multiple colors return multiple elements") {
         auto string_container = vector<string>{"color:asdf", "color:asdf", "color:asdf", "color:asdf"};
-        auto color_definitions = TemplateStringTest::SplitMultipleColorStrs(vector<string>{"asdf:asdf:asdf", "asdf"}, ':');
-	CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
+        auto color_definitions =
+            TemplateStringTest::SplitMultipleColorStrs(vector<string>{"asdf:asdf:asdf", "asdf"}, ':');
+        CHECK_THAT(string_container, Catch::Matchers::Equals(color_definitions));
     }
 }
 
@@ -118,9 +118,9 @@ TEST_CASE("convert template with a reset code", "[TemplateString]") {
 TEST_CASE("convert template with two color codes", "[TemplateString]") {
     SECTION("converting empty template string returns empty string") {
         auto src_text =
-        string{"%color:hex(ffffff)%white text: %color:hex(AAAAAA)%the value which is another color%color:reset()%"};
+            string{"%color:hex(ffffff)%white text: %color:hex(AAAAAA)%the value which is another color%color:reset()%"};
         auto dst_text =
-        string{"[color:hex(ffffff)]white text: [color:hex(AAAAAA)]the value which is another color[color:reset()]"};
+            string{"[color:hex(ffffff)]white text: [color:hex(AAAAAA)]the value which is another color[color:reset()]"};
         auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
         CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
@@ -175,7 +175,8 @@ TEST_CASE("color codes are found and replaced", "[TemplateString]") {
 TEST_CASE("% character is ignored when splitting delim='%'", "[TemplateString]") {
     SECTION("ensure double delim=%% is ignored when splitting") {
         auto src_text = string{"%color:reset():hex(ffffff)%system load: %color:hex(FF0000)%4.58%%color:reset()%"};
-        auto dst_text = string{"[color:reset()][color:hex(ffffff)]system load: [color:hex(FF0000)]4.58%[color:reset()]"};
+        auto dst_text =
+            string{"[color:reset()][color:hex(ffffff)]system load: [color:hex(FF0000)]4.58%[color:reset()]"};
         auto converted_text = TemplateStringTest::ConvertTemplateString(src_text);
         CHECK_THAT(converted_text, Catch::Matchers::Equals(dst_text));
     }
