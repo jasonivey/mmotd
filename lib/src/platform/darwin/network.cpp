@@ -36,55 +36,6 @@ using mmotd::networking::NetworkDevices;
 
 namespace {
 
-#if 0
-optional<IpAddress> GetActiveInterface() {
-    auto sock = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sock == -1) {
-        PLOG_ERROR << "unable to open AF_INET SOCK_DGRAM socket";
-        return nullopt;
-    }
-    auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
-
-    constexpr const char *GOOGLE_DNS_IP = "8.8.8.8";
-    constexpr const uint16_t DNS_PORT = 53;
-    auto serv = sockaddr_in{};
-    memset(&serv, 0, sizeof(serv));
-    serv.sin_family = AF_INET;
-    serv.sin_addr.s_addr = inet_addr(GOOGLE_DNS_IP);
-    serv.sin_port = htons(DNS_PORT);
-
-    auto retval = connect(sock, reinterpret_cast<const sockaddr *>(&serv), sizeof(serv));
-    if (retval == -1) {
-        PLOG_ERROR << format("connect failed to {} on port {}", GOOGLE_DNS_IP, DNS_PORT);
-        return nullopt;
-    }
-
-    auto name = sockaddr_in{};
-    socklen_t namelen = sizeof(name);
-    retval = getsockname(sock, reinterpret_cast<sockaddr *>(&name), &namelen);
-    if (retval == -1) {
-        PLOG_ERROR << format("getsockname failed after connecting to {} on port {}", GOOGLE_DNS_IP, DNS_PORT);
-        return nullopt;
-    }
-
-    auto buffer = vector<char>(64, 0);
-    const char *address_str = inet_ntop(AF_INET, &name.sin_addr, buffer.data(), buffer.size());
-    if (address_str == nullptr) {
-        PLOG_ERROR << format("inet_ntop failed after connecting to {} on port {}, details: {}",
-                             GOOGLE_DNS_IP,
-                             DNS_PORT,
-                             mmotd::error::posix_error::to_string());
-        return nullopt;
-    }
-    PLOG_DEBUG << format("found active interface {} by connecting to {} on port {}",
-                         address_str,
-                         GOOGLE_DNS_IP,
-                         DNS_PORT);
-    auto ip_address = make_address(address_str);
-    return make_optional(ip_address);
-}
-#endif
-
 bool IsInterfaceActive(const string &name, sa_family_t family) {
     if (family != AF_INET && family != AF_INET6) {
         PLOG_ERROR << format("only able to open sockets to INET & INET6 where as this is {}", family);
@@ -97,11 +48,11 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
                              mmotd::error::posix_error::to_string());
         return false;
     }
-    auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
+    auto socket_closer = sg::make_scope_guard([sock]() noexcept { close(sock); });
 
     auto ifmr = ifmediareq{};
-    (void)memset(&ifmr, 0, sizeof(ifmr));
-    (void)strncpy(ifmr.ifm_name, name.c_str(), sizeof(ifmr.ifm_name));
+    memset(&ifmr, 0, sizeof(ifmr));
+    strncpy(ifmr.ifm_name, name.c_str(), sizeof(ifmr.ifm_name));
 
     if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
         PLOG_ERROR << format("iterface does not support SIOCGIFMEDIA, details: {}",
@@ -119,7 +70,8 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
         PLOG_ERROR << format("malloc failed to allocate {} bytes", ifmr.ifm_count * sizeof(int));
         return false;
     }
-    auto media_list_deleter = sg::make_scope_guard([media_list]() { free(media_list); });
+
+    auto media_list_deleter = sg::make_scope_guard([media_list]() noexcept { free(media_list); });
     ifmr.ifm_ulist = media_list;
 
     if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
@@ -143,7 +95,7 @@ NetworkDevices GetNetworkDevices() {
         PLOG_ERROR << format("getifaddrs failed, {}", mmotd::error::posix_error::to_string());
         return NetworkDevices{};
     }
-    auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() { freeifaddrs(addrs); });
+    auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() noexcept { freeifaddrs(addrs); });
 
     auto network_devices = NetworkDevices{};
     static constexpr size_t BUFFER_SIZE = max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1;

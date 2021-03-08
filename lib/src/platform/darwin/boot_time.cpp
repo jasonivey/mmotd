@@ -20,7 +20,7 @@ using namespace std;
 
 namespace mmotd::platform {
 
-optional<string> GetBootTime() {
+optional<std::chrono::system_clock::time_point> GetBootTime() {
     int mib[2] = {CTL_KERN, KERN_BOOTTIME};
     auto result = timeval{};
     size_t result_len = sizeof(timeval);
@@ -31,12 +31,11 @@ optional<string> GetBootTime() {
             error_str += format(", details: {}", errno_str);
         }
         PLOG_ERROR << error_str;
-        return nullopt;
+        return make_optional(std::chrono::system_clock::now());
     }
+
     auto boot_time_point = std::chrono::system_clock::from_time_t(result.tv_sec);
-    // Fri, 04-Dec-2020 07:49:36am MST
-    // 04-Dec-2020 09:06:02AM MST
-    return make_optional(mmotd::chrono::io::to_string(boot_time_point, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}"));
+    return make_optional(boot_time_point);
 }
 
 } // namespace mmotd::platform

@@ -17,7 +17,7 @@ constexpr static const char *UPTIME_FILENAME = "/proc/uptime";
 
 namespace mmotd::platform {
 
-optional<string> GetBootTime() {
+optional<std::chrono::system_clock::time_point> GetBootTime() {
     auto time_now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
     auto uptime_file = ifstream{};
@@ -28,13 +28,13 @@ optional<string> GetBootTime() {
         PLOG_ERROR << format("unable to open {} for reading, {}",
                              UPTIME_FILENAME,
                              mmotd::error::ios_flags::to_string(uptime_file));
-        return nullopt;
+        return make_optional(std::chrono::system_clock::now());
     }
     auto uptime = double{};
     uptime_file >> uptime;
 
     auto boot_time_point = std::chrono::system_clock::from_time_t(time_now - static_cast<time_t>(uptime));
-    return make_optional(mmotd::chrono::io::to_string(boot_time_point, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}"));
+    return make_optional(boot_time_point);
 }
 
 } // namespace mmotd::platform

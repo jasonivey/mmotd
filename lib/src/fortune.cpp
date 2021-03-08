@@ -315,18 +315,18 @@ optional<string> ReadFortune(const fs::path &fortune_path, uint32_t offset, uint
 }
 
 optional<string> GetRandomFortune(const string &fortune_name) {
-    auto fortune_files_wrapper = GetFortuneFiles(fortune_name);
-    if (!fortune_files_wrapper) {
+    auto fortune_files_holder = GetFortuneFiles(fortune_name);
+    if (!fortune_files_holder) {
         return nullopt;
     }
 
-    auto [fortune_path, fortune_db_path] = *fortune_files_wrapper;
+    auto [fortune_path, fortune_db_path] = *fortune_files_holder;
 
-    auto fortune_offset_wrapper = GetRandomFortuneOffset(fortune_db_path);
-    if (!fortune_offset_wrapper) {
+    auto fortune_offset_holder = GetRandomFortuneOffset(fortune_db_path);
+    if (!fortune_offset_holder) {
         return nullopt;
     }
-    auto [fortune_offset, max_fortune_size, fortune_delimeter] = *fortune_offset_wrapper;
+    auto [fortune_offset, max_fortune_size, fortune_delimeter] = *fortune_offset_holder;
 
     auto ec = std::error_code{};
     auto fortune_file_size = fs::file_size(fortune_path, ec);
@@ -362,9 +362,9 @@ optional<string> GetRandomFortune(const string &fortune_name) {
 namespace mmotd::information {
 
 bool Fortune::FindInformation() {
-    if (auto fortune_wrapper = GetRandomFortune("softwareengineering"); fortune_wrapper) {
+    if (auto fortune_holder = GetRandomFortune("softwareengineering"); fortune_holder) {
         auto fortune = GetInfoTemplate(InformationId::ID_FORTUNE_FORTUNE);
-        fortune.information = *fortune_wrapper;
+        fortune.SetValueArgs(*fortune_holder);
         AddInformation(fortune);
         return true;
     }

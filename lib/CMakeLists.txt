@@ -10,7 +10,6 @@ set (MMOTD_TARGET_NAME mmotd_lib)
 
 project (mmotd_lib)
 
-
 set (MMOTD_LIB_SOURCES
     src/boot_time.cpp
     src/computer_information.cpp
@@ -24,6 +23,7 @@ set (MMOTD_LIB_SOURCES
     src/load_average.cpp
     src/memory.cpp
     src/network.cpp
+    src/platform/system_information.cpp
     src/posix_sysctl_information.cpp
     src/processes.cpp
     src/swap.cpp
@@ -70,24 +70,16 @@ endif ()
 
 add_library (${MMOTD_TARGET_NAME} STATIC ${MMOTD_LIB_SOURCES})
 
-include (target_common)
+setup_target_properties (${MMOTD_TARGET_NAME})
 
 get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
 
-target_include_directories(
-    ${MMOTD_TARGET_NAME}
-    PRIVATE ${PROJECT_ROOT_INCLUDE_PATH}
-    )
-
-target_include_directories(
-    ${MMOTD_TARGET_NAME} SYSTEM
-    PRIVATE ${OPENSSL_INCLUDE_DIR}
-    PRIVATE ${json_SOURCE_DIR}/include
-    PRIVATE ${Boost_INCLUDE_DIRS}
-    PRIVATE ${ranges_SOURCE_DIR}/include
-    PRIVATE ${scope_guard_SOURCE_DIR}
-    PRIVATE ${certify_SOURCE_DIR}/include
-    PRIVATE ${fmt_SOURCE_DIR}/include
-    PRIVATE ${plog_SOURCE_DIR}/include
-    PRIVATE ${random_SOURCE_DIR}/include
-    )
+add_cmake_c_cxx_include_directory(${PROJECT_ROOT_INCLUDE_PATH} FALSE)
+add_cmake_c_cxx_include_directory(${OPENSSL_INCLUDE_DIR} TRUE)
+add_cmake_c_cxx_include_directory(${json_SOURCE_DIR}/include TRUE)
+add_cmake_c_cxx_include_directory(${Boost_INCLUDE_DIRS} TRUE)
+add_cmake_c_cxx_include_directory(${scope_guard_SOURCE_DIR} TRUE)
+add_cmake_c_cxx_include_directory(${certify_SOURCE_DIR}/include TRUE)
+add_cmake_c_cxx_include_directory(${fmt_SOURCE_DIR}/include TRUE)
+add_cmake_c_cxx_include_directory(${plog_SOURCE_DIR}/include TRUE)
+add_cmake_c_cxx_include_directory(${random_SOURCE_DIR}/include TRUE)

@@ -1,5 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/human_size.h"
+#include "common/include/information_definitions.h"
+#include "common/include/information_objects.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/memory.h"
 
@@ -15,28 +17,11 @@
 
 using namespace std;
 using fmt::format;
+using mmotd::algorithm::string::to_human_size;
 
 namespace {
 
-//struct sysinfo {
-//    long uptime;             /* Seconds since boot */
-//    unsigned long loads[3];  /* 1, 5, and 15 minute load averages */
-//    unsigned long totalram;  /* Total usable main memory size */
-//    unsigned long freeram;   /* Available memory size */
-//    unsigned long sharedram; /* Amount of shared memory */
-//    unsigned long bufferram; /* Memory used by buffers */
-//    unsigned long totalswap; /* Total swap space size */
-//    unsigned long freeswap;  /* swap space still available */
-//    unsigned short procs;    /* Number of current processes */
-//    unsigned long totalhigh; /* Total high memory size */
-//    unsigned long freehigh;  /* Available high memory size */
-//    unsigned int mem_unit;   /* Memory unit size in bytes */
-//    char _f[20-2*sizeof(long)-sizeof(int)]; /* Padding to 64 bytes */
-//};
-
-optional<tuple<uint64_t, uint64_t>> GetMemoryUsage() {
-    using mmotd::algorithm::string::to_human_size;
-
+optional<mmotd::platform::MemoryDetails> GetMemoryUsage() {
     struct sysinfo info {};
     if (sysinfo(&info) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
@@ -62,31 +47,29 @@ optional<tuple<uint64_t, uint64_t>> GetMemoryUsage() {
 
     PLOG_VERBOSE << format("memory total: {}, {} bytes", to_human_size(total), total);
     PLOG_VERBOSE << format("memory free: {}, {} bytes", to_human_size(free), free);
+    auto percent_used = 0.0;
+    if (total != 0) {
+        percent_used = (static_cast<double>(total - free) / static_cast<double>(total)) * 100.0;
+        PLOG_VERBOSE << format("percent used: {:.01f}", percent_used);
+    }
 
-    return make_optional(make_tuple(total, free));
+    auto memory_details = mmotd::platform::MemoryDetails{};
+    memory_details.total = total;
+    memory_details.free = free;
+    memory_details.percent_used = percent_used;
+
+    return make_optional(memory_details);
 }
 
 } // namespace
 
 namespace mmotd::platform {
 
-Details GetMemoryDetails() {
-    using mmotd::algorithm::string::to_human_size;
-
-    if (auto usage_wrapper = GetMemoryUsage(); !usage_wrapper) {
-        return Details{};
+MemoryDetails GetMemoryDetails() {
+    if (auto memory_details_holder = GetMemoryUsage(); memory_details_holder) {
+        return *memory_details_holder;
     } else {
-        auto [total, free] = *usage_wrapper;
-        auto percent_used = 0.0;
-        if (total != 0) {
-            percent_used = (static_cast<double>(total - free) / static_cast<double>(total)) * 100.0;
-        }
-
-        auto details = Details{};
-        details.push_back(make_tuple("total", format("{}", to_human_size(total))));
-        details.push_back(make_tuple("percent", format("{:.02f}% of {}", percent, to_human_size(total))));
-        details.push_back(make_tuple("free", format("{}", to_human_size(free))));
-        return details;
+        return MemoryDetails{};
     }
 }
 

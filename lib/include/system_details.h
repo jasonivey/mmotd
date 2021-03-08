@@ -51,6 +51,7 @@ struct KernelVersion {
 
 struct KernelDetails {
     std::string host_name;
+    std::string computer_name;
     KernelVersion kernel_version;
     KernelType kernel = KernelType::unknown;
     ArchitectureType architecture = ArchitectureType::unknown;

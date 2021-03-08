@@ -18,11 +18,11 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
     endif ()
 endif ()
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/VERSION")
-    file (READ "${CMAKE_SOURCE_DIR}/VERSION" RAW_MMOTD_VERSION_STR)
+if (EXISTS "${CMAKE_SOURCE_DIR}/VERSION.IN")
+    file (READ "${CMAKE_SOURCE_DIR}/VERSION.IN" RAW_MMOTD_VERSION_STR)
 else ()
     # FAIL in a big way!
-    message (FATAL_ERROR "Critical file not found: ${CMAKE_SOURCE_DIR}/VERSION")
+    message (FATAL_ERROR "Critical file not found: ${CMAKE_SOURCE_DIR}/VERSION.IN")
 endif ()
 
 string (STRIP ${RAW_MMOTD_VERSION_STR} MMOTD_VERSION_STR)

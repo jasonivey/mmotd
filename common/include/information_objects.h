@@ -8,6 +8,7 @@
 namespace mmotd::information {
 
 // for now this forward declaration is keeping from including information_definitions.h
+class Information;
 class Informations;
 
 class InformationObjects {

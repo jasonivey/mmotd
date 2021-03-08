@@ -40,6 +40,8 @@ private:
 
     bool IsInformationCached() const;
     void CacheAllInformation() const;
+    void CacheAllInformationAsync() const;
+    void CacheAllInformationSerial() const;
 
     InformationProviders information_providers_;
     mutable Informations information_cache_;

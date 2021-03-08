@@ -125,24 +125,30 @@ optional<KernelDetails> GetKernelDetails() {
 
 namespace mmotd::platform {
 
-SystemInformationDetails GetSystemInformationDetails() {
-    auto details = SystemInformationDetails{};
+SystemDetails GetSystemInformationDetails() {
+    auto kernel_details_holder = GetKernelDetails();
+    if (!kernel_details_holder) {
+        return SystemDetails{};
+    }
 
-    if (auto kernel_details_wrapper = GetKernelDetails(); kernel_details_wrapper) {
-        auto kernel_details = *kernel_details_wrapper;
-        details.emplace_back(make_tuple("host name", kernel_details.host_name));
-        details.emplace_back(make_tuple("kernel version", kernel_details.kernel_version.version));
-        details.emplace_back(make_tuple("kernel release", kernel_details.kernel_version.release.to_string()));
-        details.emplace_back(make_tuple("kernel type", mmotd::system::to_string(kernel_details.kernel)));
-        details.emplace_back(make_tuple("architecture", mmotd::system::to_string(kernel_details.architecture)));
-        details.emplace_back(make_tuple("byte order", mmotd::system::to_string(kernel_details.endian)));
+    auto details = SystemDetails{};
+    auto kernel_details = *kernel_details_holder;
+    details.host_name = kernel_details.host_name;
+    details.computer_name = kernel_details.computer_name;
+    details.kernel_version = kernel_details.kernel_version.version;
+    details.kernel_release = kernel_details.kernel_version.release.to_string();
+    details.kernel_type = mmotd::system::to_string(kernel_details.kernel);
+    details.architecture_type = mmotd::system::to_string(kernel_details.architecture);
+    details.byte_order = mmotd::system::to_string(kernel_details.endian);
+
+    auto os_version_holder = GetOsVersion();
+    if (!os_version_holder) {
+        return SystemDetails{};
     }
-    auto os_version = GetOsVersion();
-    if (os_version) {
-        auto [major, minor, patch] = *os_version;
-        details.emplace_back(make_tuple("platform version", format("{}.{}.{}", major, minor, patch)));
-        details.emplace_back(make_tuple("platform name", GetPlatformName(major, minor)));
-    }
+
+    auto [major, minor, patch] = *os_version_holder;
+    details.platform_version = format("{}.{}.{}", major, minor, patch);
+    details.platform_name = GetPlatformName(major, minor);
 
     return details;
 }

@@ -17,54 +17,50 @@ static const bool system_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::SystemInformation>(); });
 
 bool SystemInformation::FindInformation() {
-    if (auto details = mmotd::platform::GetSystemInformationDetails(); !details.empty()) {
+    auto details = mmotd::platform::GetSystemInformationDetails();
+    if (!details.empty()) {
         CreateInformationObjects(details);
         return true;
     }
     return false;
 }
 
-void SystemInformation::CreateInformationObjects(const mmotd::platform::SystemInformationDetails &details) {
-    for (const auto &[name, value] : details) {
-        if (name == "host name") {
-            auto hostname = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_HOST_NAME);
-            hostname.information = value;
-            AddInformation(hostname);
+void SystemInformation::CreateInformationObjects(const mmotd::platform::SystemDetails &details) {
+    auto host_name = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_HOST_NAME);
+    host_name.SetValueArgs(details.host_name);
+    AddInformation(host_name);
 
-            auto computername = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_COMPUTER_NAME);
-            auto i = value.find('.');
-            computername.information = value.substr(0, i);
-            AddInformation(computername);
-        } else if (name == "kernel version") {
-            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_VERSION);
-            obj.information = value;
-            AddInformation(obj);
-        } else if (name == "kernel release") {
-            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_RELEASE);
-            obj.information = value;
-            AddInformation(obj);
-        } else if (name == "kernel type") {
-            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_TYPE);
-            obj.information = value;
-            AddInformation(obj);
-        } else if (name == "architecture") {
-            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_ARCHITECTURE);
-            obj.information = value;
-            AddInformation(obj);
-        } else if (name == "byte order") {
-            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_BYTEORDER);
-            obj.information = value;
-            AddInformation(obj);
-        } else if (name == "platform version") {
-            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_PLATFORM_VERSION);
-            obj.information = value;
-            AddInformation(obj);
-        } else if (name == "platform name") {
-            auto obj = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_PLATFORM_NAME);
-            obj.information = value;
-            AddInformation(obj);
-        }
-    }
+    auto computer_name = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_COMPUTER_NAME);
+    computer_name.SetValueArgs(details.computer_name);
+    AddInformation(computer_name);
+
+    auto kernel_version = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_VERSION);
+    kernel_version.SetValueArgs(details.kernel_version);
+    AddInformation(kernel_version);
+
+    auto kernel_release = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_RELEASE);
+    kernel_release.SetValueArgs(details.kernel_release);
+    AddInformation(kernel_release);
+
+    auto kernel_type = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_KERNEL_TYPE);
+    kernel_type.SetValueArgs(details.kernel_type);
+    AddInformation(kernel_type);
+
+    auto architecture_type = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_ARCHITECTURE);
+    architecture_type.SetValueArgs(details.architecture_type);
+    AddInformation(architecture_type);
+
+    auto byte_order = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_BYTEORDER);
+    byte_order.SetValueArgs(details.byte_order);
+    AddInformation(byte_order);
+
+    auto platform_version = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_PLATFORM_VERSION);
+    platform_version.SetValueArgs(details.platform_version);
+    AddInformation(platform_version);
+
+    auto platform_name = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_PLATFORM_NAME);
+    platform_name.SetValueArgs(details.platform_name);
+    AddInformation(platform_name);
 }
 
 } // namespace mmotd::information

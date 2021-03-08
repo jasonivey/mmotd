@@ -4,17 +4,25 @@
 #include "common/include/information_decls.h"
 #include "common/include/informations.h"
 
-#include <algorithm>
-#include <array>
-#include <cstdlib>
-#include <mutex>
-#include <string>
-#include <tuple>
+#include <cstdlib> // for std::size_t
 
 namespace mmotd::information {
 
-enum class CategoryId : size_t;
-enum class InformationId : size_t;
+enum class CategoryId : std::size_t;
+enum class InformationId : std::size_t;
+
+//
+// This singleton is designed to be used by multiple threads.  The public interface shows
+//  how the object is read-only (const correct) and is thread-safe:
+//  1. The only data stored in the object is added during the construction of the
+//     static singleton object.  C++11 (and beyond) formalized the thread safety of static
+//     variables.  In short, if multiple threads access an uninitialized static variable
+//     only one thread will be allowed to initialize the variable before access is
+//     allowed to all other threads.
+//  2. The only member function is a read-only query which returns copies of the
+//     `Information` objects if `id`s match.
+//  3. If that member function query fails it throws a `std::runtime_error`.
+//
 
 class InformationDefinitions {
 public:
@@ -30,7 +38,6 @@ private:
 
     CategoryIds categories_;
     Informations informations_;
-    mutable std::mutex mutex_;
 };
 
 } // namespace mmotd::information

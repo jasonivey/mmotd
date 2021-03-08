@@ -12,13 +12,13 @@
 #include <sys/sysctl.h>
 
 using fmt::format;
+using mmotd::algorithm::string::to_human_size;
+using mmotd::platform::SwapDetails;
 using namespace std;
 
 namespace {
 
-optional<tuple<uint64_t, uint64_t, uint64_t, bool>> GetSwapUsage() {
-    using mmotd::algorithm::string::to_human_size;
-
+optional<SwapDetails> GetSwapMemoryUsage() {
     int mib[2] = {CTL_VM, VM_SWAPUSAGE};
     auto swap_usage = xsw_usage{};
     auto size = sizeof(xsw_usage);
@@ -31,17 +31,23 @@ optional<tuple<uint64_t, uint64_t, uint64_t, bool>> GetSwapUsage() {
         PLOG_ERROR << error_str;
         return nullopt;
     }
-    PLOG_VERBOSE << format("swap memory total: {}, {} bytes",
-                           to_human_size(swap_usage.xsu_total),
-                           swap_usage.xsu_total);
-    PLOG_VERBOSE << format("swap memory used: {}, {} bytes", to_human_size(swap_usage.xsu_used), swap_usage.xsu_used);
-    PLOG_VERBOSE << format("swap memory avail: {}, {} bytes",
-                           to_human_size(swap_usage.xsu_avail),
-                           swap_usage.xsu_avail);
-    PLOG_VERBOSE << format("swap memory encrypted: {}", swap_usage.xsu_encrypted != 0 ? "true" : "false");
 
-    return make_optional(
-        make_tuple(swap_usage.xsu_total, swap_usage.xsu_used, swap_usage.xsu_avail, swap_usage.xsu_encrypted != 0));
+    auto percent_used = 0.0;
+    if (swap_usage.xsu_total != 0) {
+        percent_used = (static_cast<double>(swap_usage.xsu_total - swap_usage.xsu_avail) /
+                        static_cast<double>(swap_usage.xsu_total)) *
+                       100.0;
+    }
+
+    auto swap_details =
+        SwapDetails{swap_usage.xsu_total, swap_usage.xsu_avail, percent_used, swap_usage.xsu_encrypted != 0};
+
+    PLOG_VERBOSE << format("swap memory total: {}, {} bytes", to_human_size(swap_details.total), swap_details.total);
+    PLOG_VERBOSE << format("swap memory free: {}, {} bytes", to_human_size(swap_details.free), swap_details.free);
+    PLOG_VERBOSE << format("swap memory percent used: {:.02f}", swap_details.percent_used);
+    PLOG_VERBOSE << format("swap memory encrypted: {}", swap_details.encrypted);
+
+    return make_optional(swap_details);
 }
 
 } // namespace
@@ -49,30 +55,11 @@ optional<tuple<uint64_t, uint64_t, uint64_t, bool>> GetSwapUsage() {
 namespace mmotd::platform {
 
 SwapDetails GetSwapDetails() {
-    using mmotd::algorithm::string::to_human_size;
-
-    auto swap_usage_wrapper = GetSwapUsage();
-    if (!swap_usage_wrapper) {
+    if (auto swap_details_holder = GetSwapMemoryUsage(); swap_details_holder) {
+        return *swap_details_holder;
+    } else {
         return SwapDetails{};
     }
-
-    auto [total, used, available, encrypted] = *swap_usage_wrapper;
-    auto percent_used = 0.0;
-    if (total != 0) {
-        percent_used = (static_cast<double>(total - available) / static_cast<double>(total)) * 100.0;
-    }
-
-    auto details = SwapDetails{};
-    auto percent_used_str = format("{:.01f}%", percent_used);
-    if (!encrypted) {
-        percent_used_str += format(" {}", to_human_size(total));
-        details.push_back(make_tuple("total", format("{}", to_human_size(total))));
-        details.push_back(make_tuple("free", format("{}", to_human_size(available))));
-    }
-    percent_used_str += format(" ({})", encrypted ? "encrypted" : "decrypted");
-    details.push_back(make_tuple("percent", percent_used_str));
-
-    return details;
 }
 
 } // namespace mmotd::platform

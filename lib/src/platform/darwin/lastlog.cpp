@@ -11,13 +11,14 @@
 
 #include <fmt/format.h>
 #include <plog/Log.h>
+using mmotd::chrono::io::to_string;
 
 using fmt::format;
 using namespace std;
 
 namespace mmotd::platform {
 
-LastLogDetails GetLastLogDetails() {
+LastLoginDetails GetLastLogDetails() {
     using namespace mmotd::platform::user_account_database;
     using namespace mmotd::platform::user;
 
@@ -31,7 +32,7 @@ LastLogDetails GetLastLogDetails() {
         PLOG_ERROR << format("last login: entries size: {}, user info: {}",
                              entries.size(),
                              user_info.empty() ? "empty" : "valid");
-        return LastLogDetails{};
+        return LastLoginDetails{};
     }
 
     auto i =
@@ -39,30 +40,23 @@ LastLogDetails GetLastLogDetails() {
 
     if (i == end(entries)) {
         PLOG_ERROR << "last login: unable to find a user process to use";
-        return LastLogDetails{};
+        return LastLoginDetails{};
     }
 
     const auto &entry = *i;
     PLOG_VERBOSE << format("last log: found {}", entry.to_string());
 
-    auto last_log_str = format("{} logged into {}", entry.user, entry.device_name);
+    auto summary = format("{} logged into {}", entry.user, entry.device_name);
     if (!entry.hostname.empty()) {
-        last_log_str += format(" from {}", entry.hostname);
+        summary += format(" from {}", entry.hostname);
     }
-    auto details = LastLogDetails{};
 
-    // last login:
-    details.emplace_back(make_tuple("last log", last_log_str));
-    PLOG_VERBOSE << format("last login: {}", last_log_str);
-    // log in:
-    auto time_point = std::chrono::system_clock::from_time_t(entry.seconds);
-    auto login_str = mmotd::chrono::io::to_string(time_point, "{:%d-%h-%Y %I:%M:%S%p %Z}");
-    details.emplace_back(make_tuple("log in", login_str));
-    PLOG_VERBOSE << format("last login: {}", login_str);
-    // log out:
-    auto logout_str = string{"still logged in"};
-    details.emplace_back(make_tuple("log out", logout_str));
-    PLOG_VERBOSE << format("last login: {}", logout_str);
+    auto log_in_time = std::chrono::system_clock::from_time_t(entry.seconds);
+    auto details = LastLoginDetails{summary, log_in_time, std::chrono::system_clock::time_point{}};
+
+    PLOG_VERBOSE << format("last login: {}", details.summary);
+    PLOG_VERBOSE << format("last log in: {}", to_string(details.log_in, "{:%d-%h-%Y %I:%M:%S%p %Z}"));
+    PLOG_VERBOSE << "last log out: still logged in";
 
     return details;
 }

@@ -11,6 +11,7 @@
 
 using fmt::format;
 using namespace std;
+using mmotd::algorithm::string::to_human_size;
 
 bool gLinkMemoryUsage = false;
 
@@ -20,25 +21,20 @@ static const bool memory_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::Memory>(); });
 
 bool Memory::FindInformation() {
-    using mmotd::platform::Detail, mmotd::platform::Details;
+    auto details = mmotd::platform::GetMemoryDetails();
 
-    if (auto details = mmotd::platform::GetMemoryDetails(); !details.empty()) {
-        for (const auto &[name, value] : details) {
-            if (name == "total") {
-                auto obj = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_TOTAL);
-                obj.information = value;
-                AddInformation(obj);
-            } else if (name == "percent") {
-                auto obj = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_PERCENT_USED);
-                obj.information = value;
-                AddInformation(obj);
-            } else if (name == "free") {
-                auto obj = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_FREE);
-                obj.information = value;
-                AddInformation(obj);
-            }
-        }
-    }
+    auto total = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_TOTAL);
+    total.SetValueArgs(details.total);
+    AddInformation(total);
+
+    auto free = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_FREE);
+    free.SetValueArgs(details.free);
+    AddInformation(free);
+
+    auto percent_used = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_PERCENT_USED);
+    percent_used.SetValueArgs(details.percent_used, to_human_size(details.total));
+    AddInformation(percent_used);
+
     return true;
 }
 

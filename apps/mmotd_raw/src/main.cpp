@@ -22,7 +22,7 @@ using namespace std;
 namespace {
 
 string GetInformationNameString(const mmotd::information::Information &information) {
-    const auto &name = information.name;
+    const auto &name = information.GetName();
     return !empty(name) ? format(fg(color::lime_green) | emphasis::bold, "{}", name) + ": " : string{};
 }
 
@@ -31,20 +31,14 @@ size_t GetInformationNameStringSize(const mmotd::information::Information &infor
 }
 
 string GetInformationValueString(const mmotd::information::Information &information) {
-    const auto &value = information.to_string();
+    const auto &value = information.GetValue();
     return !empty(value) ? format(fg(color::white) | emphasis::bold, "{}", value) : string{};
 }
-
-// size_t GetInformationValueSize(const mmotd::information::Information &information) {
-//     const auto &value = information.to_string();
-//     return size(value);
-// }
 
 size_t GetColumnWidth(const mmotd::information::Informations &informations) {
     auto i = max_element(begin(informations), end(informations), [](const auto &a, const auto &b) {
         return GetInformationNameStringSize(a) < GetInformationNameStringSize(b);
     });
-    //print("max element: {}, size: {}\n", (*i).name, GetInformationNameStringSize(*i));
     return i != end(informations) ? GetInformationNameStringSize(*i) : 0;
 }
 
@@ -52,7 +46,7 @@ void PrintMmotdRaw() {
     auto &computer_information = mmotd::information::ComputerInformation::Instance();
     const auto &informations = computer_information.GetAllInformation();
     const auto width = GetColumnWidth(informations);
-    (void)width;
+    mmotd::algorithms::unused(width);
     for (const auto &information : informations) {
         auto name = GetInformationNameString(information);
         auto value = GetInformationValueString(information);
