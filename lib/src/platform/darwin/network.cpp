@@ -48,7 +48,7 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
                              mmotd::error::posix_error::to_string());
         return false;
     }
-    auto socket_closer = sg::make_scope_guard([sock]() { close(sock); });
+    auto socket_closer = sg::make_scope_guard([sock]() noexcept { close(sock); });
 
     auto ifmr = ifmediareq{};
     memset(&ifmr, 0, sizeof(ifmr));
@@ -71,7 +71,7 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
         return false;
     }
 
-    auto media_list_deleter = sg::make_scope_guard([media_list]() { free(media_list); });
+    auto media_list_deleter = sg::make_scope_guard([media_list]() noexcept { free(media_list); });
     ifmr.ifm_ulist = media_list;
 
     if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
@@ -95,7 +95,7 @@ NetworkDevices GetNetworkDevices() {
         PLOG_ERROR << format("getifaddrs failed, {}", mmotd::error::posix_error::to_string());
         return NetworkDevices{};
     }
-    auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() { freeifaddrs(addrs); });
+    auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() noexcept { freeifaddrs(addrs); });
 
     auto network_devices = NetworkDevices{};
     static constexpr size_t BUFFER_SIZE = max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1;

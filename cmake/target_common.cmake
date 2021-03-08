@@ -6,17 +6,26 @@ cmake_minimum_required (VERSION 3.8)
 include (find_dependencies)
 include (add_includes_and_flags)
 
-# MMOTD_TARGET_NAME needs to be defined in each CMakeLists.txt file
-set_target_properties(
-    ${MMOTD_TARGET_NAME} PROPERTIES
-    C_STANDARD 11
-    C_STANDARD_REQUIRED on
-    C_EXTENSIONS off
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED on
-    CXX_EXTENSIONS off
-    DISABLE_PRECOMPILE_HEADERS on
-    )
+macro (setup_target_properties MMOTD_TARTET_NAME)
+    set_target_properties(
+        ${MMOTD_TARGET_NAME} PROPERTIES
+        C_STANDARD 11
+        C_STANDARD_REQUIRED on
+        C_EXTENSIONS off
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED on
+        CXX_EXTENSIONS off
+        DISABLE_PRECOMPILE_HEADERS on
+        )
+endmacro ()
+
+# Common compiler options which need to be set for every C++ module
+add_cmake_c_cxx_flags(-Wall)
+add_cmake_c_cxx_flags(-Werror)
+add_cmake_c_cxx_flags(-Wpedantic)
+add_cmake_c_cxx_flags(-Wextra)
+add_cmake_c_cxx_flags(-Wformat=2)
+add_cmake_c_cxx_flags(-fPIC)
 
 # If we are going to use clang and clang++ then we should also use (but are not forced to) use libc++ instead of stdlibc++.
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
@@ -64,13 +73,4 @@ add_definitions(-DSG_REQUIRE_NOEXCEPT_IN_CPP17)
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
     add_definitions(-DBOOST_BIND_GLOBAL_PLACEHOLDERS=1)
 endif ()
-
-# Common compiler options which need to be set for every C++ module
-add_cmake_c_cxx_flags(-std=c++17)
-add_cmake_c_cxx_flags(-Wall)
-add_cmake_c_cxx_flags(-Werror)
-add_cmake_c_cxx_flags(-Wpedantic)
-add_cmake_c_cxx_flags(-Wextra)
-add_cmake_c_cxx_flags(-Wformat=2)
-add_cmake_c_cxx_flags(-fPIC)
 

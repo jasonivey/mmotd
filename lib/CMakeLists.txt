@@ -70,7 +70,7 @@ endif ()
 
 add_library (${MMOTD_TARGET_NAME} STATIC ${MMOTD_LIB_SOURCES})
 
-include (target_common)
+setup_target_properties (${MMOTD_TARGET_NAME})
 
 get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
 

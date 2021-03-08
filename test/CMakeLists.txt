@@ -16,7 +16,7 @@ add_executable(${MMOTD_TARGET_NAME}
                ../common/test/src/test_template_string.cpp
                ../lib/test/src/test_information_definitions.cpp)
 
-include (target_common)
+setup_target_properties (${MMOTD_TARGET_NAME})
 
 get_property(PROJECT_ROOT_INCLUDE_PATH GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR)
 
@@ -46,5 +46,9 @@ target_link_libraries(
 
 include(CTest)
 include(ParseAndAddCatchTests)
+
+# In cmake 3.19.6 and higher it complains if this policy is not explicity set since the
+#  default naming scheme used by Catch is a descriptive sentence.
+cmake_policy(SET CMP0110 NEW)
 
 ParseAndAddCatchTests(${MMOTD_TARGET_NAME})
