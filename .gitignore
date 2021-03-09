@@ -1,4 +1,4 @@
-.cache
+.cache/
 .clangd/
 .vscode/c_cpp_properties.json
 .vscode/cmake-kits.json
@@ -6,5 +6,6 @@
 .vscode/settings.json
 .vscode/tasks.json
 build/
-vsbuild/
 common/include/version_number.h
+compile_commands.json
+vsbuild/
