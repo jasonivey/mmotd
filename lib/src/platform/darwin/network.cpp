@@ -52,7 +52,7 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
 
     auto ifmr = ifmediareq{};
     memset(&ifmr, 0, sizeof(ifmr));
-    strncpy(ifmr.ifm_name, name.c_str(), sizeof(ifmr.ifm_name));
+    memcpy(ifmr.ifm_name, data(name), min(size(name), static_cast<size_t>(IFNAMSIZ - 1)));
 
     if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
         PLOG_ERROR << format("iterface does not support SIOCGIFMEDIA, details: {}",
