@@ -1,17 +1,19 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <iterator>
 #include <limits>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
 
 namespace mmotd::algorithms {
 
 template<typename... Args>
-inline void unused(Args &&...) {
+inline void unused(Args &&...) noexcept {
 }
 
 template<class InIter, class OutIter, class Pred, class Func>
@@ -25,7 +27,7 @@ inline OutIter transform_if(InIter first, InIter last, OutIter out, Pred pred, F
 }
 
 template<class Key, class T, class Hash, class Equal, class Alloc, class Pred>
-auto erase_if(std::unordered_map<Key, T, Hash, Equal, Alloc> &container, Pred predicate) {
+inline auto erase_if(std::unordered_map<Key, T, Hash, Equal, Alloc> &container, Pred predicate) {
     auto old_size = container.size();
     for (auto i = std::begin(container), last = std::end(container); i != last;) {
         if (predicate(*i)) {
@@ -48,6 +50,7 @@ auto erase_if(std::unordered_map<Key, T, Hash, Equal, Alloc> &container, Pred pr
 //  `auto ints = vector<int>(size_t{10});`
 //  `iota(begin(ints), end(ints), ints.front());`
 //  `cout << "ints: " << join(ints, ", ", [](auto i) { return to_string(i); });`
+//
 template<class Container, class Seperator, class Func>
 inline std::string join(const Container &container, Seperator seperator, Func func) {
     auto output = std::string{};

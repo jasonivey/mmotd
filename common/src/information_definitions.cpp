@@ -1,13 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
+#include "common/assertion/include/exception.h"
 #include "common/include/information_definitions.h"
 
 #include <algorithm>
-#include <array>
 #include <cstdlib>
 #include <iterator>
-#include <stdexcept>
 #include <string>
-#include <thread>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -28,12 +27,10 @@ const InformationDefinitions &InformationDefinitions::Instance() {
 }
 
 Information InformationDefinitions::GetInformationDefinition(InformationId id) const {
-    //const auto lock = lock_guard<mutex>(mutex_);
     auto i = find_if(begin(informations_), end(informations_), [id](const auto &info) { return info.GetId() == id; });
     if (i == end(informations_)) {
         auto msg = format("unable to find information id={}", id);
-        PLOG_ERROR << msg;
-        throw std::runtime_error(msg);
+        MMOTD_THROW_RUNTIME_ERROR(msg);
     }
     return *i;
 }

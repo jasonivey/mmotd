@@ -1,10 +1,10 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
 #include "common/include/posix_error.h"
 #include "lib/include/system_details.h"
 
 #include <optional>
 #include <sstream>
-#include <stdexcept>
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
@@ -140,8 +140,7 @@ KernelRelease KernelRelease::from_string(const string &release) {
     }
     if (release_parts.size() < 2) {
         auto error_str = format("uname release string is not of the format 'xx.yy' instead it is '{}'", release);
-        PLOG_ERROR << error_str;
-        throw runtime_error(error_str);
+        MMOTD_THROW_RUNTIME_ERROR(error_str);
     }
     auto kernel_release = KernelRelease{};
     kernel_release.major = stoul(release_parts[0]);

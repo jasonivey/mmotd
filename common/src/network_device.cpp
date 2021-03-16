@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
 #include "common/include/algorithm.h"
 #include "common/include/network_device.h"
 
@@ -14,7 +15,7 @@ using namespace std;
 namespace mmotd::networking {
 
 NetworkDevice::NetworkDevice(const string &interface) : interface_name(interface) {
-    // UNIT TEST -- assert that all args are not empty!!!
+    MMOTD_PRECONDITIONS(!empty(interface), "interface name should never be empty");
 }
 
 bool NetworkDevice::HasActiveBeenTested() const {

@@ -14,6 +14,9 @@ include (git_version)
 
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
+    assertion/src/assertion.cpp
+    assertion/src/exception.cpp
+    assertion/src/stack_trace.cpp
     src/app_options.cpp
     src/information.cpp
     src/information_decls.cpp

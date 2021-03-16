@@ -20,16 +20,38 @@ find_package(OpenSSL 1.1.1 REQUIRED)
 
 Include(FetchContent)
 
+# Component: Backward.  Stack trace library
+if (APPLE)
+    find_path(LIBBFD_INCLUDE_DIR NAMES "bfd.h" PATHS /usr/local/opt/binutils/include)
+    find_path(LIBDL_INCLUDE_DIR NAMES "dlfcn.h" PATHS ${CMAKE_OSX_SYSROOT}/usr/include)
+    find_library(LIBBFD_LIBRARY bfd PATHS /usr/local/opt/binutils/lib)
+    find_library(LIBIBERTY_LIBRARY iberty PATHS /usr/local/opt/binutils/lib)
+endif ()
+set (STACK_WALKING_UNWIND TRUE CACHE BOOL "Use compiler's unwind API")
+set (STACK_DETAILS_BFD FALSE CACHE BOOL "Use libbfd to read debug info")
+set (FETCHCONTENT_QUIET TRUE CACHE BOOL "hides all fetch content population output except for errors" FORCE)
+
+FetchContent_Declare(Backward
+    GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git
+    GIT_TAG          v1.5
+    GIT_PROGRESS     TRUE
+)
+FetchContent_MakeAvailable(Backward)
+
 # Component: Catch2.  Unit testing framework
 FetchContent_Declare(catch2
     GIT_REPOSITORY   https://github.com/catchorg/Catch2.git
-    GIT_TAG          v2.13.4)
+    GIT_TAG          v2.13.4
+    GIT_PROGRESS     TRUE
+)
 FetchContent_MakeAvailable(catch2)
 
 # Component: json.  The lightweight repository of nlohmann/json which provides json support.
 FetchContent_Declare(json
     GIT_REPOSITORY   https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-    GIT_TAG          v3.9.1)
+    GIT_TAG          v3.9.1
+    GIT_PROGRESS     TRUE
+)
 FetchContent_GetProperties(json)
 if(NOT json_POPULATED)
     FetchContent_Populate(json)
@@ -49,6 +71,7 @@ if (NOT certify_POPULATED)
     target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
 endif ()
 
+add_definitions(-DFMT_HEADER_ONLY=1)
 # Component: fmt.  The library will be added into C++20 and is already a great substitue for both iostreams and
 #                  printf.  There is support for most all types, re-ordered argument assignment, and builtin
 #                  support for std::date and std::time using the formatting arguments specified with both strftime
@@ -56,6 +79,7 @@ endif ()
 FetchContent_Declare(fmt
     GIT_REPOSITORY   https://github.com/fmtlib/fmt.git
     GIT_TAG          7.1.3
+    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(fmt)
 if (NOT fmt_POPULATED)
@@ -68,6 +92,7 @@ endif ()
 FetchContent_Declare(plog
     GIT_REPOSITORY   https://github.com/SergiusTheBest/plog.git
     GIT_TAG          1.1.5
+    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(plog)
 if (NOT plog_POPULATED)
@@ -84,6 +109,7 @@ FetchContent_Declare(cli11
     #  on a few of the features there.  Once CLI11 creates a new release I will update this
     #  rely on that tag
     #GIT_TAG         v1.9.1
+    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(cli11)
 if (NOT cli11_POPULATED)
@@ -100,6 +126,7 @@ endif ()
 FetchContent_Declare(scope_guard
     GIT_REPOSITORY   https://github.com/ricab/scope_guard.git
     GIT_TAG          v0.2.3
+    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(scope_guard)
 if (NOT scope_guard_POPULATED)
@@ -121,6 +148,7 @@ endif ()
 FetchContent_Declare(random
     GIT_REPOSITORY   https://github.com/effolkronium/random.git
     GIT_TAG          v1.3.1
+    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(random)
 if (NOT random_POPULATED)

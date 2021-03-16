@@ -6,10 +6,7 @@
 #include <cstdint>
 #include <ctime>
 #include <iterator>
-#include <optional>
-#include <stdexcept>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include <boost/asio/ip/address.hpp>
