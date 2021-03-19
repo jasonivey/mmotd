@@ -6,7 +6,7 @@
 #include <optional>
 #include <string>
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 class SubstringRange {
     friend bool operator==(const SubstringRange &a, const SubstringRange &b);
@@ -39,4 +39,4 @@ private:
     inline static constexpr size_t INVALID_VALUE = std::string::npos;
 };
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results

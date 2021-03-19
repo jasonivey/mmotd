@@ -9,14 +9,14 @@
 #include <fmt/color.h>
 #include <nlohmann/json_fwd.hpp>
 
-namespace mmotd::tty_template::color {
+namespace mmotd::results::color {
 
 fmt::text_style from_color_string(std::string input);
 std::string to_string(fmt::text_style txt_style);
 
-} // namespace mmotd::tty_template::color
+} // namespace mmotd::results::color
 
-namespace mmotd::tty_template::data {
+namespace mmotd::results::data {
 
 struct TemplateConfig;
 
@@ -68,4 +68,4 @@ std::string to_string(const TemplateColumnItems &items);
 // void from_json(const nlohmann::json &root, TemplateColumnItems &template_column_items);
 // void to_json(nlohmann::json &root, const TemplateColumnItems &settings);
 
-} // namespace mmotd::tty_template::data
+} // namespace mmotd::results::data

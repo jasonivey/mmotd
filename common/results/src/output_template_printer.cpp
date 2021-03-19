@@ -3,10 +3,10 @@
 #include "common/include/information.h"
 #include "common/include/information_decls.h"
 #include "common/include/informations.h"
-#include "common/include/tty_template.h"
-#include "common/include/tty_template_data.h"
-#include "common/include/tty_template_io.h"
-#include "common/include/tty_template_string.h"
+#include "common/results/include/output_template.h"
+#include "common/results/include/output_template_printer.h"
+#include "common/results/include/template_column_items.h"
+#include "common/results/include/template_string.h"
 
 #include <algorithm>
 #include <cassert>
@@ -27,13 +27,12 @@ using fmt::format;
 using namespace std;
 
 using mmotd::algorithms::join;
-using mmotd::information::Information;
 using mmotd::information::InformationId;
 using mmotd::information::Informations;
-using mmotd::tty_template::OutputTemplate;
-using mmotd::tty_template::data::TemplateColumnItem;
-using mmotd::tty_template::data::TemplateColumnItems;
-using mmotd::tty_template::tty_string::TemplateString;
+using mmotd::results::OutputTemplate;
+using mmotd::results::TemplateString;
+using mmotd::results::data::TemplateColumnItem;
+using mmotd::results::data::TemplateColumnItems;
 
 namespace {
 
@@ -929,7 +928,7 @@ void PrintDisplayableNameValues(DisplayableNameValues displayable_name_values,
 
 } // namespace
 
-namespace mmotd::tty_template {
+namespace mmotd::results {
 
 void PrintOutputTemplate(const OutputTemplate &output_template, const Informations &informations) {
     const auto column_indexes = output_template.GetColumns();
@@ -969,4 +968,4 @@ void PrintOutputTemplate(const OutputTemplate &output_template, const Informatio
     PrintDisplayableNameValues(displayable_name_values, row_columns_indexes, column_indexes);
 }
 
-} // namespace mmotd::tty_template
+} // namespace mmotd::results

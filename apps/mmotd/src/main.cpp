@@ -3,8 +3,8 @@
 #include "apps/mmotd/include/main.h"
 #include "common/include/app_options.h"
 #include "common/include/logging.h"
-#include "common/include/tty_template.h"
-#include "common/include/tty_template_io.h"
+#include "common/results/include/output_template.h"
+#include "common/results/include/output_template_printer.h"
 #include "lib/include/computer_information.h"
 
 #include <cstdlib>
@@ -37,8 +37,8 @@ void PrintMmotd(const AppOptions &app_options) {
     const auto &informations = computer_information.GetAllInformation();
 
     const auto template_filename = options.GetTemplatePath();
-    if (auto tty_template = mmotd::tty_template::MakeOutputTemplate(template_filename); tty_template) {
-        mmotd::tty_template::PrintOutputTemplate(*tty_template, informations);
+    if (auto output_template = mmotd::results::MakeOutputTemplate(template_filename); output_template) {
+        mmotd::results::PrintOutputTemplate(*output_template, informations);
     }
 }
 

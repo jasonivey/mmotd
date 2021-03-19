@@ -3,11 +3,11 @@
 #include "common/include/information.h"
 #include "common/include/information_decls.h"
 #include "common/include/informations.h"
-#include "common/include/tty_template_data.h"
-#include "common/include/tty_template_string.h"
-#include "common/include/tty_template_substring.h"
-#include "common/include/tty_template_substring_range.h"
-#include "common/include/tty_template_substrings.h"
+#include "common/results/include/template_column_items.h"
+#include "common/results/include/template_string.h"
+#include "common/results/include/template_substring.h"
+#include "common/results/include/template_substring_range.h"
+#include "common/results/include/template_substrings.h"
 
 #include <algorithm>
 #include <iterator>
@@ -25,9 +25,9 @@ using mmotd::algorithms::collect_if;
 using mmotd::information::Information;
 using mmotd::information::InformationId;
 using mmotd::information::Informations;
-using mmotd::tty_template::data::TemplateColumnItem;
+using mmotd::results::data::TemplateColumnItem;
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 TemplateString::TemplateString(string text) : text_(text) {
 }
@@ -316,7 +316,7 @@ fmt::text_style TemplateString::GetColorValue(string color_specification) {
     if (boost::istarts_with(color_specification, color_prefix)) {
         color_specification = color_specification.substr(std::size(color_prefix));
     }
-    return mmotd::tty_template::color::from_color_string(color_specification);
+    return mmotd::results::color::from_color_string(color_specification);
 }
 
 string TemplateString::ReplaceEmbeddedColorCodes(TemplateType template_type,
@@ -354,4 +354,4 @@ InformationId TemplateString::GetFirstInformationId(const Informations &informat
     return TemplateString::FindFirstInformationId(text_, informations);
 }
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results

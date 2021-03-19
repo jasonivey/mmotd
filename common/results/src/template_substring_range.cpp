@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/tty_template_substring_range.h"
+#include "common/results/include/template_substring_range.h"
 
 #include <iterator>
 #include <optional>
@@ -7,7 +7,7 @@
 
 using namespace std;
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 bool operator==(const SubstringRange &a, const SubstringRange &b) {
     return a.position_ == b.position_ && a.count_ == b.count_;
@@ -31,4 +31,4 @@ bool SubstringRange::IsValidSubstr(const string &txt) const {
     return !std::empty(txt) && !empty() && position_ < std::size(txt) && position_ + count_ <= std::size(txt);
 }
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results

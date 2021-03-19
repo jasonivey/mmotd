@@ -2,8 +2,8 @@
 #include "apps/mmotd/include/cli_app_options_creator.h"
 #include "common/include/app_options.h"
 #include "common/include/logging.h"
-#include "common/include/tty_template.h"
 #include "common/include/version.h"
+#include "common/results/include/output_template.h"
 
 #include <algorithm>
 #include <any>
@@ -59,7 +59,7 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         app_finished_ = true;
     }
     if (options_.output_template_path) {
-        using mmotd::tty_template::CreateDefaultOutputTemplate;
+        using mmotd::results::CreateDefaultOutputTemplate;
         CreateDefaultOutputTemplate(*options_.output_template_path);
         app_finished_ = true;
     }

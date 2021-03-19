@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
-#include "common/include/tty_template.h"
+#include "common/results/include/output_template.h"
 
 #include <filesystem>
 #include <fstream>
@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 using fmt::format;
 using namespace std;
 
-namespace mmotd::tty_template {
+namespace mmotd::results {
 
 const vector<int> &OutputTemplate::GetColumns() const {
     return template_config_.columns;
@@ -103,4 +103,4 @@ void CreateDefaultOutputTemplate(string template_file_name) {
     }
 }
 
-} // namespace mmotd::tty_template
+} // namespace mmotd::results

@@ -1,10 +1,10 @@
 #include "common/include/information.h"
 #include "common/include/informations.h"
-#include "common/include/tty_template_data.h"
-#include "common/include/tty_template_string.h"
-#include "common/include/tty_template_substring.h"
-#include "common/include/tty_template_substring_range.h"
-#include "common/include/tty_template_substrings.h"
+#include "common/results/include/template_column_items.h"
+#include "common/results/include/template_string.h"
+#include "common/results/include/template_substring.h"
+#include "common/results/include/template_substring_range.h"
+#include "common/results/include/template_substrings.h"
 
 #include <algorithm>
 #include <iterator>
@@ -16,7 +16,7 @@
 using Catch::Matchers::Equals;
 using namespace std;
 
-namespace mmotd::tty_template::tty_string::test {
+namespace mmotd::results::test {
 
 class TemplateStringTest {
 public:
@@ -182,4 +182,4 @@ TEST_CASE("% character is ignored when splitting delim='%'", "[TemplateString]")
     }
 }
 
-} // namespace mmotd::tty_template::tty_string::test
+} // namespace mmotd::results::test

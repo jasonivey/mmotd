@@ -1,5 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/tty_template_substring.h"
+#include "common/results/include/template_substring.h"
 
 #include <iterator>
 #include <string>
@@ -13,7 +13,7 @@
 using fmt::format;
 using namespace std;
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 string color_definitions_to_string(const ColorDefinitions &color_definitions) {
     return boost::join(color_definitions, ", ");
@@ -142,4 +142,4 @@ string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_co
     return substring_output;
 }
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results

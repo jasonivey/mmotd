@@ -20,17 +20,21 @@ find_package(OpenSSL 1.1.1 REQUIRED)
 
 Include(FetchContent)
 
-# Component: Backward.  Stack trace library
 if (APPLE)
+    # Find various include and framework directories on macOS
     find_path(LIBBFD_INCLUDE_DIR NAMES "bfd.h" PATHS /usr/local/opt/binutils/include)
     find_path(LIBDL_INCLUDE_DIR NAMES "dlfcn.h" PATHS ${CMAKE_OSX_SYSROOT}/usr/include)
     find_library(LIBBFD_LIBRARY bfd PATHS /usr/local/opt/binutils/lib)
     find_library(LIBIBERTY_LIBRARY iberty PATHS /usr/local/opt/binutils/lib)
+    find_library(FWCoreFoundation NAMES CoreFoundation REQUIRED)
+    find_library(FWSecurity NAMES Security REQUIRED)
 endif ()
+
+# Cache variables controlling the backward stack trace library
 set (STACK_WALKING_UNWIND TRUE CACHE BOOL "Use compiler's unwind API")
 set (STACK_DETAILS_BFD FALSE CACHE BOOL "Use libbfd to read debug info")
-set (FETCHCONTENT_QUIET TRUE CACHE BOOL "hides all fetch content population output except for errors" FORCE)
 
+# Component: Backward.  Stack trace library
 FetchContent_Declare(Backward
     GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git
     GIT_TAG          v1.5

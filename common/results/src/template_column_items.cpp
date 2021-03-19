@@ -1,7 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
-#include "common/include/tty_template_data.h"
-#include "common/include/tty_template_string.h"
+#include "common/results/include/template_column_items.h"
+#include "common/results/include/template_string.h"
 
 #include <algorithm>
 #include <array>
@@ -200,7 +200,7 @@ optional<fmt::text_style> GetColorValue(string value) {
 
 } // namespace
 
-namespace mmotd::tty_template::color {
+namespace mmotd::results::color {
 
 string to_string(fmt::text_style txt_style) {
     if (!txt_style.has_foreground()) {
@@ -238,9 +238,9 @@ fmt::text_style from_color_string(string input) {
     return text_style_holder.has_value() ? text_style_holder.value() : fmt::text_style{};
 }
 
-} // namespace mmotd::tty_template::color
+} // namespace mmotd::results::color
 
-namespace mmotd::tty_template::data {
+namespace mmotd::results::data {
 
 string TemplateItemSettings::to_string() const {
     return format("indent_size: {}\n", indent_size) + format("row_index: {}\n", row_index) +
@@ -248,9 +248,9 @@ string TemplateItemSettings::to_string() const {
            format("append_newlines: {}\n", append_newlines) + format("is_repeatable: {}\n", is_repeatable) +
            format("is_optional: {}\n", is_optional) + format("name_width: {}\n", name_width) +
            format("name: [{}]\n", boost::join(name, ", ")) +
-           format("name_color: {}\n", mmotd::tty_template::color::to_string(name_color)) +
+           format("name_color: {}\n", mmotd::results::color::to_string(name_color)) +
            format("value: [{}]\n", boost::join(value, ", ")) +
-           format("value_color: {}", mmotd::tty_template::color::to_string(value_color));
+           format("value_color: {}", mmotd::results::color::to_string(value_color));
 }
 
 bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
@@ -279,9 +279,9 @@ void to_json(json &root, const TemplateItemSettings &settings) {
                 {"is_optional", settings.is_optional},
                 {"name_width", settings.name_width},
                 {"name", settings.name},
-                {"name_color", mmotd::tty_template::color::to_string(settings.name_color)},
+                {"name_color", mmotd::results::color::to_string(settings.name_color)},
                 {"value", settings.value},
-                {"value_color", mmotd::tty_template::color::to_string(settings.value_color)}};
+                {"value_color", mmotd::results::color::to_string(settings.value_color)}};
 }
 
 void from_json(const json &root, TemplateItemSettings &settings, const TemplateItemSettings *default_settings) {
@@ -402,4 +402,4 @@ string to_string(const TemplateColumnItems &items) {
 //                 {"default_settings", template_config.default_settings}};
 // }
 
-} // namespace mmotd::tty_template::data
+} // namespace mmotd::results::data
