@@ -12,6 +12,8 @@ project (mmotd_test)
 
 add_executable(${MMOTD_TARGET_NAME}
                src/main.cpp
+               ../common/test/src/test_assertion.cpp
+               ../common/test/src/test_exception.cpp
                ../common/test/src/test_mac_address.cpp
                ../common/test/src/test_template_string.cpp
                ../lib/test/src/test_information_definitions.cpp)

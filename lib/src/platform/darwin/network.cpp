@@ -5,8 +5,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <iterator>
-#include <optional>
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -104,7 +102,6 @@ NetworkDevices GetNetworkDevices() {
         if (ptr->ifa_addr == nullptr || ptr->ifa_name == nullptr) {
             continue;
         }
-        //auto flags = ptr->ifa_flags;
         const auto interface_name = string{ptr->ifa_name};
         const auto address_family = ptr->ifa_addr->sa_family;
         network_devices.AddInterface(interface_name);

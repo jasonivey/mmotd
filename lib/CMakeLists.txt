@@ -24,7 +24,6 @@ set (MMOTD_LIB_SOURCES
     src/memory.cpp
     src/network.cpp
     src/platform/system_information.cpp
-    src/posix_sysctl_information.cpp
     src/processes.cpp
     src/swap.cpp
     src/system_details.cpp

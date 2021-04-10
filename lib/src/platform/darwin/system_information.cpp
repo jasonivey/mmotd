@@ -5,7 +5,6 @@
 
 #include <optional>
 #include <sstream>
-#include <stdexcept>
 #include <tuple>
 #include <vector>
 

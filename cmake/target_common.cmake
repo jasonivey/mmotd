@@ -3,6 +3,10 @@ include_guard (DIRECTORY)
 
 cmake_minimum_required (VERSION 3.8)
 
+# CMake 3.13 and lower did not add `PIE` or `PIC` link flags when POSITION_INDEPENDENT_CODE is set
+cmake_policy(SET CMP0083 NEW)
+include (CheckPIESupported)
+
 include (find_dependencies)
 include (add_includes_and_flags)
 
@@ -17,6 +21,14 @@ macro (setup_target_properties MMOTD_TARTET_NAME)
         CXX_EXTENSIONS off
         DISABLE_PRECOMPILE_HEADERS on
         )
+
+    # PIE is set to FALSE because boost stack trace forces it.
+    # TODO: when creating actual shared-object enable PIC in release mode
+    #add_definitions(-fPIC)
+    set_property(TARGET ${MMOTD_TARGET_NAME} PROPERTY POSITION_INDEPENDENT_CODE FALSE)
+
+    # Add the Backward component to the set of includes and linker options
+    add_backward (${MMOTD_TARGET_NAME})
 endmacro ()
 
 # Common compiler options which need to be set for every C++ module
@@ -25,12 +37,24 @@ add_cmake_c_cxx_flags(-Werror)
 add_cmake_c_cxx_flags(-Wpedantic)
 add_cmake_c_cxx_flags(-Wextra)
 add_cmake_c_cxx_flags(-Wformat=2)
-add_cmake_c_cxx_flags(-fPIC)
+add_definitions(-g)
 
 # If we are going to use clang and clang++ then we should also use (but are not forced to) use libc++ instead of stdlibc++.
 if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     add_cmake_cxx_flags("-stdlib=libc++")
 endif ()
+
+if (NOT "${CMAKE_CXX_COMPILER_ID}" MATCHES "MSVC")
+    add_cmake_c_cxx_flags(-D_GNU_SOURCE)
+endif ()
+
+# This enables the BOOST_ASSERT macro and the "boost::assertion_failed",
+#  "boost::assertion_failed_msg" functions
+add_cmake_c_cxx_flags(-DBOOST_ENABLE_ASSERT_HANDLER)
+
+# This disables the BOOST_ASSERT macro and the "boost::assertion_failed",
+#  "boost::assertion_failed_msg" functions
+#add_cmake_c_cxx_flags(-DBOOST_DISABLE_ASSERTS)
 
 message(STATUS "build type: ${CMAKE_BUILD_TYPE}")
 
@@ -49,10 +73,6 @@ else ()
     add_definitions(-DNDEBUG)
     add_cmake_c_cxx_flags("-O2")
 endif ()
-
-# When defined the fmtlib::fmt library will be treated as header-only library
-add_definitions(-DFMT_HEADER_ONLY=1)
-add_definitions(-DFMT_USE_STRING_VIEW)
 
 # When defined plog will not define generic macro names like:
 #  LOG, LOG_ERROR, LOGE, LOG_DEBUG, LOGI

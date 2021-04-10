@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
 #include "common/include/mac_address.h"
 
 #include <cstring>
@@ -18,7 +19,7 @@ namespace mmotd::networking {
 
 MacAddress::MacAddress(const uint8_t *buffer, size_t buffer_size) {
     if (buffer_size != MAC_ADDRESS_SIZE) {
-        throw std::invalid_argument("invalid size of mac address");
+        MMOTD_THROW_INVALID_ARGUMENT("invalid size of mac address");
     } else if (buffer != nullptr) {
         memcpy(&data_[0], buffer, MAC_ADDRESS_SIZE);
     } else {
@@ -51,8 +52,7 @@ MacAddress MacAddress::from_string(const std::string &input_str) {
     // if the number of elements are still not == 6 then we have malformed input
     if (mac_addr_hex_chars.size() != MAC_ADDRESS_SIZE) {
         auto error_str = format("mac address is not the correct length (size={} != 6)", mac_addr_hex_chars.size());
-        PLOG_ERROR << error_str;
-        throw std::invalid_argument(error_str);
+        MMOTD_THROW_INVALID_ARGUMENT(error_str);
     }
 
     // convert each two character element into an unsigned long integer and store it in the raw mac address
@@ -64,8 +64,7 @@ MacAddress MacAddress::from_string(const std::string &input_str) {
                   if (!all(hex_char, is_xdigit()) || hex_char.empty() || hex_char.size() > 2) {
                       auto error_str =
                           format("invalid character (\"{}\") found in mac address {}", hex_char, input_str);
-                      PLOG_ERROR << error_str;
-                      throw std::invalid_argument(error_str);
+                      MMOTD_THROW_INVALID_ARGUMENT(error_str);
                   }
                   auto value = std::stoul(hex_char, nullptr, 16);
                   return numeric_cast<uint8_t>(value);
