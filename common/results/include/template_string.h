@@ -19,20 +19,20 @@ class Informations;
 
 } // namespace mmotd::information
 
-namespace mmotd::tty::tty_template::data {
+namespace mmotd::results::data {
 
 struct TemplateItemSettings;
 using TemplateColumnItem = TemplateItemSettings;
 
-} // namespace mmotd::tty::tty_template::data
+} // namespace mmotd::results::data
 
-namespace mmotd::tty_template::tty_string::test {
+namespace mmotd::results::test {
 
 class TemplateStringTest;
 
 }
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 class TemplateSubstring;
 using TemplateSubstringPtr = std::unique_ptr<TemplateSubstring>;
@@ -40,17 +40,17 @@ class TemplateSubstrings;
 class SubstringRange;
 
 class TemplateString {
-    friend class mmotd::tty_template::tty_string::test::TemplateStringTest;
+    friend class mmotd::results::test::TemplateStringTest;
 
 public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(TemplateString);
     TemplateString(std::string text);
 
     std::string TransformTemplateName(const mmotd::information::Informations &informations,
-                                      const mmotd::tty_template::data::TemplateColumnItem &item,
+                                      const mmotd::results::data::TemplateColumnItem &item,
                                       size_t information_index);
     std::string TransformTemplateValue(const mmotd::information::Informations &informations,
-                                       const mmotd::tty_template::data::TemplateColumnItem &item,
+                                       const mmotd::results::data::TemplateColumnItem &item,
                                        size_t information_index);
 
     mmotd::information::InformationId GetFirstInformationId(const mmotd::information::Informations &informations);
@@ -60,7 +60,7 @@ private:
     static std::string TransformTemplate(TemplateType template_type,
                                          const std::string &text,
                                          const mmotd::information::Informations &informations,
-                                         const mmotd::tty_template::data::TemplateColumnItem &item,
+                                         const mmotd::results::data::TemplateColumnItem &item,
                                          size_t index);
 
     static std::optional<mmotd::information::Information>
@@ -101,9 +101,9 @@ private:
     static fmt::text_style GetColorValue(std::string color_specification);
     static std::string ReplaceEmbeddedColorCodes(TemplateType template_type,
                                                  const std::string &text,
-                                                 const mmotd::tty_template::data::TemplateColumnItem &item);
+                                                 const mmotd::results::data::TemplateColumnItem &item);
 
     std::string text_;
 };
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results

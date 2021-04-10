@@ -4,8 +4,6 @@ cmake_minimum_required (VERSION 3.8)
 # update the module path so the include directive finds the module correctly
 set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-include (pre_project)
-
 project (mmotd_root)
 
 get_filename_component(ROOT_CMAKE_PROJECT_DIR . ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
@@ -28,3 +26,5 @@ add_subdirectory (apps/mmotd_raw)
 
 enable_testing ()
 add_subdirectory (test)
+
+include (copy_compile_commands)

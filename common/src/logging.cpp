@@ -19,10 +19,6 @@
 using fmt::format;
 using namespace std;
 
-//template<typename... Args>
-//inline void unused(Args &&...) {
-//}
-
 namespace mmotd::logging {
 
 plog::Severity gFileAppenderVerbosity = plog::verbose;
@@ -35,7 +31,7 @@ void DefaultInitializeLogging(const string &filename) {
     plog::init<CONSOLE_LOG>(gConsoleAppenderVerbosity, &console_appender);
 }
 
-static plog::Severity convert_verbosity(int verbosity) {
+static plog::Severity convert_verbosity(size_t verbosity) {
     if (verbosity == 0) {
         return plog::none;
     }
@@ -46,20 +42,18 @@ static plog::Severity convert_verbosity(int verbosity) {
     }
 }
 
-void UpdateSeverityFilter(int verbosity) {
+void UpdateSeverityFilter(size_t verbosity) {
     plog::Severity new_severity = convert_verbosity(verbosity);
     auto new_file_severity = std::max(new_severity, gFileAppenderVerbosity);
     auto new_console_severity = std::max(new_severity, gConsoleAppenderVerbosity);
     if (gFileAppenderVerbosity != new_file_severity) {
         gFileAppenderVerbosity = new_file_severity;
         auto *file_log = plog::get();
-        // cout << format("setting file log verbosity to {}\n", severityToString(gFileAppenderVerbosity));
         file_log->setMaxSeverity(gFileAppenderVerbosity);
     }
     if (gConsoleAppenderVerbosity != new_console_severity) {
         gConsoleAppenderVerbosity = new_console_severity;
         auto *console_log = plog::get<CONSOLE_LOG>();
-        // cout << format("setting console log verbosity to {}\n", severityToString(gFileAppenderVerbosity));
         console_log->setMaxSeverity(gConsoleAppenderVerbosity);
     }
 }

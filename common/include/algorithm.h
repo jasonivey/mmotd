@@ -1,8 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 
+#include "common/assertion/include/assertion.h"
+
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <iterator>
 #include <limits>
 #include <string>
@@ -16,27 +19,108 @@ template<typename... Args>
 inline void unused(Args &&...) noexcept {
 }
 
+template<class BidIter, class T>
+inline BidIter find_last(BidIter first, BidIter last, T value) {
+    for (BidIter i = last; i != first;) {
+        if (*(--i) == value) {
+            return i;
+        }
+    }
+    return last;
+}
+
+template<class BidIter, class Pred>
+inline BidIter find_last_if(BidIter first, BidIter last, Pred pred) {
+    for (BidIter i = last; i != first;) {
+        if (pred(*(--i))) {
+            return i;
+        }
+    }
+    return last;
+}
+
+//
+// transform_if: the basic description of `std::transform` is with a container
+//  of objects the algorithm will call the `unary` function, `func`, to
+//  transform the object to type `OutIter::value_type` for inserting into
+//  `OutIter`.
+//  Now if the user only wanted a container of these transformed objects which
+//   satisfied a particular requirement the `transform_if` algorithm would be
+//   needed.
+//  In `tranform_if` the algorithm will pass over each value in the input range
+//   and pass them to the `predicate`.  If the `predicate` returns `true` then
+//   the value will be passed to the unary `func` for transformation to the type
+//   `OutIter::value_type` and inserted into `OutIter`.
+//
+// Complexity: At most, last - first applications of the `predicate` and possibly
+//  last - first applications of `func`.
+//
 template<class InIter, class OutIter, class Pred, class Func>
 inline OutIter transform_if(InIter first, InIter last, OutIter out, Pred pred, Func func) {
-    for (; first != last; ++first, ++out) {
+    for (; first != last; ++first) {
         if (pred(*first)) {
-            *out = func(*first);
+            *(out++) = func(*first);
         }
     }
     return out;
 }
 
-template<class Key, class T, class Hash, class Equal, class Alloc, class Pred>
-inline auto erase_if(std::unordered_map<Key, T, Hash, Equal, Alloc> &container, Pred predicate) {
-    auto old_size = container.size();
+//
+// erase_if: given a container of elements the algorithm will test each item for
+//  whether to delete it using the provided `predicate`.
+//
+// Usage: provides an algorithm for removing and erasing elements within
+//  associative containers where `std::remove_if` does not make sense.  e.g. how
+//  can you move a removed element in a `std::map` to the `end` of the range?
+//
+// Complexity: At most, last - first applications of the `predicate` and possibly
+//  last - first applications of `container::erase(iterator)`.
+//
+template<class Container, class Pred>
+inline size_t erase_if(Container &container, Pred pred) {
+    auto start_size = container.size();
     for (auto i = std::begin(container), last = std::end(container); i != last;) {
-        if (predicate(*i)) {
+        if (pred(*i)) {
             i = container.erase(i);
         } else {
             ++i;
         }
     }
-    return old_size - container.size();
+    MMOTD_CHECKS(start_size >= container.size(), "erase_if should never make the container larger");
+    return start_size - container.size();
+}
+
+//
+// consecutive_find: given a container of elements it will find spans of identical
+//  elements and populate the `OutIter` with `pair`s of `{element count, element}`
+//  also known as a `run` of elements.
+//
+// Complexity: At most, last - first applications of the `predicate`
+//
+template<class InIter, class OutIter>
+inline OutIter consecutive_find(InIter first, InIter last, OutIter out) {
+    auto predicate = std::equal_to<typename std::iterator_traits<InIter>::value_type>{};
+    return consecutive_find(first, last, out, predicate);
+}
+
+template<class InIter, class OutIter, class Pred>
+inline OutIter consecutive_find(InIter first, InIter last, OutIter out, Pred pred) {
+    if (std::distance(first, last) == 0) {
+        return out;
+    }
+    auto length = typename std::iterator_traits<InIter>::difference_type{1};
+    for (auto i = first + 1; i != last; ++i) {
+        if (pred(*(i - 1), *i)) {
+            if (i + 1 == last) {
+                *(out++) = std::make_pair(i - length, i);
+            }
+            ++length;
+        } else {
+            *(out++) = std::make_pair(i - length, i - 1);
+            length = 1;
+        }
+    }
+    return out;
 }
 
 //
@@ -67,13 +151,36 @@ inline std::string join(const Container &container, Seperator seperator, Func fu
     return output;
 }
 
-template<typename Iter, typename Pred, typename Func>
-void collect_if(Iter first, Iter last, Pred predicate, Func func) {
+//
+// collect_if: based off of the idea behind `std::any_of`.  The difference between
+//  that collection `predicate` and this `copy-like-algorithm` is simply that, if
+//  the `predicate` holds true it will copy the value.
+//
+// Details: the range from `first` to `last` is iterated and the `predicate` is called
+//  on each `value`.  If the `predicate` passes, then the unary `func` is called with
+//  the `value` and the `result` is inserted into `out`.
+//
+// Complexity: At most, last - first applications of the `predicate` and possibly
+//  last - first applications of `func`.
+//
+template<class InIter, class OutIter, class Pred, class Func>
+inline OutIter collect_if(InIter first, InIter last, OutIter out, Pred pred) {
     for (; first != last; ++first) {
-        if (predicate(*first)) {
-            func(*first);
+        if (pred(*first)) {
+            *(out++) = *first;
         }
     }
+    return out;
+}
+
+template<class InIter, class OutIter, class Pred, class Func>
+inline OutIter collect_if(InIter first, InIter last, OutIter out, Pred pred, Func func) {
+    for (; first != last; ++first) {
+        if (pred(*first)) {
+            *(out++) = func(*first);
+        }
+    }
+    return out;
 }
 
 #if !defined(__cpp_lib_integer_comparison_functions)

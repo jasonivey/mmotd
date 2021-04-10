@@ -47,13 +47,6 @@ inline string operator""_verbose(const char *str, size_t length) {
     return detail::RemoveWhitespace(detail::RemoveComments({str, str + length}));
 }
 
-// https://semver.org/ is the source of regex: https://regex101.com/r/vkijKf/1/
-static const string REGEX_SEMVER_PATTERN = R"(
-    ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)                // major, minor, patch
-      (?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)          // prerelease...
-      (?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?     // followed by more prerelease...
-      (?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$)"_verbose; // build number
-
 int32_t FromString(string_view str) {
     auto result = int32_t{0};
     auto [ptr, ec] = std::from_chars(begin(str), end(str), result);
@@ -66,17 +59,25 @@ int32_t FromString(string_view str) {
 } // namespace detail
 
 optional<version> version::from_string(string_view str) {
-    const auto &pattern = detail::REGEX_SEMVER_PATTERN;
+    using detail::operator""_verbose;
+    // https://semver.org/ is the source of regex: https://regex101.com/r/vkijKf/1/
+    static const string REGEX_SEMVER_PATTERN = R"(
+    ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)                // major, minor, patch
+      (?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)          // prerelease...
+      (?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?     // followed by more prerelease...
+      (?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$)"_verbose; // build number
+
+    const auto &pattern = REGEX_SEMVER_PATTERN;
     PLOG_INFO << format("pattern should now match verbose mode \"{}\"", pattern);
-    auto regex = std::regex(pattern);
+    auto semver_regex = regex(pattern);
     auto matches = std::cmatch{};
-    if (!std::regex_match(begin(str), end(str), matches, regex)) {
+    if (!std::regex_match(begin(str), end(str), matches, semver_regex)) {
         PLOG_ERROR << format("version {} is not a semver compliant version string", str);
         return nullopt;
     }
 
     if (matches.size() < 3) {
-        PLOG_ERROR << "semver regex succeeded but there were not even 3 sub-matches (major, minor, patch)";
+        PLOG_ERROR << "semver regex succeeded but there were not 3 sub-matches (major, minor, patch)";
         return nullopt;
     }
 

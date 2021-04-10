@@ -13,7 +13,7 @@ class Informations;
 
 class InformationObjects {
 public:
-    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(InformationObjects);
+    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(InformationObjects);
 
     static InformationObjects &Instance();
 

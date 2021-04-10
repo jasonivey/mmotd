@@ -1,20 +1,23 @@
 {
     "config": {
         "columns": [
-            0
+            "ENTIRE_LINE"
         ],
         "default_settings": {
             "indent_size": 2,
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "prepend_newlines": 0,
             "append_newlines": 1,
             "is_repeatable": false,
             "is_optional": false,
-            "name_width": "max",
             "name": [],
             "name_color": "bold_bright_cyan",
             "value": [],
             "value_color": "bold_bright_white"
+        },
+        "output_settings": {
+            "collapse_column_rows": true,
+            "table_type": "PLAIN_STYLE"
         }
     },
     "column_items": [
@@ -170,7 +173,7 @@
             "value": [
                 "%color:bold_bright_cyan%%ID_FORTUNE_FORTUNE%"
             ],
-            "append_newlines": 2,
+            "append_newlines": 1,
             "prepend_newlines": 1
         }
     ]

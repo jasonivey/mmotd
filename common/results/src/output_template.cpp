@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
-#include "common/include/tty_template.h"
+#include "common/results/include/output_template.h"
 
 #include <filesystem>
 #include <fstream>
@@ -18,7 +18,7 @@ namespace fs = std::filesystem;
 using fmt::format;
 using namespace std;
 
-namespace mmotd::tty_template {
+namespace mmotd::results {
 
 const vector<int> &OutputTemplate::GetColumns() const {
     return template_config_.columns;
@@ -26,6 +26,10 @@ const vector<int> &OutputTemplate::GetColumns() const {
 
 const OutputTemplate::TemplateColumnItems &OutputTemplate::GetColumnItems() const {
     return column_items_;
+}
+
+const mmotd::results::data::OutputSettings &OutputTemplate::GetOutputSettings() const {
+    return template_config_.output_settings;
 }
 
 string OutputTemplate::GetDefaultTemplate() const {
@@ -61,7 +65,7 @@ bool OutputTemplate::ParseJson(string template_file_name) {
         //  provided by the default_settings object (template_config_.default_settings)
         for (auto &root_item : root.at("column_items")) {
             auto column_item = data::TemplateItemSettings{};
-            from_json(root_item, column_item, &template_config_.default_settings);
+            column_item.from_json(root_item, &template_config_.default_settings);
             if (column_item.validate(template_config_)) {
                 column_items_.push_back(column_item);
             }
@@ -103,4 +107,4 @@ void CreateDefaultOutputTemplate(string template_file_name) {
     }
 }
 
-} // namespace mmotd::tty_template
+} // namespace mmotd::results

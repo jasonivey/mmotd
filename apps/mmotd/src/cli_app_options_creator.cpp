@@ -2,8 +2,8 @@
 #include "apps/mmotd/include/cli_app_options_creator.h"
 #include "common/include/app_options.h"
 #include "common/include/logging.h"
-#include "common/include/tty_template.h"
 #include "common/include/version.h"
+#include "common/results/include/output_template.h"
 
 #include <algorithm>
 #include <any>
@@ -16,10 +16,24 @@
 #include <stdexcept>
 
 #include <CLI/CLI.hpp>
+#include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 
 using namespace std;
 using fmt::format;
+
+class ColorWhenValidator : public CLI::Validator {
+public:
+    ColorWhenValidator() : Validator("WHEN") {
+        using namespace boost;
+        func_ = [](std::string &when) {
+            if (!iequals(when, "Always") && !iequals(when, "Auto") && !iequals(when, "Never")) {
+                return format("--color '{}' is invalid (should be 'always', 'auto' or 'never'", when);
+            }
+            return std::string();
+        };
+    }
+};
 
 CliAppOptionsCreator &CliAppOptionsCreator::GetInstance() {
     static auto cli_app_options_creator = CliAppOptionsCreator{};
@@ -30,6 +44,9 @@ CliAppOptionsCreator *CliAppOptionsCreator::ParseCommandLine(const int argc, cha
     auto &creator = GetInstance();
     creator.Parse(argc, argv);
     return &creator;
+}
+
+CliAppOptionsCreator::~CliAppOptionsCreator() {
 }
 
 void CliAppOptionsCreator::Parse(const int argc, char **argv) {
@@ -59,7 +76,7 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         app_finished_ = true;
     }
     if (options_.output_template_path) {
-        using mmotd::tty_template::CreateDefaultOutputTemplate;
+        using mmotd::results::CreateDefaultOutputTemplate;
         CreateDefaultOutputTemplate(*options_.output_template_path);
         app_finished_ = true;
     }
@@ -109,6 +126,13 @@ void CliAppOptionsCreator::AddOptionDeclarations(CLI::App &app) {
                    "path to template file for specifying output properties")
         ->check(CLI::ExistingFile)
         ->envname("MMOTD_TEMPLATE_PATH");
+
+    const ColorWhenValidator color_validator;
+    app.add_option("--color",
+                   bind(&Options::SetColorWhen, ref(options_), _1),
+                   "when to use terminal colors (always, auto, never)")
+        ->check(color_validator)
+        ->configurable(true);
 
     // app.add_flag("--last-login,--no-last-login{false}",
     app.add_flag("--last-login,", bind(&Options::SetLastLogin, ref(options_), _1), "display last login")->group("");

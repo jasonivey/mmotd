@@ -15,7 +15,12 @@ enum class InformationId : size_t;
 
 class InformationProvider {
 public:
-    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(InformationProvider);
+    InformationProvider();
+    InformationProvider(InformationProvider const &) = default;
+    InformationProvider &operator=(InformationProvider const &) = default;
+    InformationProvider(InformationProvider &&) = default;
+    InformationProvider &operator=(InformationProvider &&) = default;
+    virtual ~InformationProvider();
 
     const std::vector<Information> &GetInformations() const;
 

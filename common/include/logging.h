@@ -10,7 +10,7 @@ namespace mmotd::logging {
 inline static const constexpr int CONSOLE_LOG = 1;
 
 void DefaultInitializeLogging(const std::string &filename);
-void UpdateSeverityFilter(int severity);
+void UpdateSeverityFilter(size_t severity);
 
 } // namespace mmotd::logging
 

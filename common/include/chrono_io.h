@@ -9,6 +9,8 @@
 #include <fmt/chrono.h>
 #include <plog/Log.h>
 
+#include <time.h>
+
 namespace mmotd::chrono::io {
 
 enum class FromStringFormat {
@@ -158,7 +160,16 @@ inline std::optional<DateTimeFields> from_string_impl(std::string input_str, Fro
 }
 
 inline std::string to_string(std::chrono::system_clock::time_point time_point, std::string chrono_format) {
+    static auto initialized_time_zone = false;
+    if (!initialized_time_zone) {
+        initialized_time_zone = true;
+        setenv("TZ", "/usr/share/zoneinfo/MST", 1); // fix_jasoni: POSIX-specific
+        tzset();
+    }
     auto local_time = fmt::localtime(std::chrono::system_clock::to_time_t(time_point));
+    PLOG_VERBOSE << fmt::format("setting tm_isdst: {}",
+                                (daylight == 0 ? "(0) false" : (daylight == 1 ? "(1) true" : "-1 undetermined")));
+    local_time.tm_isdst = daylight;
     auto time_point_str = fmt::format(chrono_format, local_time);
     if (auto am_index = time_point_str.rfind("AM"); am_index != std::string::npos) {
         time_point_str[am_index] = 'a';

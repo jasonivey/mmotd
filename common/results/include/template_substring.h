@@ -1,7 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/big_five_macros.h"
-#include "common/include/tty_template_substring_range.h"
+#include "common/results/include/template_substring_range.h"
 
 #include <functional>
 #include <iterator>
@@ -13,7 +13,7 @@
 
 #include <fmt/color.h>
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 using ColorDefinitions = std::vector<std::string>;
 std::string color_definitions_to_string(const ColorDefinitions &color_definitions);
@@ -58,4 +58,4 @@ private:
     inline static constexpr const std::string_view COLOR_RESET = "color:reset()";
 };
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results

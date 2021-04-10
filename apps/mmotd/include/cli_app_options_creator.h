@@ -10,7 +10,7 @@ class App;
 
 class CliAppOptionsCreator : public AppOptionsCreator {
 public:
-    virtual ~CliAppOptionsCreator() = default;
+    virtual ~CliAppOptionsCreator();
 
     static CliAppOptionsCreator *ParseCommandLine(const int argc, char **argv);
 

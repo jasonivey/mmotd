@@ -1,15 +1,16 @@
 # cmake/find_dependencies.cmake
 include_guard (DIRECTORY)
 
+Include(message_quiet)
+
 cmake_minimum_required (VERSION 3.8)
 
 set (CMAKE_WARN_DEPRECATED FALSE CACHE BOOL "Whether to issue warnings for deprecated functionality." FORCE)
 
+include (set_policies)
+set_default_policies()
+
 if (APPLE)
-    # enables setting ${package}_root variables like ZLIB_ROOT without warning
-    if (${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.12")
-        cmake_policy(SET CMP0074 NEW)
-    endif ()
     set (ZLIB_ROOT /usr/local/opt/zlib)
 endif ()
 
@@ -20,23 +21,40 @@ find_package(OpenSSL 1.1.1 REQUIRED)
 
 Include(FetchContent)
 
-# Component: Backward.  Stack trace library
 if (APPLE)
+    # Find various include and framework directories on macOS
     find_path(LIBBFD_INCLUDE_DIR NAMES "bfd.h" PATHS /usr/local/opt/binutils/include)
     find_path(LIBDL_INCLUDE_DIR NAMES "dlfcn.h" PATHS ${CMAKE_OSX_SYSROOT}/usr/include)
     find_library(LIBBFD_LIBRARY bfd PATHS /usr/local/opt/binutils/lib)
     find_library(LIBIBERTY_LIBRARY iberty PATHS /usr/local/opt/binutils/lib)
+    find_library(FWCoreFoundation NAMES CoreFoundation REQUIRED)
+    find_library(FWSecurity NAMES Security REQUIRED)
 endif ()
-set (STACK_WALKING_UNWIND TRUE CACHE BOOL "Use compiler's unwind API")
-set (STACK_DETAILS_BFD FALSE CACHE BOOL "Use libbfd to read debug info")
-set (FETCHCONTENT_QUIET TRUE CACHE BOOL "hides all fetch content population output except for errors" FORCE)
 
+# Component: Backward.  Stack trace library
 FetchContent_Declare(Backward
     GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git
     GIT_TAG          v1.5
     GIT_PROGRESS     TRUE
 )
+set(MESSAGE_QUIET ON)
 FetchContent_MakeAvailable(Backward)
+unset(MESSAGE_QUIET)
+
+# Component: libfort (Library to create FORmatted Tables)
+set(FORT_ENABLE_TESTING OFF CACHE INTERNAL "")
+FetchContent_Declare(fort
+    GIT_REPOSITORY   https://github.com/seleznevae/libfort.git
+    GIT_TAG          v0.4.2
+    GIT_PROGRESS     TRUE
+)
+FetchContent_GetProperties(fort)
+if (NOT fort_POPULATED)
+    FetchContent_Populate(fort)
+    set(MESSAGE_QUIET ON)
+    add_subdirectory(${fort_SOURCE_DIR} ${fort_BINARY_DIR} EXCLUDE_FROM_ALL)
+    unset(MESSAGE_QUIET)
+endif ()
 
 # Component: Catch2.  Unit testing framework
 FetchContent_Declare(catch2
@@ -71,7 +89,8 @@ if (NOT certify_POPULATED)
     target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
 endif ()
 
-add_definitions(-DFMT_HEADER_ONLY=1)
+#add_definitions(-DFMT_ENFORCE_COMPILE_STRING=1)
+add_definitions(-DFMT_EXTENDED_COLORS=1)
 # Component: fmt.  The library will be added into C++20 and is already a great substitue for both iostreams and
 #                  printf.  There is support for most all types, re-ordered argument assignment, and builtin
 #                  support for std::date and std::time using the formatting arguments specified with both strftime
@@ -84,8 +103,9 @@ FetchContent_Declare(fmt
 FetchContent_GetProperties(fmt)
 if (NOT fmt_POPULATED)
     FetchContent_Populate(fmt)
-    add_library(fmt INTERFACE)
-    target_include_directories(fmt INTERFACE ${fmt_SOURCE_DIR}/include)
+    set(MESSAGE_QUIET ON)
+    add_subdirectory(${fmt_SOURCE_DIR} ${fmt_BINARY_DIR} EXCLUDE_FROM_ALL)
+    unset(MESSAGE_QUIET)
 endif ()
 
 # Component: PLOG.  A simple logging framework that does just enough of what needs doing.
@@ -156,4 +176,3 @@ if (NOT random_POPULATED)
     add_library(random INTERFACE)
     target_include_directories(random INTERFACE ${random_SOURCE_DIR}/include)
 endif ()
-

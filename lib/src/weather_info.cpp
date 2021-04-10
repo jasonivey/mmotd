@@ -76,6 +76,9 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     if (auto i = weather_str.find_first_of(':'); i != string::npos) {
         location_str = boost::trim_copy(weather_str.substr(0, i));
         weather_str = boost::trim_copy(weather_str.substr(i + 1));
+    } else {
+        PLOG_ERROR << "weather response appears to be malformed";
+        return make_tuple(location_str, weather_str, string{}, string{});
     }
 
     const auto sunrise_sunset_regex = regex(R"((\d{2}:\d{2}:\d{2}) (\d{2}:\d{2}:\d{2}))", std::regex::ECMAScript);

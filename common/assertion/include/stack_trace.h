@@ -5,6 +5,6 @@
 
 namespace mmotd::assertion {
 
-std::string GetStackTrace();
+auto GetStackTrace() -> std::string;
 
 }

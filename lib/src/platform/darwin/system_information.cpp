@@ -3,6 +3,7 @@
 #include "lib/include/platform/system_information.h"
 #include "lib/include/system_details.h"
 
+#include <limits>
 #include <optional>
 #include <sstream>
 #include <tuple>
@@ -21,11 +22,24 @@ using namespace mmotd::system;
 
 namespace {
 
-string GetPlatformName(int major, int minor) {
-    static constexpr std::array<std::tuple<int, int, const char *>, 3> PLATFORM_NAMES = {make_tuple(10, 11, "Mac OS X"),
-                                                                                         make_tuple(10, 15, "macOS 10"),
-                                                                                         make_tuple(11, 0, "macOS 11")};
-    static constexpr std::array<std::tuple<int, int, const char *>, 17> VERSION_NAMES = {
+template<typename T>
+string GetPlatformIdentifier(int major, int minor, const T &version_map) {
+    auto identifier = string{"unknown"};
+    for (const auto &[major_version, minor_version, id] : version_map) {
+        if (major == major_version && minor <= minor_version) {
+            identifier = string{id};
+            break;
+        }
+    }
+    return identifier;
+}
+
+string GetPlatformNameVersion(int major, int minor) {
+    static constexpr std::array<std::tuple<int, int, const char *>, 6> PLATFORM_NAMES = {
+        make_tuple(10, 11, "Mac OS X"),
+        make_tuple(10, 15, "macOS 10"),
+        make_tuple(11, numeric_limits<int>::max(), "macOS 11")};
+    static constexpr std::array<std::tuple<int, int, const char *>, 20> VERSION_NAMES = {
         make_tuple(10, 0, "Cheetah"),
         make_tuple(10, 1, "Puma"),
         make_tuple(10, 2, "Jaguar"),
@@ -42,25 +56,10 @@ string GetPlatformName(int major, int minor) {
         make_tuple(10, 13, "High Sierra"),
         make_tuple(10, 14, "Mojave"),
         make_tuple(10, 15, "Catalina"),
-        make_tuple(11, 0, "Big Sur")};
+        make_tuple(11, numeric_limits<int>::max(), "Big Sur")};
 
-    auto platform_name = string{"unknown"};
-    for (const auto &platform_name_pack : PLATFORM_NAMES) {
-        auto [major_version, minor_version, platform] = platform_name_pack;
-        if (major == major_version && minor <= minor_version) {
-            platform_name = string{platform};
-            break;
-        }
-    }
-
-    auto version_name = string{"unkown"};
-    for (const auto &version_name_pack : VERSION_NAMES) {
-        auto [major_version, minor_version, version] = version_name_pack;
-        if (major == major_version && minor == minor_version) {
-            version_name = string{version};
-            break;
-        }
-    }
+    auto platform_name = GetPlatformIdentifier(major, minor, PLATFORM_NAMES);
+    auto version_name = GetPlatformIdentifier(major, minor, VERSION_NAMES);
 
     return format("{} {}", platform_name, version_name);
 }
@@ -147,7 +146,7 @@ SystemDetails GetSystemInformationDetails() {
 
     auto [major, minor, patch] = *os_version_holder;
     details.platform_version = format("{}.{}.{}", major, minor, patch);
-    details.platform_name = GetPlatformName(major, minor);
+    details.platform_name = GetPlatformNameVersion(major, minor);
 
     return details;
 }

@@ -14,6 +14,12 @@ using namespace std;
 
 namespace mmotd::information {
 
+InformationProvider::InformationProvider() {
+}
+
+InformationProvider::~InformationProvider() {
+}
+
 const std::vector<Information> &InformationProvider::GetInformations() const {
     return informations_;
 }

@@ -95,10 +95,10 @@
         BOOST_CURRENT_FUNCTION)
 
 #define MMOTD_PRECONDITION BOOST_ASSERT
-#define MMOTD_PRECONDITIONS BOOST_ASSERT_MSG
+#define MMOTD_PRECONDITIONS(expr, msg) BOOST_ASSERT_MSG(expr, std::string(msg).c_str())
 #define MMOTD_CHECK BOOST_ASSERT
-#define MMOTD_CHECKS BOOST_ASSERT_MSG
-#define MMOTD_ALWAYS_FAIL(msg) BOOST_ASSERT_MSG(false, msg)
+#define MMOTD_CHECKS(expr, msg) BOOST_ASSERT_MSG(expr, std::string(msg).c_str())
+#define MMOTD_ALWAYS_FAIL(msg) BOOST_ASSERT_MSG(false, std::string(msg).c_str())
 //#define POSTCONDITION BOOST_ASSERT
 //#define POSTCONDITION BOOST_ASSERT
 

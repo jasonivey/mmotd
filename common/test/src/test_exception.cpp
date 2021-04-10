@@ -1,4 +1,5 @@
 #include "common/assertion/include/exception.h"
+#include "common/test/include/exception_matcher.h"
 
 #include <stdexcept>
 #include <string>
@@ -12,18 +13,6 @@ using namespace mmotd::assertion;
 using namespace std;
 
 namespace mmotd::test {
-
-struct MmotdExceptionMatcher : Catch::MatcherBase<std::exception> {
-    std::string text_;
-
-    MmotdExceptionMatcher(char const *text) : text_(text) {}
-
-    ~MmotdExceptionMatcher() override {}
-
-    bool match(std::exception const &arg) const override { return string{arg.what()}.find(text_) != string::npos; }
-
-    std::string describe() const override { return "MmotdExceptionMatcher"; }
-};
 
 TEST_CASE("InvalidArgument inherits from std::invalid_argument", "[exception]") {
     auto ex = InvalidArgument("invalid argument");

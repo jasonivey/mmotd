@@ -12,7 +12,7 @@
 #include <boost/iterator/indirect_iterator.hpp>
 #include <fmt/color.h>
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 class TemplateSubstring;
 
@@ -66,4 +66,4 @@ private:
     Container template_substrings_;
 };
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results

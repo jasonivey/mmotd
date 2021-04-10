@@ -2,6 +2,7 @@
 #pragma once
 #include "common/include/big_five_macros.h"
 
+#include <cstddef>
 #include <initializer_list>
 #include <iterator>
 #include <string>
@@ -18,7 +19,7 @@ public:
     using reference = value_type &;
     using const_reference = const value_type &;
     using size_type = size_t;
-    using difference_type = ptrdiff_t;
+    using difference_type = std::ptrdiff_t;
     using pointer = value_type *;
     using const_pointer = const value_type *;
     using iterator = std::vector<Information>::iterator;

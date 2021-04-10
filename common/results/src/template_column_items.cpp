@@ -1,7 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
 #include "common/include/algorithm.h"
-#include "common/include/tty_template_data.h"
-#include "common/include/tty_template_string.h"
+#include "common/results/include/template_column_items.h"
+#include "common/results/include/template_string.h"
 
 #include <algorithm>
 #include <array>
@@ -20,6 +21,7 @@
 using fmt::format;
 using nlohmann::json;
 using namespace std;
+using mmotd::results::data::ENTIRE_LINE, mmotd::results::data::ENTIRE_LINE_REPR;
 
 namespace {
 
@@ -98,14 +100,11 @@ optional<fmt::text_style> GetRgbColorValue(string value) {
 }
 
 optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
-    // const auto pattern = regex(
-    //     R"(^((bold_)?)((italic_)?)((underline_)?)((strikethrough_)?)((bright_)?)(black|red|green|yellow|blue|magenta|cyan|white)$)",
-    //     std::regex_constants::ECMAScript | std::regex_constants::icase);
     const auto colors = string{"black|red|green|yellow|blue|magenta|cyan|white"};
     const auto color_regex = regex(colors, regex_constants::ECMAScript | regex_constants::icase);
     auto match = smatch{};
     if (!regex_search(value, match, color_regex)) {
-        PLOG_ERROR << format("no plain terminal color was specified within {} (i.e. {})", value, colors);
+        PLOG_ERROR << format("no terminal color was specified within {} (valid colors are: {})", value, colors);
         return nullopt;
     }
     auto color_str = match.str();
@@ -171,19 +170,15 @@ optional<fmt::text_style> GetTerminalColorValue(string value) {
     auto txt_style = *plain_color_holder;
     if (bold) {
         txt_style |= fmt::emphasis::bold;
-        // PLOG_VERBOSE << format("adding bold to color={} for value={}", static_cast<uint8_t>(color), value);
     }
     if (italic) {
         txt_style |= fmt::emphasis::italic;
-        // PLOG_VERBOSE << format("adding italic to color={} for value={}", static_cast<uint8_t>(color), value);
     }
     if (underline) {
         txt_style |= fmt::emphasis::underline;
-        // PLOG_VERBOSE << format("adding underline to color={} for value={}", static_cast<uint8_t>(color), value);
     }
     if (strikethrough) {
         txt_style |= fmt::emphasis::strikethrough;
-        // PLOG_VERBOSE << format("adding strikethrough to color={} for value={}", static_cast<uint8_t>(color), value);
     }
     return make_optional(txt_style);
 }
@@ -198,9 +193,28 @@ optional<fmt::text_style> GetColorValue(string value) {
     }
 }
 
+inline int column_from_string(const string &column_str) {
+    using namespace boost;
+    if (iequals(string_view(data(column_str)), ENTIRE_LINE_REPR)) {
+        return ENTIRE_LINE;
+    } else if (auto column_holder = FromString(string_view(data(column_str))); column_holder) {
+        return static_cast<int>(*column_holder);
+    } else {
+        auto msg = string{
+            "Input template json contains invalid columns.  Columns is an array of strings.  Each array element must be a valid integer or 'ENTIRE_LINE'"};
+        MMOTD_THROW_OUT_OF_RANGE(msg);
+        return -1;
+    }
+}
+
+inline string column_to_string(int column_value) {
+    using namespace mmotd::results::data;
+    return column_value == ENTIRE_LINE ? string{ENTIRE_LINE_REPR} : to_string(column_value);
+}
+
 } // namespace
 
-namespace mmotd::tty_template::color {
+namespace mmotd::results::color {
 
 string to_string(fmt::text_style txt_style) {
     if (!txt_style.has_foreground()) {
@@ -238,19 +252,36 @@ fmt::text_style from_color_string(string input) {
     return text_style_holder.has_value() ? text_style_holder.value() : fmt::text_style{};
 }
 
-} // namespace mmotd::tty_template::color
+} // namespace mmotd::results::color
 
-namespace mmotd::tty_template::data {
+namespace mmotd::results::data {
 
 string TemplateItemSettings::to_string() const {
-    return format("indent_size: {}\n", indent_size) + format("row_index: {}\n", row_index) +
-           format("column: {}\n", column) + format("prepend_newlines: {}\n", prepend_newlines) +
-           format("append_newlines: {}\n", append_newlines) + format("is_repeatable: {}\n", is_repeatable) +
-           format("is_optional: {}\n", is_optional) + format("name_width: {}\n", name_width) +
-           format("name: [{}]\n", boost::join(name, ", ")) +
-           format("name_color: {}\n", mmotd::tty_template::color::to_string(name_color)) +
-           format("value: [{}]\n", boost::join(value, ", ")) +
-           format("value_color: {}", mmotd::tty_template::color::to_string(value_color));
+    auto template_settings_str = R"(indent_size: {},
+row_index: {},
+repeatable_index: {},
+column: {},
+prepend_newlines: {},
+append_newlines: {},
+is_repeatable: {},
+is_optional: {},
+name: {},
+name_color: {},
+value: {},
+value_color: {})";
+    return format(template_settings_str,
+                  indent_size,
+                  row_index,
+                  repeatable_index,
+                  column,
+                  prepend_newlines,
+                  append_newlines,
+                  is_repeatable,
+                  is_optional,
+                  fmt::join(name, ", "),
+                  color::to_string(name_color),
+                  fmt::join(value, ", "),
+                  color::to_string(value_color));
 }
 
 bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
@@ -258,7 +289,7 @@ bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
     if (i == end(default_config.columns)) {
         PLOG_ERROR << format("column item at row index={} and column={} but config.columns olny specify {}",
                              row_index,
-                             column,
+                             column_to_string(column),
                              default_config.columns_to_string());
         return false;
     }
@@ -269,98 +300,134 @@ bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
     return true;
 }
 
-void to_json(json &root, const TemplateItemSettings &settings) {
-    root = json{{"indent_size", settings.indent_size},
-                {"row_index", settings.row_index},
-                {"column", settings.column},
-                {"prepend_newlines", settings.prepend_newlines},
-                {"append_newlines", settings.append_newlines},
-                {"is_repeatable", settings.is_repeatable},
-                {"is_optional", settings.is_optional},
-                {"name_width", settings.name_width},
-                {"name", settings.name},
-                {"name_color", mmotd::tty_template::color::to_string(settings.name_color)},
-                {"value", settings.value},
-                {"value_color", mmotd::tty_template::color::to_string(settings.value_color)}};
-}
-
-void from_json(const json &root, TemplateItemSettings &settings, const TemplateItemSettings *default_settings) {
+void TemplateItemSettings::from_json(const json &root, const TemplateItemSettings *default_settings) {
     if (root.contains("indent_size")) {
-        root.at("indent_size").get_to(settings.indent_size);
+        root.at("indent_size").get_to(indent_size);
     } else if (default_settings != nullptr) {
-        settings.indent_size = default_settings->indent_size;
+        indent_size = default_settings->indent_size;
     }
     if (root.contains("row_index")) {
         // no default taken from default_settings
-        root.at("row_index").get_to(settings.row_index);
+        root.at("row_index").get_to(row_index);
     } else if (default_settings != nullptr) {
         // default_settings == nullptr is only true when creating default_settings
         PLOG_WARNING << "item missing row_index property (must have it for ordering purposes)";
     }
-    if (root.contains("column")) {
-        root.at("column").get_to(settings.column);
+    if (root.contains("repeatable_index")) {
+        root.at("repeatable_index").get_to(repeatable_index);
     } else if (default_settings != nullptr) {
-        settings.column = default_settings->column;
+        repeatable_index = default_settings->repeatable_index;
+    }
+    if (root.contains("column")) {
+        column = column_from_string(root.at("column"));
+    } else if (default_settings != nullptr) {
+        column = default_settings->column;
     }
     if (root.contains("prepend_newlines")) {
-        root.at("prepend_newlines").get_to(settings.prepend_newlines);
+        root.at("prepend_newlines").get_to(prepend_newlines);
     } else if (default_settings != nullptr) {
-        settings.prepend_newlines = default_settings->prepend_newlines;
+        prepend_newlines = default_settings->prepend_newlines;
     }
     if (root.contains("append_newlines")) {
-        root.at("append_newlines").get_to(settings.append_newlines);
+        root.at("append_newlines").get_to(append_newlines);
     } else if (default_settings != nullptr) {
-        settings.append_newlines = default_settings->append_newlines;
+        append_newlines = default_settings->append_newlines;
     }
     if (root.contains("is_repeatable")) {
-        root.at("is_repeatable").get_to(settings.is_repeatable);
+        root.at("is_repeatable").get_to(is_repeatable);
     } else if (default_settings != nullptr) {
-        settings.is_repeatable = default_settings->is_repeatable;
+        is_repeatable = default_settings->is_repeatable;
     }
     if (root.contains("is_optional")) {
-        root.at("is_optional").get_to(settings.is_optional);
+        root.at("is_optional").get_to(is_optional);
     } else if (default_settings != nullptr) {
-        settings.is_optional = default_settings->is_optional;
-    }
-    if (root.contains("name_width")) {
-        root.at("name_width").get_to(settings.name_width);
-    } else if (default_settings != nullptr) {
-        settings.name_width = default_settings->name_width;
+        is_optional = default_settings->is_optional;
     }
     if (root.contains("name")) {
         // no default taken from default_settings
-        root.at("name").get_to(settings.name);
+        root.at("name").get_to(name);
     } else if (default_settings != nullptr) {
         // default_settings == nullptr is only true when creating default_settings
         PLOG_WARNING << "item missing name property (should leave an empty [] name for completeness)";
     }
     if (root.contains("name_color")) {
-        settings.name_color = color::from_color_string(root.at("name_color"));
+        name_color = color::from_color_string(root.at("name_color"));
     } else if (default_settings != nullptr) {
-        settings.name_color = default_settings->name_color;
+        name_color = default_settings->name_color;
     }
     if (root.contains("value")) {
         // no default taken from default_settings
-        root.at("value").get_to(settings.value);
+        root.at("value").get_to(value);
     } else if (default_settings != nullptr) {
         // default_settings == nullptr is only true when creating default_settings
         PLOG_WARNING << "item missing value property (should leave an empty [] value for completeness)";
     }
     if (root.contains("value_color")) {
-        settings.value_color = color::from_color_string(root.at("value_color"));
+        value_color = color::from_color_string(root.at("value_color"));
     } else if (default_settings != nullptr) {
-        settings.value_color = default_settings->value_color;
+        value_color = default_settings->value_color;
     }
 }
 
+void TemplateItemSettings::to_json(json &root) const {
+    root = json{{"indent_size", indent_size},
+                // {"row_index", row_index},
+                // {"repeatable_index", repeatable_index},
+                {"column", column_to_string(column)},
+                {"prepend_newlines", prepend_newlines},
+                {"append_newlines", append_newlines},
+                {"is_repeatable", is_repeatable},
+                {"is_optional", is_optional},
+                {"name", name},
+                {"name_color", color::to_string(name_color)},
+                {"value", value},
+                {"value_color", color::to_string(value_color)}};
+}
+
+void to_json(json &root, const TemplateItemSettings &settings) {
+    settings.to_json(root);
+}
+
 void from_json(const json &root, TemplateItemSettings &settings) {
-    from_json(root, settings, nullptr);
+    settings.from_json(root, nullptr);
+}
+
+std::string OutputSettings::to_string() const {
+    auto collapse_column_rows_str = format("collapse_column_rows = {}\n", collapse_column_rows);
+    auto table_type_str = format("table_type = {}", table_type);
+    return collapse_column_rows_str + table_type_str;
+}
+
+void OutputSettings::from_json(const json &root) {
+    if (root.contains("collapse_column_rows")) {
+        root.at("collapse_column_rows").get_to(collapse_column_rows);
+    }
+    if (root.contains("table_type")) {
+        root.at("table_type").get_to(table_type);
+    }
+}
+
+void OutputSettings::to_json(json &root) const {
+    root = json{{"collapse_column_rows", collapse_column_rows}, {"table_type", table_type}};
+}
+
+void from_json(const json &root, OutputSettings &settings) {
+    settings.from_json(root);
+}
+
+void to_json(json &root, const OutputSettings &settings) {
+    settings.to_json(root);
 }
 
 string TemplateConfig::to_string() const {
     auto columns_str = format("columns = {}\n", columns_to_string());
+    auto output_settings_str = format("output_settings = {}\n", output_settings_to_string());
     auto settings_str = format("default_settings = [\n{}]", default_settings_to_string());
-    return columns_str + settings_str;
+    return columns_str + output_settings_str + settings_str;
+}
+
+string TemplateConfig::output_settings_to_string() const {
+    return output_settings.to_string();
 }
 
 string TemplateConfig::default_settings_to_string() const {
@@ -369,20 +436,57 @@ string TemplateConfig::default_settings_to_string() const {
 
 string TemplateConfig::columns_to_string() const {
     using mmotd::algorithms::join;
-    return format("[{}]", join(columns, ", ", [](int value) { return std::to_string(value); }));
+    auto columns_str = join(columns, ", ", [](int value) { return column_to_string(value); });
+    return format("[{}]", columns_str);
+}
+
+void TemplateConfig::columns_from_json(const json &root) {
+    columns.clear();
+    if (!root.contains("columns")) {
+        auto msg =
+            "No columns were specified in input json.  Defaulting to one column containing one row each (ENTIRE_LINE).";
+        PLOG_WARNING << msg;
+        columns.push_back(ENTIRE_LINE);
+        return;
+    }
+    for (auto column : root["columns"]) {
+        columns.push_back(column_from_string(column));
+    }
+}
+
+void TemplateConfig::default_settings_from_json(const json &root) {
+    if (root.contains("default_settings")) {
+        root.at("default_settings").get_to(default_settings);
+    }
+}
+
+void TemplateConfig::output_settings_from_json(const json &root) {
+    if (root.contains("output_settings")) {
+        root.at("output_settings").get_to(output_settings);
+    }
+}
+
+void TemplateConfig::from_json(const json &root) {
+    columns_from_json(root);
+    default_settings_from_json(root);
+    output_settings_from_json(root);
 }
 
 void from_json(const json &root, TemplateConfig &template_config) {
-    if (root.contains("columns")) {
-        root.at("columns").get_to(template_config.columns);
-    }
-    if (root.contains("default_settings")) {
-        root.at("default_settings").get_to(template_config.default_settings);
-    }
+    template_config.from_json(root);
+}
+
+void TemplateConfig::to_json(json &root) const {
+    auto columns_strs = vector<string>{};
+    for_each(begin(columns), end(columns), [&columns_strs](int value) {
+        columns_strs.push_back(column_to_string(value));
+    });
+    root =
+        json{{"columns", columns_strs}, {"default_settings", default_settings}, {"output_settings", output_settings}};
 }
 
 void to_json(json &root, const TemplateConfig &template_config) {
-    root = json{{"columns", template_config.columns}, {"default_settings", template_config.default_settings}};
+    template_config.to_json(root);
 }
 
 string to_string(const TemplateColumnItems &items) {
@@ -391,15 +495,4 @@ string to_string(const TemplateColumnItems &items) {
     });
 }
 
-// void from_json(const json &root, TemplateColumnItems &template_column_items) {
-//     if (root.contains("column_items")) {
-//         root.at("column_items").get_to(template_column_items);
-//     }
-// }
-
-// void to_json(nlohmann::json &root, const TemplateColumnItems &settings) {
-//     root = json{{"columns", template_config.columns},
-//                 {"default_settings", template_config.default_settings}};
-// }
-
-} // namespace mmotd::tty_template::data
+} // namespace mmotd::results::data

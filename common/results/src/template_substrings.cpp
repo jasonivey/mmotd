@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/tty_template_substring.h"
-#include "common/include/tty_template_substrings.h"
+#include "common/results/include/template_substring.h"
+#include "common/results/include/template_substrings.h"
 
 #include <algorithm>
 #include <iterator>
@@ -14,7 +14,7 @@
 using namespace std;
 using fmt::format;
 
-namespace mmotd::tty_template::tty_string {
+namespace mmotd::results {
 
 bool TemplateSubstrings::empty() const noexcept {
     return template_substrings_.empty();
@@ -107,4 +107,4 @@ string TemplateSubstrings::to_string(function<fmt::text_style(string)> convert_c
     return output;
 }
 
-} // namespace mmotd::tty_template::tty_string
+} // namespace mmotd::results
