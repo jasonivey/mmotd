@@ -6,7 +6,7 @@ struct Options;
 class AppOptionsCreator {
 public:
     AppOptionsCreator() = default;
-    virtual ~AppOptionsCreator() = default;
+    virtual ~AppOptionsCreator();
 
     virtual const Options &GetOptions() const = 0;
     virtual bool IsAppFinished() const = 0;

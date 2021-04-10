@@ -3,6 +3,7 @@
 #include "common/include/posix_error.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <iterator>
 #include <string>
@@ -52,7 +53,7 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
     memset(&ifmr, 0, sizeof(ifmr));
     memcpy(ifmr.ifm_name, data(name), min(size(name), static_cast<size_t>(IFNAMSIZ - 1)));
 
-    if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
+    if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
         PLOG_ERROR << format("iterface does not support SIOCGIFMEDIA, details: {}",
                              mmotd::error::posix_error::to_string());
         return false;
@@ -63,16 +64,16 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
         return false;
     }
 
-    int *media_list = (int *)malloc(ifmr.ifm_count * sizeof(int));
+    int *media_list = static_cast<int *>(malloc(static_cast<size_t>(ifmr.ifm_count) * sizeof(int)));
     if (media_list == NULL) {
-        PLOG_ERROR << format("malloc failed to allocate {} bytes", ifmr.ifm_count * sizeof(int));
+        PLOG_ERROR << format("malloc failed to allocate {} bytes", static_cast<size_t>(ifmr.ifm_count) * sizeof(int));
         return false;
     }
 
     auto media_list_deleter = sg::make_scope_guard([media_list]() noexcept { free(media_list); });
     ifmr.ifm_ulist = media_list;
 
-    if (ioctl(sock, SIOCGIFMEDIA, (caddr_t)&ifmr) < 0) {
+    if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
         PLOG_ERROR << format("ioctl SIOCGIFMEDIA failed, details: {}", mmotd::error::posix_error::to_string());
         return false;
     }

@@ -3,13 +3,37 @@ include_guard (DIRECTORY)
 
 cmake_minimum_required (VERSION 3.8)
 
-# CMake 3.13 and lower did not add `PIE` or `PIC` link flags when POSITION_INDEPENDENT_CODE is set
-cmake_policy(SET CMP0083 NEW)
+include (set_policies)
+set_default_policies()
+
+macro (add_single_definition var_name flag)
+    set (existing_flag_value " ${${var_name}} ")
+    string (FIND "${existing_flag_value}" " ${flag} " flag_index)
+    if (flag_index EQUAL -1)
+        # the flag (i.e. -stdlib=libc++) was not found in the variable (i.e. CMAKE_CXX_FLAGS)
+        string (COMPARE EQUAL "" "${${var_name}}" is_empty)
+        if (is_empty)
+            set ("${var_name}" "${flag}")
+        else ()
+            set ("${var_name}" "${flag} ${${var_name}}")
+        endif ()
+    endif ()
+endmacro ()
+
+if (CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang")
+    add_single_definition(CMAKE_CXX_FLAGS "-stdlib=libc++")
+    add_single_definition(CMAKE_EXE_LINKER_FLAGS "-stdlib=libc++")
+    add_single_definition(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
+endif ()
+
 include (CheckPIESupported)
 
 include (find_dependencies)
 
 macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
+    set (CMAKE_CXX_VISIBILITY_PRESET hidden)
+    set (CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+
     set_target_properties(
         ${MMOTD_TARGET_NAME} PROPERTIES
         C_STANDARD 11
@@ -61,11 +85,6 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
 
     target_compile_options(
         ${MMOTD_TARGET_NAME}
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Werror>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wpedantic>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wextra>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wformat=2>
         # If we are going to use clang and clang++ then we should also use,
         #  (but are not forced to) use libc++ instead of stdlibc++.
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-stdlib=libc++>
@@ -79,6 +98,67 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-ggdb3>
         # Enable optimizations on release builds
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O2>
+        # Enable C++ dialect options
+        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-felide-constructors>
+        # Enable various warnings
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Werror>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-pedantic-errors>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wextra>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wformat=2>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wdouble-promotion>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wshadow>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wcast-align>
+        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wstrict-aliasing>
+        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wstrict-overflow>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wfloat-equal>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wwrite-strings>
+        # PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wconversion>
+        # PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wsign-conversion>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wswitch-enum>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wnon-virtual-dtor>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wundef>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunreachable-code>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wold-style-cast>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Woverloaded-virtual>
+        # clang only
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wweak-vtables>
+        #PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wexit-time-destructors>
+        #PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wglobal-constructors>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wmissing-noreturn>
+        # gnu only?
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wtrampolines>
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>
+
+        # /EHsc # Warning fix!
+        # /W4
+        # /WX # Treats all compilers warnings as errors
+        # /w14242 # 'identfier': conversion from 'type1' to 'type1', possible loss of data
+        # /w14254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
+        # /w14263 # 'function': member function does not override any base class virtual member function
+        # /w14265 # 'classname': class has virtual functions, but destructor is not virtual instances of this class may not be destructed correctly
+        # /w14287 # 'operator': unsigned/negative constant mismatch
+        # /we4289 # nonstandard extension used: 'variable': loop control variable declared in the for-loop is used outside the for-loop scope
+        # /w14296 # 'operator': expression is always 'boolean_value'
+        # /w14311 # 'variable': pointer truncation from 'type1' to 'type2'
+        # /w14545 # expression before comma evaluates to a function which is missing an argument list
+        # /w14546 # function call before comma missing argument list
+        # /w14547 # 'operator': operator before comma has no effect; expected operator with side-effect
+        # /w14549 # 'operator': operator before comma has no effect; did you intend 'operator'?
+        # /w14555 # expression has no effect; expected expression with side-effect
+        # /w14619 # pragma warning: there is no warning number 'number'
+        # /w14640 # Enable warning on thread un-safe static member initialization
+        # /w14826 # Conversion from 'type1' to 'type_2' is sign-extended. This may cause unexpected runtime behavior.
+        # /w14905 # wide string literal cast to 'LPSTR'
+        # /w14906 # string literal cast to 'LPWSTR'
+        # /w14928 # illegal copy-initialization; more than one user-defined conversion has been implicitly applied
+        # /w44265
+        # /w44265
+        # /w44061
+        # /w44062
+        # /w45038
+
+
         )
 
     # This adds the root mmotd source directory as the only project include directory.
@@ -94,6 +174,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
     target_include_directories(
         ${MMOTD_TARGET_NAME} SYSTEM
         PRIVATE ${Boost_INCLUDE_DIRS}
+        PRIVATE ${BACKWARD_INCLUDE_DIRS}
+        PRIVATE ${fort_SOURCE_DIR}/lib
         PRIVATE ${certify_SOURCE_DIR}/include
         PRIVATE ${plog_SOURCE_DIR}/include
         PRIVATE ${fmt_SOURCE_DIR}/include
@@ -119,12 +201,16 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         endif ()
         target_link_libraries(
             ${MMOTD_TARGET_NAME}
-            PRIVATE mmotd_common
             PRIVATE mmotd_lib
+            PRIVATE mmotd_common
             )
         target_link_libraries(
             ${MMOTD_TARGET_NAME}
+            PRIVATE fort
             PRIVATE nlohmann_json::nlohmann_json
+            PRIVATE fmt::fmt
+            PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++>
+            PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++abi>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWCoreFoundation}>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWSecurity}>
             PRIVATE $<$<PLATFORM_ID:Darwin,Linux>:${OPENSSL_CRYPTO_LIBRARY}>
@@ -132,10 +218,10 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
             PRIVATE $<$<PLATFORM_ID:Darwin,Linux>:ZLIB::ZLIB>
             PRIVATE $<$<STREQUAL:target_type,"mmotd_test">:Catch2::Catch2>
             PRIVATE Threads::Threads
+            PRIVATE ${CMAKE_DL_LIBS}
             )
     endif ()
 
     # Add the Backward component to the set of includes and linker options
     add_backward (${MMOTD_TARGET_NAME})
 endmacro ()
-

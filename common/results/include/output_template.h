@@ -21,6 +21,8 @@ public:
     using TemplateColumnItems = std::vector<mmotd::results::data::TemplateColumnItem>;
     const TemplateColumnItems &GetColumnItems() const;
 
+    const mmotd::results::data::OutputSettings &GetOutputSettings() const;
+
 private:
     bool ParseJson(std::string template_file_name);
 

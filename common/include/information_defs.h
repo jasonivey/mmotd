@@ -18,14 +18,14 @@ CATEGORY_INFO_DEF(WEATHER, weather, 125)
 
 INFO_DEF(GENERAL, GREETING, "greeting", "{}", 901)
 INFO_DEF(GENERAL, USER_NAME, "user name", "{}", 902)
-INFO_DEF(GENERAL, LOCAL_DATE_TIME, "local date time", "{:%a, %d-%h-%Y %I:%M:%S%p %Z}", 903)
+INFO_DEF(GENERAL, LOCAL_DATE_TIME, "local date time", "{}", 903)
 INFO_DEF(GENERAL, LOCAL_TIME_EMOJI, "local time emoji", "{}", 904)
 
 INFO_DEF(NETWORK_INFO, IP, "ip", "{}", 1001)
 INFO_DEF(NETWORK_INFO, MAC, "mac", "{}", 1002)
 INFO_DEF(NETWORK_INFO, INTERFACE_NAME, "interface name", "{}", 1003)
 
-INFO_DEF(BOOT_TIME, BOOT_TIME, "boot time", "{:%a, %d-%h-%Y %I:%M:%S%p %Z}", 2001)
+INFO_DEF(BOOT_TIME, BOOT_TIME, "boot time", "{}", 2001)
 
 INFO_DEF(EXTERNAL_NETWORK_INFO, EXTERNAL_IP, "external ip", "{}", 3001)
 
@@ -44,7 +44,7 @@ INFO_DEF(FILE_SYSTEM, AVAILABLE, "available", "{}", 5004)
 INFO_DEF(FORTUNE, FORTUNE, "", "{}", 6001)
 
 INFO_DEF(LAST_LOGIN, LOGIN_SUMMARY, "login summary", "{}", 7001)
-INFO_DEF(LAST_LOGIN, LOGIN_TIME, "login time", "{:%d-%h-%Y %I:%M:%S%p %Z}", 7002)
+INFO_DEF(LAST_LOGIN, LOGIN_TIME, "login time", "{}", 7002)
 INFO_DEF(LAST_LOGIN, LOGOUT_TIME, "logout time", "{}", 7003)
 
 INFO_DEF(PROCESSOR_COUNT, PROCESSOR_CORE_COUNT, "processor count", "{}", 8001)

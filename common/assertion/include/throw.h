@@ -23,7 +23,6 @@ void ThrowException(Exception &&ex, const char *file, long line, const char *fun
                              << ::boost::throw_function(function) << ::boost::throw_file(file)
                              << ::boost::throw_line(static_cast<int>(line))
                              << throw_stack_trace(mmotd::assertion::GetStackTrace()));
-    //<< ::boost::throw_line(static_cast<int>(line)) << traced(boost::stacktrace::stacktrace()));
 }
 
 template<typename Exception>
@@ -32,7 +31,6 @@ void ThrowException(const Exception &ex, const char *file, long line, const char
                              << ::boost::throw_function(function) << ::boost::throw_file(file)
                              << ::boost::throw_line(static_cast<int>(line))
                              << throw_stack_trace(mmotd::assertion::GetStackTrace()));
-    //<< ::boost::throw_line(static_cast<int>(line)) << traced(boost::stacktrace::stacktrace()));
 }
 
 } // namespace mmotd::assertion

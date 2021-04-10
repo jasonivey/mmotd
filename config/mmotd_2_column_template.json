@@ -1,27 +1,30 @@
 {
     "config": {
         "columns": [
-            0,
-            1,
-            2
+            "ENTIRE_LINE",
+            "1",
+            "2"
         ],
         "default_settings": {
             "indent_size": 2,
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "prepend_newlines": 0,
             "append_newlines": 1,
             "is_repeatable": false,
             "is_optional": false,
-            "name_width": "max",
             "name": [],
             "name_color": "bold_bright_cyan",
             "value": [],
             "value_color": "bold_bright_white"
+        },
+        "output_settings": {
+            "collapse_column_rows": true,
+            "table_type": "PLAIN_STYLE"
         }
     },
     "column_items": [
         {
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "indent_size": 0,
             "row_index": 1,
             "name": [],
@@ -32,7 +35,7 @@
             "append_newlines": 2
         },
         {
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "row_index": 2,
             "name": [],
             "value": [
@@ -42,7 +45,7 @@
             "append_newlines": 2
         },
         {
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "row_index": 3,
             "name": [
                 "%ID_WEATHER_LOCATION%:"
@@ -52,7 +55,7 @@
             ]
         },
         {
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "row_index": 4,
             "name": [
                 "Last Login:",
@@ -66,7 +69,7 @@
             ]
         },
         {
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "row_index": 5,
             "name": [
                 "Boot Time:"
@@ -77,7 +80,7 @@
             "append_newlines": 2
         },
         {
-            "column": 1,
+            "column": "1",
             "row_index": 6,
             "name": [
                 "Computer Name:"
@@ -87,7 +90,7 @@
             ]
         },
         {
-            "column": 2,
+            "column": "2",
             "row_index": 6,
             "name": [
                 "Hostname:"
@@ -97,7 +100,7 @@
             ]
         },
         {
-            "column": 1,
+            "column": "1",
             "row_index": 7,
             "name": [
                 "Public IP:"
@@ -107,7 +110,7 @@
             ]
         },
         {
-            "column": 2,
+            "column": "2",
             "row_index": 7,
             "name": [
                 "Processes:"
@@ -117,7 +120,7 @@
             ]
         },
         {
-            "column": 1,
+            "column": "1",
             "row_index": 8,
             "name": [
                 "System Load:"
@@ -127,7 +130,7 @@
             ]
         },
         {
-            "column": 2,
+            "column": "2",
             "row_index": 8,
             "name": [
                 "Users Logged In:"
@@ -137,7 +140,7 @@
             ]
         },
         {
-            "column": 1,
+            "column": "1",
             "row_index": 9,
             "name": [
                 "Usage of /:"
@@ -147,7 +150,7 @@
             ]
         },
         {
-            "column": 2,
+            "column": "2",
             "row_index": 9,
             "is_repeatable": true,
             "is_optional": true,
@@ -161,7 +164,7 @@
             ]
         },
         {
-            "column": 1,
+            "column": "1",
             "row_index": 10,
             "name": [
                 "Memory Usage:"
@@ -171,7 +174,7 @@
             ]
         },
         {
-            "column": 1,
+            "column": "1",
             "row_index": 11,
             "name": [
                 "Swap Usage:"
@@ -182,14 +185,13 @@
         },
         {
             "indent_size": 0,
-            "column": 0,
+            "column": "ENTIRE_LINE",
             "row_index": 12,
             "name": [],
             "value": [
                 "%color:bold_bright_cyan%%ID_FORTUNE_FORTUNE%"
             ],
-            "append_newlines": 2,
-            "prepend_newlines": 2
+            "prepend_newlines": 1
         }
     ]
 }

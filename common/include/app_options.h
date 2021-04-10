@@ -17,7 +17,10 @@ struct Options {
 
     std::string to_string() const;
 
+    enum class ColorWhen { Always, Auto, Never, NotSet };
+
     int verbose = 0;
+    ColorWhen color_when = ColorWhen::NotSet;
     std::optional<std::string> output_config_path;
     std::optional<std::string> output_template_path;
     std::string config_path;
@@ -40,24 +43,10 @@ struct Options {
     boost::tribool quote = boost::indeterminate;
 
     void SetVerbose(std::int64_t count) { verbose = static_cast<int>(count); }
-    bool SetOutputConfigPath(const std::vector<std::string> &paths) {
-        if (!paths.empty()) {
-            output_config_path = paths.front();
-        }
-        return true;
-    }
-    bool SetOutputTemplatePath(const std::vector<std::string> &paths) {
-        if (!paths.empty()) {
-            output_template_path = paths.front();
-        }
-        return true;
-    }
-    bool SetTemplatePath(const std::vector<std::string> &paths) {
-        if (!paths.empty()) {
-            template_path = paths.front();
-        }
-        return true;
-    }
+    bool SetColorWhen(const std::vector<std::string> &whens);
+    bool SetOutputConfigPath(const std::vector<std::string> &paths);
+    bool SetOutputTemplatePath(const std::vector<std::string> &paths);
+    bool SetTemplatePath(const std::vector<std::string> &paths);
     void SetLastLogin(int value) { last_login = value == -1 ? false : true; }
     void SetComputerName(int value) { computer_name = value == -1 ? false : true; }
     void SetHostName(int value) { host_name = value == -1 ? false : true; }
@@ -77,6 +66,9 @@ struct Options {
 
     bool IsVerboseSet() const { return verbose > 0; }
     int GetVerbosityLevel() const { return verbose; }
+    bool IsColorWhenSet() const;
+    bool IsColorDisabled() const;
+    ColorWhen GetColorWhen() const;
     bool IsTemplatePathSet() const { return !std::empty(template_path); }
     std::string GetTemplatePath() const { return template_path; }
     bool IsLastLoginSet() const { return !indeterminate(last_login); }

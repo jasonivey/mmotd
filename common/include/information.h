@@ -34,21 +34,20 @@ public:
 
     void SetName(const std::string &new_name) { name_ = new_name; }
 
-    template<typename... Args>
-    void SetValueFormat(const std::string &fmt_str, Args &&...args) {
-        SetValueImpl(fmt_str, std::forward<Args>(args)...);
+    void SetValue(std::string new_value) { value_ = new_value; }
+
+    template<typename S, typename... Args>
+    void SetValueFormat(const S &format, Args &&...args) {
+        SetValueImpl(std::string_view(format), fmt::make_args_checked<Args...>(std::string_view(format), args...));
     }
 
     template<typename... Args>
     void SetValueArgs(Args &&...args) {
-        SetValueImpl(format_str_, std::forward<Args>(args)...);
+        SetValueImpl(std::data(format_str_), fmt::make_args_checked<Args...>(std::data(format_str_), args...));
     }
 
 private:
-    template<typename... Args>
-    void SetValueImpl(std::string_view fmt_str, Args &&...args) {
-        value_ = fmt::format(fmt_str, std::forward<Args>(args)...);
-    }
+    void SetValueImpl(fmt::string_view format, fmt::format_args args) { value_ = fmt::vformat(format, args); }
 
     CategoryId category_;
     InformationId information_id_;

@@ -15,6 +15,13 @@ add_library (
     assertion/src/assertion.cpp
     assertion/src/exception.cpp
     assertion/src/stack_trace.cpp
+    results/src/output_column.cpp
+    results/src/output_column_indexes.cpp
+    results/src/output_frame.cpp
+    results/src/output_position_index.cpp
+    results/src/output_row.cpp
+    results/src/output_row_number_sentinals.cpp
+    results/src/output_table.cpp
     results/src/output_template.cpp
     results/src/output_template_printer.cpp
     results/src/template_column_items.cpp
@@ -23,6 +30,7 @@ add_library (
     results/src/template_substring_range.cpp
     results/src/template_substrings.cpp
     src/app_options.cpp
+    src/app_options_creator.cpp
     src/information.cpp
     src/information_decls.cpp
     src/information_definitions.cpp

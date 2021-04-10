@@ -1,4 +1,5 @@
 #include "common/assertion/include/assertion.h"
+#include "common/test/include/exception_matcher.h"
 
 #include <stdexcept>
 
@@ -12,22 +13,14 @@ using namespace std;
 
 namespace mmotd::test {
 
-struct MmotdExceptionMatcher : Catch::MatcherBase<std::exception> {
-    std::string text_;
-
-    MmotdExceptionMatcher(char const *text) : text_(text) {}
-
-    ~MmotdExceptionMatcher() override {}
-
-    bool match(std::exception const &arg) const override { return string{arg.what()}.find(text_) != string::npos; }
-
-    std::string describe() const override { return "MmotdExceptionMatcher"; }
-};
-
 TEST_CASE("Assertion inherits from RuntimeError", "[assertion]") {
     auto assertion = Assertion("assertion");
     CHECK(dynamic_cast<const std::exception *>(&assertion) != nullptr);
     CHECK(dynamic_cast<const std::runtime_error *>(&assertion) != nullptr);
+}
+
+TEST_CASE("Assertion contains context", "[assertion]") {
+    auto assertion = Assertion("assertion");
     auto assertion_str = string(assertion.what());
     fmt::print("{}\n", assertion_str);
     CHECK_THAT(assertion_str, Contains("mmotd::assertion::Assertion::Assertion"));

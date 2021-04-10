@@ -12,7 +12,7 @@ class SubstringRange {
     friend bool operator==(const SubstringRange &a, const SubstringRange &b);
 
 public:
-    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(SubstringRange);
+    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(SubstringRange);
 
     SubstringRange(size_t position, size_t count);
 

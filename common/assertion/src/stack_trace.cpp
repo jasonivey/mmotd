@@ -3,13 +3,16 @@
 #include "common/include/algorithm.h"
 
 #include <algorithm>
+#include <regex>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <backward.hpp>
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
+#include <plog/Log.h>
 
 using namespace mmotd::algorithms;
 using fmt::format;
@@ -17,76 +20,134 @@ using namespace std;
 
 namespace {
 
-static constexpr const size_t DEBUG_CLANG_LEVELS_TO_SKIP = size_t{6};
-static constexpr const size_t DEBUG_GCC_LEVELS_TO_SKIP = size_t{5};
-static constexpr const size_t DEBUG_LEVELS_TO_SKIP = size_t{0};
-static constexpr const size_t RELEASE_CLANG_LEVELS_TO_SKIP = size_t{2};
-static constexpr const size_t RELEASE_GCC_LEVELS_TO_SKIP = size_t{3};
-static constexpr const size_t RELEASE_LEVELS_TO_SKIP = size_t{0};
+static constexpr const size_t CLANG_DEBUG_LEVELS_TO_SKIP = size_t{6};
+static constexpr const size_t CLANG_RELEASE_LEVELS_TO_SKIP = size_t{1};
+static constexpr const size_t GCC_DEBUG_LEVELS_TO_SKIP = size_t{5};
+static constexpr const size_t GCC_RELEASE_LEVELS_TO_SKIP = size_t{1};
+static constexpr const size_t GENERIC_DEBUG_LEVELS_TO_SKIP = size_t{0};
+static constexpr const size_t GENERIC_RELEASE_LEVELS_TO_SKIP = size_t{0};
 
 inline constexpr size_t GetLevelsToSkip() noexcept {
-#if defined(__GNUG__)
+#if defined(__clang__)
 #    if defined(NDEBUG)
-    return RELEASE_GCC_LEVELS_TO_SKIP;
+    return CLANG_RELEASE_LEVELS_TO_SKIP;
 #    else
-    return DEBUG_GCC_LEVELS_TO_SKIP;
+    return CLANG_DEBUG_LEVELS_TO_SKIP;
 #    endif
-#elif defined(__clang__)
+#elif defined(__GNUG__)
 #    if defined(NDEBUG)
-    return RELEASE_CLANG_LEVELS_TO_SKIP;
+    return GCC_RELEASE_LEVELS_TO_SKIP;
 #    else
-    return DEBUG_CLANG_LEVELS_TO_SKIP;
+    return GCC_DEBUG_LEVELS_TO_SKIP;
 #    endif
 #else
 #    if defined(NDEBUG)
-    return RELEASE_LEVELS_TO_SKIP;
+    return GENERIC_RELEASE_LEVELS_TO_SKIP;
 #    else
-    return DEBUG_LEVELS_TO_SKIP;
+    return GENERIC_DEBUG_LEVELS_TO_SKIP;
 #    endif
 #endif
 }
 
-inline string generate_stack_trace() {
-    unused(DEBUG_LEVELS_TO_SKIP, DEBUG_CLANG_LEVELS_TO_SKIP, DEBUG_GCC_LEVELS_TO_SKIP);
-    unused(RELEASE_LEVELS_TO_SKIP, RELEASE_CLANG_LEVELS_TO_SKIP, RELEASE_GCC_LEVELS_TO_SKIP);
+string GenerateStackTrace() {
+    unused(GENERIC_DEBUG_LEVELS_TO_SKIP, CLANG_DEBUG_LEVELS_TO_SKIP, GCC_DEBUG_LEVELS_TO_SKIP);
+    unused(GENERIC_RELEASE_LEVELS_TO_SKIP, CLANG_RELEASE_LEVELS_TO_SKIP, GCC_RELEASE_LEVELS_TO_SKIP);
 
     auto stack_trace = backward::StackTrace{};
     stack_trace.load_here();
     stack_trace.skip_n_firsts(GetLevelsToSkip());
     auto printer = backward::Printer{};
-    printer.color_mode = backward::ColorMode::never;
+    printer.color_mode = backward::ColorMode::automatic;
+    printer.snippet = false;
+    printer.object = true;
+    printer.address = true;
     auto ostrm = ostringstream{};
     printer.print(stack_trace, ostrm);
     return ostrm.str();
 }
 
-inline vector<string> split_stack_trace(string stack_trace_str) {
-    auto stack_trace_lines = vector<string>{};
-    boost::split(stack_trace_lines, stack_trace_str, boost::is_any_of("\n"), boost::token_compress_on);
-    stack_trace_lines.erase(remove(begin(stack_trace_lines), end(stack_trace_lines), string{}), end(stack_trace_lines));
-    return stack_trace_lines;
+pair<size_t, size_t> FindParens(string backtrace_detail) {
+    auto open_paren = backtrace_detail.rfind('(');
+    auto close_paren = backtrace_detail.find(')', open_paren);
+    return {open_paren, close_paren};
 }
 
-inline string reverse_stack_trace_impl(vector<string> stack_trace_lines) {
-    if (empty(stack_trace_lines)) {
+string StripFunctionArgs(string backtrace_detail) {
+    auto [open_paren, close_paren] = FindParens(backtrace_detail);
+    if (open_paren != string::npos && close_paren != string::npos && open_paren + 1 != close_paren) {
+        backtrace_detail = format("{}(...){}",
+                                  string{begin(backtrace_detail), begin(backtrace_detail) + open_paren},
+                                  string{begin(backtrace_detail) + close_paren + 1, end(backtrace_detail)});
+    }
+    return backtrace_detail;
+}
+
+vector<string> SplitStackTrace(string stack_trace_str) {
+    auto backtrace_details = vector<string>{};
+    boost::split(backtrace_details, stack_trace_str, boost::is_any_of("\n"), boost::token_compress_on);
+    backtrace_details.erase(remove(begin(backtrace_details), end(backtrace_details), string{}), end(backtrace_details));
+    return backtrace_details;
+}
+
+bool IsFirstOfStackDetails(string detail) {
+    const auto number_prefix = regex(R"(^#\d+\s+)", regex_constants::ECMAScript);
+    return regex_search(detail, number_prefix, regex_constants::match_continuous);
+}
+
+void RemovePreMainStackDetails(vector<vector<string>> &details) {
+    using namespace mmotd::algorithms;
+    auto i = find_last_if(begin(details), end(details), [](const auto &sub_details) {
+        auto j = find_if(begin(sub_details), end(sub_details), [](const auto &detail) {
+            return !boost::ifind_first(detail, ", in main [").empty();
+        });
+        return j != end(sub_details);
+    });
+    if (i == end(details)) {
+        PLOG_VERBOSE << "main was not found within the stack trace";
+        return;
+    }
+    const auto end_index = static_cast<size_t>(distance(begin(details), i));
+    auto index = size_t{0};
+    auto j = remove_if(begin(details), end(details), [end_index, &index](const auto &) { return end_index > index++; });
+    details.erase(j, end(details));
+    details.shrink_to_fit();
+}
+
+string ReverseStackTraceImpl(vector<string> backtrace_details) {
+    if (empty(backtrace_details)) {
         return string{};
     }
-
-    boost::replace_all(stack_trace_lines.front(), "most recent call last", "most recent call first");
-
-    reverse(begin(stack_trace_lines) + 1, end(stack_trace_lines));
-
-    auto index = 1;
-    for_each(begin(stack_trace_lines) + 1, end(stack_trace_lines), [&index](auto &line) {
-        auto index_str = format("#{:<5}", index++);
-        copy(begin(index_str), end(index_str), begin(line));
-    });
-
-    return boost::join(stack_trace_lines, "\n");
+    auto header = boost::replace_all_copy(backtrace_details.front(), "most recent call last", "most recent call first");
+    auto seperated_details = vector<vector<string>>{};
+    for (auto i = begin(backtrace_details) + 1; i != end(backtrace_details); ++i) {
+        const auto &detail = *i;
+        if (IsFirstOfStackDetails(detail)) {
+            seperated_details.push_back(vector<string>{detail});
+        } else {
+            MMOTD_CHECKS(!empty(seperated_details), "unable to seperate stack trace details w/out line with #{num}");
+            seperated_details.back().push_back(detail);
+        }
+    }
+    RemovePreMainStackDetails(seperated_details);
+    // reverse the backtrace details and re-index the numeric prefixes to be increasing
+    auto count = size_t{1}; // human readable lists start with #1 and increase from there
+    auto new_backtrace = vector<string>{1, header};
+    for (auto i = rbegin(seperated_details); i != rend(seperated_details); ++i) {
+        auto details = *i;
+        for (auto j = begin(details); j != end(details); ++j) {
+            auto &sub_detail = *j;
+            if (j == begin(details)) {
+                auto index_str = format("#{:<5}", count++);
+                copy(begin(index_str), end(index_str), begin(sub_detail));
+            }
+            new_backtrace.push_back(StripFunctionArgs(sub_detail));
+        }
+    }
+    return boost::join(new_backtrace, "\n");
 }
 
-inline string reverse_stack_trace(string stack_trace_str) {
-    return reverse_stack_trace_impl(split_stack_trace(stack_trace_str));
+string ReverseStackTrace(string stack_trace_str) {
+    return ReverseStackTraceImpl(SplitStackTrace(stack_trace_str));
 }
 
 } // namespace
@@ -94,7 +155,8 @@ inline string reverse_stack_trace(string stack_trace_str) {
 namespace mmotd::assertion {
 
 string GetStackTrace() {
-    return reverse_stack_trace(generate_stack_trace());
+    return ReverseStackTrace(GenerateStackTrace());
+    // return GenerateStackTrace();
 }
 
 } // namespace mmotd::assertion

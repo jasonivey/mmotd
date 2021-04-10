@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
+#include "common/include/app_options.h"
 #include "common/include/information.h"
 #include "common/include/information_decls.h"
 #include "common/include/informations.h"
@@ -39,12 +40,13 @@ optional<Information> TemplateString::FindInformation(const string &information_
     collect_if(
         begin(informations),
         end(informations),
+        back_inserter(information_ptrs),
         [information_id](const auto &information) {
             const auto &information_id_str = information.GetIdStr();
             return boost::iequals(information_id_str, information_id) ||
                    boost::iequals(information_id_str, string{"InformationId::"} + information_id);
         },
-        [&information_ptrs](const auto &information) { information_ptrs.push_back(&information); });
+        [](const auto &information) { return &information; });
     if (information_index >= std::size(information_ptrs)) {
         PLOG_ERROR << format("attempting to find the index={} of id={} when there is only {} of that id",
                              information_index,
@@ -83,7 +85,7 @@ TemplateString::ReplaceInformationIds(const string &text, const Informations &in
     auto replacement_token = sregex_iterator(begin(text), end(text), pattern);
 
     auto formatted_str = string{};
-    auto index = smatch::difference_type{0};
+    auto index = size_t{0};
     for (auto i = replacement_token; i != sregex_iterator{}; ++i) {
         auto match = *i;
         PLOG_VERBOSE << format("index: {}, pos: {}, len: {}, iterator: {}",
@@ -91,16 +93,17 @@ TemplateString::ReplaceInformationIds(const string &text, const Informations &in
                                match.position(),
                                match.length(),
                                match.str());
-        if (match.position() > index) {
-            PLOG_VERBOSE << format("adding prefix: \"{}\"", text.substr(index, match.position() - index));
-            formatted_str += text.substr(index, match.position() - index);
+        if (match.position() > static_cast<ptrdiff_t>(index)) {
+            PLOG_VERBOSE << format("adding prefix: \"{}\"",
+                                   text.substr(index, static_cast<size_t>(match.position()) - index));
+            formatted_str += text.substr(index, static_cast<size_t>(match.position()) - index);
         }
-        index = match.position() + match.length();
+        index = static_cast<size_t>(match.position() + match.length());
         if (auto value = TemplateString::GetInformationValue(match.str(1), informations, information_index); value) {
             formatted_str += *value;
         }
     }
-    if (index < static_cast<smatch::difference_type>(std::size(text))) {
+    if (index < size(text)) {
         PLOG_VERBOSE << format("adding suffix: \"{}\"", text.substr(index));
         formatted_str += text.substr(index);
     }
@@ -130,11 +133,11 @@ vector<string> TemplateString::SplitColorCodeDefinitions(const string &color_str
     auto color_definitions = vector<string>{};
     auto index = size_t{1};
     while (index != string::npos) {
-        auto previous = index;
+        auto previous = static_cast<ptrdiff_t>(index);
         index = color_str.find(string(size_t{2}, delimeter), index);
         if (index != string::npos) {
             auto str_begin = cbegin(color_str) + previous;
-            auto str_end = cbegin(color_str) + index;
+            auto str_end = cbegin(color_str) + static_cast<ptrdiff_t>(index);
             color_definitions.push_back(string{str_begin, str_end});
             index += std::size(string(size_t{2}, delimeter));
             PLOG_VERBOSE << format("found {}, index={}, in=\"{}\", created color def=\"{}\"",
@@ -248,7 +251,7 @@ bool TemplateString::IsColorCodeMatchValid(const string &text, const smatch &mat
                            matches.position(),
                            matches.length(),
                            std::size(text),
-                           text.substr(matches.position(), matches.length()),
+                           text.substr(static_cast<size_t>(matches.position()), static_cast<size_t>(matches.length())),
                            text);
     return true;
 }
@@ -259,7 +262,7 @@ void TemplateString::ParseColorCodeSubstring(const string &text,
     static const auto regex_color_pattern = regex{R"((?:%color[^%]+%)+)"};
     auto matches = smatch{};
 
-    if (!regex_search(cbegin(text) + index, cend(text), matches, regex_color_pattern)) {
+    if (!regex_search(cbegin(text) + static_cast<ptrdiff_t>(index), cend(text), matches, regex_color_pattern)) {
         auto input_substr = string_view{text.c_str() + index};
         PLOG_VERBOSE << format("color code not found in \"{}\"", input_substr);
         TemplateString::UpdateLastTemplateSubstring(text, template_substrings, std::size(text));
@@ -268,29 +271,29 @@ void TemplateString::ParseColorCodeSubstring(const string &text,
     }
 
     if (!TemplateString::IsColorCodeMatchValid(text, matches)) {
-        index += matches.position() + matches.length();
+        index += static_cast<size_t>(matches.position() + matches.length());
         return;
     }
 
-    auto match_substr =
-        string{cbegin(text) + index + matches.position(), cbegin(text) + index + matches.position() + matches.length()};
+    auto match_substr = string{cbegin(text) + static_cast<ptrdiff_t>(index) + matches.position(),
+                               cbegin(text) + static_cast<ptrdiff_t>(index) + matches.position() + matches.length()};
     auto input_substr = string_view{text.c_str() + index};
     PLOG_VERBOSE << format("color code found match={}, text=\"{}\"", match_substr, input_substr);
 
     auto prefix = SubstringRange{};
     if (!std::empty(template_substrings)) {
-        TemplateString::UpdateLastTemplateSubstring(text, template_substrings, matches.position());
+        TemplateString::UpdateLastTemplateSubstring(text, template_substrings, static_cast<size_t>(matches.position()));
     } else if (index < static_cast<size_t>(matches.position())) {
-        prefix = SubstringRange{index, matches.position() - index};
+        prefix = SubstringRange{index, static_cast<size_t>(matches.position()) - index};
     }
 
     auto color_definitions = TemplateString::ParseColorCodeString(match_substr);
-    auto substring_offset = index + matches.position() + matches.length();
+    auto substring_offset = index + static_cast<size_t>(matches.position() + matches.length());
     auto substring_count = std::size(text) - substring_offset;
     auto substring_text = SubstringRange(substring_offset, substring_count);
     TemplateString::CreateTemplateSubstring(text, template_substrings, substring_text, color_definitions, prefix);
 
-    index += matches.position() + matches.length();
+    index += static_cast<size_t>(matches.position() + matches.length());
 }
 
 TemplateSubstrings TemplateString::GenerateTemplateSubstrings(const string &text) {
@@ -325,7 +328,11 @@ string TemplateString::ReplaceEmbeddedColorCodes(TemplateType template_type,
     auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
     auto formatted_str = template_substrings.to_string(&TemplateString::GetColorValue);
     auto color_style = template_type == TemplateType::Name ? item.name_color : item.value_color;
-    return format(color_style, formatted_str);
+    if (AppOptions::Instance().GetOptions().IsColorDisabled()) {
+        return formatted_str;
+    } else {
+        return format(color_style, formatted_str);
+    }
 }
 
 string TemplateString::TransformTemplate(TemplateType template_type,

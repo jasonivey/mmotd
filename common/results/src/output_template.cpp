@@ -28,6 +28,10 @@ const OutputTemplate::TemplateColumnItems &OutputTemplate::GetColumnItems() cons
     return column_items_;
 }
 
+const mmotd::results::data::OutputSettings &OutputTemplate::GetOutputSettings() const {
+    return template_config_.output_settings;
+}
+
 string OutputTemplate::GetDefaultTemplate() const {
     auto root = json::object();
     auto template_config = data::TemplateConfig{};
@@ -61,7 +65,7 @@ bool OutputTemplate::ParseJson(string template_file_name) {
         //  provided by the default_settings object (template_config_.default_settings)
         for (auto &root_item : root.at("column_items")) {
             auto column_item = data::TemplateItemSettings{};
-            from_json(root_item, column_item, &template_config_.default_settings);
+            column_item.from_json(root_item, &template_config_.default_settings);
             if (column_item.validate(template_config_)) {
                 column_items_.push_back(column_item);
             }

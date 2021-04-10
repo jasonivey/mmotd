@@ -16,6 +16,7 @@
 #include <sys/sysctl.h>
 
 using fmt::format;
+using mmotd::chrono::io::to_string;
 using namespace std;
 
 namespace mmotd::platform {
@@ -35,6 +36,7 @@ optional<std::chrono::system_clock::time_point> GetBootTime() {
     }
 
     auto boot_time_point = std::chrono::system_clock::from_time_t(result.tv_sec);
+    PLOG_VERBOSE << format("sysctl(KERN_BOOTTIME): {}", to_string(boot_time_point, "{:%d-%h-%Y %I:%M:%S%p %Z}"));
     return make_optional(boot_time_point);
 }
 

@@ -6,6 +6,7 @@
 #include <string_view>
 #include <system_error>
 
+#include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -54,8 +55,9 @@ void append_option(string &existing_options_str, const string &name, T is_set, U
 std::string Options::to_string() const {
     auto options_str = string{};
     append_option(options_str, "verbose", bind(&Options::IsVerboseSet, this), bind(&Options::GetVerbosityLevel, this));
+    append_option(options_str, "color", bind(&Options::IsColorWhenSet, this), bind(&Options::GetColorWhen, this));
     append_option(options_str,
-                  "template_path",
+                  "template",
                   bind(&Options::IsTemplatePathSet, this),
                   bind(&Options::GetTemplatePath, this));
     append_option(options_str,
@@ -114,6 +116,48 @@ std::string Options::to_string() const {
                   bind(&Options::GetSubHeaderValue, this));
     append_option(options_str, "quote", bind(&Options::IsQuoteSet, this), bind(&Options::GetQuoteValue, this));
     return options_str;
+}
+
+bool Options::SetColorWhen(const std::vector<std::string> &whens) {
+    auto when = empty(whens) ? string{} : whens.front();
+    if (boost::iequals(when, "Always")) {
+        color_when = ColorWhen::Always;
+    } else if (boost::iequals(when, "Auto")) {
+        color_when = ColorWhen::Auto;
+    } else if (boost::iequals(when, "Never")) {
+        color_when = ColorWhen::Never;
+    }
+    return true;
+}
+
+bool Options::IsColorWhenSet() const {
+    return color_when != ColorWhen::NotSet;
+}
+
+Options::ColorWhen Options::GetColorWhen() const {
+    return color_when == ColorWhen::NotSet ? ColorWhen::Always : color_when;
+}
+
+// activate(mode == ColorMode::automatic && isatty(fd) ? ColorMode::always
+//                                                     : mode);
+
+bool Options::IsColorDisabled() const {
+    return color_when == ColorWhen::Never;
+}
+
+bool Options::SetOutputConfigPath(const std::vector<std::string> &paths) {
+    output_config_path = empty(paths) ? string{} : paths.front();
+    return true;
+}
+
+bool Options::SetOutputTemplatePath(const std::vector<std::string> &paths) {
+    output_template_path = empty(paths) ? string{} : paths.front();
+    return true;
+}
+
+bool Options::SetTemplatePath(const std::vector<std::string> &paths) {
+    template_path = empty(paths) ? string{} : paths.front();
+    return true;
 }
 
 AppOptions &AppOptions::CreateInstance() {

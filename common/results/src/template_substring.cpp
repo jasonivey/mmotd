@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/app_options.h"
 #include "common/results/include/template_substring.h"
 
 #include <iterator>
@@ -128,9 +129,13 @@ string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_co
     if (auto prefix = GetPrefix(); !std::empty(prefix)) {
         substring_output += prefix;
     }
+    auto colors_disabled = AppOptions::Instance().GetOptions().IsColorDisabled();
     auto colors = GetColorDefinitions();
     auto substring_text = GetSubstring();
     for (auto color : colors) {
+        if (colors_disabled) {
+            continue;
+        }
         substring_text = std::empty(substring_text) ? substring_text : format(convert_color(color), substring_text);
     }
     if (!empty(substring_text)) {

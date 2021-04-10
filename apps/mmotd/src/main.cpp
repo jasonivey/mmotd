@@ -65,7 +65,8 @@ int main(int argc, char *argv[]) {
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     } catch (const std::exception &ex) {
-        auto error_str = format("caught std::exception in main: {}", ex.what());
+        auto diag = boost::diagnostic_information(ex);
+        auto error_str = format("caught std::exception in main: {}", empty(diag) ? ex.what() : data(diag));
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;

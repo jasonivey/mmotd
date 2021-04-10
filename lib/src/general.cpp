@@ -123,17 +123,16 @@ bool General::FindInformation() {
     AddInformation(username);
 
     auto greeting_info = GetInfoTemplate(InformationId::ID_GENERAL_GREETING);
-    greeting_info.SetValueArgs(Greetings{}.GetTimeOfDayGreeting());
+    greeting_info.SetValue(Greetings{}.GetTimeOfDayGreeting());
     AddInformation(greeting_info);
 
     auto right_now = std::chrono::system_clock::now();
-    //auto right_now_str = mmotd::chrono::io::to_string(right_now, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}");
     auto local_date_time = GetInfoTemplate(InformationId::ID_GENERAL_LOCAL_DATE_TIME);
-    local_date_time.SetValueArgs(right_now);
+    local_date_time.SetValue(chrono::io::to_string(right_now, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}"));
     AddInformation(local_date_time);
 
     auto emoji_info = GetInfoTemplate(InformationId::ID_GENERAL_LOCAL_TIME_EMOJI);
-    emoji_info.SetValueArgs(Greetings{}.GetTimeOfDayEmoji());
+    emoji_info.SetValue(Greetings{}.GetTimeOfDayEmoji());
     AddInformation(emoji_info);
 
     return true;
