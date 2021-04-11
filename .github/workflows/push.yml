@@ -72,7 +72,7 @@ jobs:
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          sudo apt update -y && sudo apt install -y apt-utils software-properties-common curl wget gnupg \
+          sudo apt update -y && sudo apt install -y apt-utils software-properties-common curl libcurl4 wget gnupg \
             build-essential git ca-certificates cmake ninja-build autoconf automake libtool flex bison binutils \
             binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev gdbserver gettext gnu-standards libboost-dev \
             libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump elfutils libelf1 libelf-dev \
