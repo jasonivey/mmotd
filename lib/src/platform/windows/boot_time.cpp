@@ -34,7 +34,7 @@ optional<string> GetBootTime() {
     //auto boot_time_point = std::chrono::system_clock::from_time_t(result.tv_sec);
     // Fri, 04-Dec-2020 07:49:36am MST
     // 04-Dec-2020 09:06:02AM MST
-    //return make_optional(mmotd::chrono::io::to_string(boot_time_point, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}"));
+    //return make_optional(mmotd::chrono::io::to_string(boot_time_point, "%a, %d-%h-%Y %I:%M%p %Z"));
     return nullopt;
 }
 

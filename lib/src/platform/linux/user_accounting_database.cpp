@@ -110,7 +110,7 @@ namespace mmotd::platform::user_account_database {
 
 string DbEntry::to_string() const {
     auto time_point = std::chrono::system_clock::from_time_t(seconds);
-    auto time_str = mmotd::chrono::io::to_string(time_point, "{:%d-%h-%Y %I:%M:%S%p %Z}");
+    auto time_str = mmotd::chrono::io::to_string(time_point, "%d-%h-%Y %I:%M%p %Z");
     return format("user: {}, device: {}, hostname: {}, time: {}, ip: {}, type: {}",
                   user,
                   device_name,

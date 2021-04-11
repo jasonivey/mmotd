@@ -31,6 +31,17 @@ if (APPLE)
     find_library(FWSecurity NAMES Security REQUIRED)
 endif ()
 
+# Component: date.  Howard Hinnant's Date library (author of the std::chrono library among others)
+option (BUILD_TZ_LIB "build/install of TZ library" ON)
+FetchContent_Declare(date
+    GIT_REPOSITORY   https://github.com/HowardHinnant/date.git
+    GIT_TAG          v3.0.0
+    GIT_PROGRESS     TRUE
+)
+set(MESSAGE_QUIET ON)
+FetchContent_MakeAvailable(date)
+unset(MESSAGE_QUIET)
+
 # Component: Backward.  Stack trace library
 FetchContent_Declare(Backward
     GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git

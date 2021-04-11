@@ -181,6 +181,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE ${fmt_SOURCE_DIR}/include
         PRIVATE ${random_SOURCE_DIR}/include
         PRIVATE ${json_SOURCE_DIR}/include
+        PRIVATE ${date_SOURCE_DIR}/include
         PRIVATE ${scope_guard_SOURCE_DIR}
         PRIVATE ${OPENSSL_INCLUDE_DIR}
         )
@@ -209,6 +210,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
             PRIVATE fort
             PRIVATE nlohmann_json::nlohmann_json
             PRIVATE fmt::fmt
+            PRIVATE date-tz
             PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++>
             PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++abi>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWCoreFoundation}>

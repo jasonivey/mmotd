@@ -24,14 +24,14 @@ bool LastLog::FindInformation() {
     AddInformation(last_log);
 
     auto log_in = GetInfoTemplate(InformationId::ID_LAST_LOGIN_LOGIN_TIME);
-    log_in.SetValue(chrono::io::to_string(lastlog_details.log_in, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}"));
+    log_in.SetValue(chrono::io::to_string(lastlog_details.log_in, "%a, %d-%h-%Y %I:%M%p %Z"));
     AddInformation(log_in);
 
     auto log_out = GetInfoTemplate(InformationId::ID_LAST_LOGIN_LOGOUT_TIME);
     if (lastlog_details.log_out == std::chrono::system_clock::time_point{}) {
         log_out.SetValue("still logged in");
     } else {
-        log_out.SetValue(chrono::io::to_string(lastlog_details.log_out, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}"));
+        log_out.SetValue(chrono::io::to_string(lastlog_details.log_out, "%a, %d-%h-%Y %I:%M%p %Z"));
     }
     AddInformation(log_out);
 
