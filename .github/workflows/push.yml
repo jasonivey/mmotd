@@ -1,0 +1,94 @@
+name: Build Mmotd
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          #- {
+          #    name: "Windows Latest - MSVC",
+          #    artifact: "windows-msvc.tar.xz",
+          #    os: windows-latest,
+          #    cc: "cl",
+          #    cxx: "cl",
+          #  }
+          # - {
+          #     name: "Windows Latest - MinGW", artifact: "windows-mingw.tar.xz",
+          #     os: windows-latest,
+          #     cc: "gcc", cxx: "g++"
+          #   }
+          - {
+              name: "Ubuntu Latest - GCC-10 debug",
+              artifact: "linux-gcc10-debug.tar.xz",
+              os: ubuntu-latest,
+              build_type: Debug,
+              cc: "gcc-10",
+              cxx: "g++-10",
+              cxx_standard: 17
+            }
+          - {
+              name: "Ubuntu Latest - GCC-10 release",
+              artifact: "linux-gcc10-release.tar.xz",
+              os: ubuntu-latest,
+              build_type: Release,
+              cc: "gcc-10",
+              cxx: "g++-10",
+              cxx_standard: 17
+            }
+          #- {
+          #    name: "Ubuntu 20.04 - clang-9 debug",
+          #    artifact: "linux-clang9-debug.tar.xz",
+          #    os: ubuntu-latest,
+          #    build_type: Debug,
+          #    cc: "clang-9",
+          #    cxx: "clang++-9",
+          #    cxx_standard: 17
+          #  }
+          #- {
+          #    name: "Ubuntu 20.04 - clang-9 release",
+          #    artifact: "linux-clang9-release.tar.xz",
+          #    os: ubuntu-latest,
+          #    build_type: Release,
+          #    cc: "clang-9",
+          #    cxx: "clang++-9",
+          #    cxx_standard: 17
+          #  }
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: seanmiddleditch/gha-setup-ninja@master
+
+      #- name: Set Windows ENV
+      #  if: runner.os == 'Windows'
+      #  uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Linux Dependencies
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt update -y && sudo apt install -y apt-utils software-properties-common curl wget gnupg \
+            build-essential git ca-certificates cmake ninja-build autoconf automake libtool flex bison binutils \
+            binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev gdbserver gettext gnu-standards libboost-dev \
+            libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump elfutils libelf1 libelf-dev \
+            libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev tar unzip zip libcrypt1 \
+            libcrypt-dev openssl libssl-dev cpp-10 gcc-10 g++-10
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir build
+          CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} -GNinja -DCMAKE_C_COMPILER=${{ matrix.config.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --target all
+
+      - name: Test
+        shell: bash
+        run: cd build && ctest --verbose --output-on-failure
