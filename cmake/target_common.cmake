@@ -129,6 +129,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # gnu only?
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wtrampolines>
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>
+        # disable this one warning
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>
 
         # /EHsc # Warning fix!
         # /W4
