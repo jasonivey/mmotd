@@ -6,6 +6,7 @@
 #include "lib/include/general.h"
 #include "lib/include/platform/user_accounting_database.h"
 
+#include <chrono>
 #include <iterator>
 #include <optional>
 #include <string>
@@ -16,7 +17,6 @@
 #include <plog/Log.h>
 
 using effing_random = effolkronium::random_static;
-using fmt::format;
 using mmotd::algorithms::value_in_range;
 using namespace std;
 
@@ -26,12 +26,13 @@ static const bool general_factory_registered =
     mmotd::information::RegisterInformationProvider([]() { return make_unique<mmotd::information::General>(); });
 
 namespace {
+using HourType = std::chrono::hours::rep;
 
 class Greeting {
 public:
     Greeting() = default;
 
-    Greeting(string_view greet_str, int begin_hour, int end_hour, initializer_list<string_view> emojis) :
+    Greeting(string_view greet_str, HourType begin_hour, HourType end_hour, initializer_list<string_view> emojis) :
         greeting_str_(greet_str), begin_hour_(begin_hour), end_hour_(end_hour), emojis_(emojis) {}
 
     auto begin() const { return begin_hour_; }
@@ -44,8 +45,8 @@ public:
 
 private:
     string_view greeting_str_;
-    int begin_hour_ = 0;
-    int end_hour_ = 0;
+    HourType begin_hour_ = HourType{0};
+    HourType end_hour_ = HourType{0};
     vector<string_view> emojis_;
 };
 
@@ -57,6 +58,7 @@ public:
 
     string GetTimeOfDayGreeting() const;
     string GetTimeOfDayEmoji() const;
+    string GetLocalDateTime() const;
 
 private:
     static constexpr const auto MORNING_EMOJIS =
@@ -67,13 +69,13 @@ private:
     static constexpr const auto NIGHT_EMOJIS = {"⭐"sv, "💫"sv, "🌟"sv, "☄"sv};
 
     // Morning from 5am - 12pm
-    const Greeting MORNING_GREETING = Greeting{"Morning"sv, 5, 12, MORNING_EMOJIS};
+    const Greeting MORNING_GREETING = Greeting{"Morning"sv, HourType{5}, HourType{12}, MORNING_EMOJIS};
     // Afternoon from 12pm - 6pm
-    const Greeting AFTERNOON_GREETING = Greeting{"Afternoon"sv, 12, 18, AFTERNOON_EMOJIS};
+    const Greeting AFTERNOON_GREETING = Greeting{"Afternoon"sv, HourType{12}, HourType{18}, AFTERNOON_EMOJIS};
     // Evening from 6pm - 11pm
-    const Greeting EVENING_GREETING = Greeting{"Evening"sv, 18, 23, EVENING_EMOJIS};
+    const Greeting EVENING_GREETING = Greeting{"Evening"sv, HourType{18}, HourType{23}, EVENING_EMOJIS};
     // Night from 11pm - 4am
-    const Greeting NIGHT_GREETING = Greeting{"Night"sv, 23, 5, NIGHT_EMOJIS};
+    const Greeting NIGHT_GREETING = Greeting{"Night"sv, HourType{23}, HourType{5}, NIGHT_EMOJIS};
 
     optional<Greeting> FindGreeting() const;
 };
@@ -108,6 +110,10 @@ string Greetings::GetTimeOfDayEmoji() const {
     return greeting_wrapper ? greeting_wrapper.value().GetRandomEmoji() : string{"🕹"};
 }
 
+string Greetings::GetLocalDateTime() const {
+    return mmotd::chrono::io::to_string(std::chrono::system_clock::now(), "%a, %d-%h-%Y %I:%M%p %Z");
+}
+
 } // namespace
 
 namespace mmotd::information {
@@ -126,9 +132,8 @@ bool General::FindInformation() {
     greeting_info.SetValue(Greetings{}.GetTimeOfDayGreeting());
     AddInformation(greeting_info);
 
-    auto right_now = std::chrono::system_clock::now();
     auto local_date_time = GetInfoTemplate(InformationId::ID_GENERAL_LOCAL_DATE_TIME);
-    local_date_time.SetValue(chrono::io::to_string(right_now, "{:%a, %d-%h-%Y %I:%M:%S%p %Z}"));
+    local_date_time.SetValue(Greetings{}.GetLocalDateTime());
     AddInformation(local_date_time);
 
     auto emoji_info = GetInfoTemplate(InformationId::ID_GENERAL_LOCAL_TIME_EMOJI);

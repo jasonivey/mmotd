@@ -56,7 +56,7 @@ LastLoginDetails GetLastLogDetails() {
     auto details = LastLoginDetails{summary, log_in_time, std::chrono::system_clock::time_point{}};
 
     PLOG_VERBOSE << format("last login: {}", details.summary);
-    PLOG_VERBOSE << format("last log in: {}", to_string(details.log_in, "{:%d-%h-%Y %I:%M:%S%p %Z}"));
+    PLOG_VERBOSE << format("last log in: {}", to_string(details.log_in, "%d-%h-%Y %I:%M:%S%p %Z"));
     PLOG_VERBOSE << "last log out: still logged in";
 
     return details;

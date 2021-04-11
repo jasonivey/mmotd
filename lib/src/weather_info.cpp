@@ -57,6 +57,20 @@ bool WeatherInfo::FindInformation() {
     return true;
 }
 
+pair<string, string> ParseSunriseSunset(string sunrise_str, string sunset_str) {
+    auto sunrise_holder = mmotd::chrono::io::from_string(sunrise_str, "%H:%M:%S");
+    auto sunrise_result = string{};
+    if (sunrise_holder) {
+        sunrise_result = mmotd::chrono::io::to_string(*sunrise_holder, "%I:%M:%S%p");
+    }
+    auto sunset_holder = mmotd::chrono::io::from_string(sunset_str, "%H:%M:%S");
+    auto sunset_result = string{};
+    if (sunset_holder) {
+        sunset_result = mmotd::chrono::io::to_string(*sunset_holder, "%I:%M:%S%p");
+    }
+    return {sunrise_result, sunset_result};
+}
+
 tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     using boost::trim_copy, boost::replace_all_copy;
     using namespace mmotd::chrono::io;
@@ -95,17 +109,15 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     auto sunset_str = weather_str.substr(match.position(2), match.length(2));
     PLOG_INFO << format("sunset: '{}'", sunset_str);
 
-    auto surise_time_point = from_string(sunrise_str, FromStringFormat::TimeFormat);
-    auto sunset_time_point = from_string(sunset_str, FromStringFormat::TimeFormat);
+    auto [sunrise_parsed, sunset_parsed] = ParseSunriseSunset(sunrise_str, sunset_str);
+    sunrise_parsed = empty(sunrise_parsed) ? sunrise_str : sunrise_parsed;
+    sunset_parsed = empty(sunset_parsed) ? sunset_str : sunset_parsed;
 
-    if (surise_time_point) {
-        sunrise_str = to_string(*surise_time_point, "{:%I:%M:%S%p}");
-    }
-    if (sunset_time_point) {
-        sunset_str = to_string(*sunset_time_point, "{:%I:%M:%S%p}");
-    }
-    PLOG_INFO << format("weather: '{}, Sunrise: {}, Sunset: {}'", weather, sunrise_str, sunset_str);
-    return make_tuple(location_str, weather, sunrise_str, sunset_str);
+    PLOG_INFO << format("weather: '{}, Sunrise (parsed): {}, Sunset (parsed): {}'",
+                        weather,
+                        sunrise_parsed,
+                        sunset_parsed);
+    return make_tuple(location_str, weather, sunrise_parsed, sunset_parsed);
 }
 
 } // namespace mmotd::information

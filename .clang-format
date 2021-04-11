@@ -79,6 +79,9 @@ IncludeCategories:
   # Boost headers
   - Regex:    '^[<"]boost/'
     Priority: 30
+  # Date headers
+  - Regex:    '^[<"]date/'
+    Priority: 30
   # Catch2 unit test headers
   - Regex:    '^[<"]catch2/'
     Priority: 30

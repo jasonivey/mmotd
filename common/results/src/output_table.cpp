@@ -115,8 +115,14 @@ private:
     void WriteName(const Row &row, size_t line_index);
     void WriteValue(const Row &row, size_t line_index, bool bump_column);
 
-    //using TableType = fort::utf8_table;
+#if defined(__APPLE__)
+    using TableType = fort::utf8_table;
+#elif defined(__linux__)
     using TableType = fort::char_table;
+#else
+    using TableType = fort::char_table;
+#endif
+
     TableType &GetTable() { return table_; }
     const TableType &GetTable() const { return table_; }
     size_t GetColumnCount() const { return column_count_; }
