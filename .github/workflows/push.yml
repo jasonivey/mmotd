@@ -23,7 +23,7 @@ jobs:
           #     cc: "gcc", cxx: "g++"
           #   }
           - {
-              name: "Ubuntu Latest - GCC-10 debug",
+              name: "Ubuntu 20.04 - GCC-10 debug",
               artifact: "linux-gcc10-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
@@ -32,7 +32,7 @@ jobs:
               cxx_standard: 17
             }
           - {
-              name: "Ubuntu Latest - GCC-10 release",
+              name: "Ubuntu 20.04 - GCC-10 release",
               artifact: "linux-gcc10-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
@@ -40,24 +40,24 @@ jobs:
               cxx: "g++-10",
               cxx_standard: 17
             }
-          #- {
-          #    name: "Ubuntu 20.04 - clang-9 debug",
-          #    artifact: "linux-clang9-debug.tar.xz",
-          #    os: ubuntu-latest,
-          #    build_type: Debug,
-          #    cc: "clang-9",
-          #    cxx: "clang++-9",
-          #    cxx_standard: 17
-          #  }
-          #- {
-          #    name: "Ubuntu 20.04 - clang-9 release",
-          #    artifact: "linux-clang9-release.tar.xz",
-          #    os: ubuntu-latest,
-          #    build_type: Release,
-          #    cc: "clang-9",
-          #    cxx: "clang++-9",
-          #    cxx_standard: 17
-          #  }
+          - {
+              name: "Ubuntu 20.04 - clang-11 debug",
+              artifact: "linux-clang11-debug.tar.xz",
+              os: ubuntu-latest,
+              build_type: Debug,
+              cc: "clang-11",
+              cxx: "clang++-11",
+              cxx_standard: 17
+            }
+          - {
+              name: "Ubuntu 20.04 - clang-11 release",
+              artifact: "linux-clang11-release.tar.xz",
+              os: ubuntu-latest,
+              build_type: Release,
+              cc: "clang-11",
+              cxx: "clang++-11",
+              cxx_standard: 17
+            }
     steps:
       - uses: actions/checkout@v2
         with:
@@ -68,16 +68,42 @@ jobs:
       #  if: runner.os == 'Windows'
       #  uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Linux Dependencies
-        if: runner.os == 'Linux'
+      - name: Install Linux Clang-11 Dependencies
+        if: runner.os == 'Linux' && matrix.config.cxx == 'clang++-11'
         shell: bash
         run: |
-          sudo apt update -y && sudo apt install -y apt-utils software-properties-common curl libcurl4 \
+          sudo apt-get update -y && sudo apt-get install -y apt-utils software-properties-common \
+            curl libcurl4 libcurl4-openssl-dev pkg-config wget gnupg
+          wget -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+          sudo APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add /tmp/llvm-snapshot.gpg.key
+          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update -y && sudo apt-get install -y build-essential git ca-certificates cmake ninja-build autoconf \
+            automake libtool flex bison binutils binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev gdbserver gettext \
+            gnu-standards libboost-dev libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump elfutils \
+            libelf1 libelf-dev libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev tar unzip zip libcrypt1 \
+            libcrypt-dev openssl libssl-dev libllvm11 llvm-11 llvm-11-dev llvm-11-runtime clang-11 clang-tools-11 \
+            libclang-common-11-dev libclang-11-dev libclang1-11 clang-format-11 clangd-11 libfuzzer-11-dev lldb-11 lld-11 \
+            libc++-11-dev libc++abi-11-dev libomp-11-dev
+          sudo apt-get autoclean
+          sudo apt-get autoremove
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Linux GCC-10 Dependencies
+        if: runner.os == 'Linux' && matrix.config.cxx == 'g++-10'
+        shell: bash
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y apt-utils software-properties-common curl libcurl4 \
             libcurl4-openssl-dev pkg-config wget gnupg build-essential git ca-certificates cmake ninja-build \
             autoconf automake libtool flex bison binutils binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev \
             gdbserver gettext gnu-standards libboost-dev libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump \
             elfutils libelf1 libelf-dev libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev \
             tar unzip zip libcrypt1 libcrypt-dev openssl libssl-dev cpp-10 gcc-10 g++-10
+          sudo apt-get autoclean
+          sudo apt-get autoremove
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
 
       - name: Configure
         shell: bash

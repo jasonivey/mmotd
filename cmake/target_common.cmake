@@ -26,6 +26,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang")
     add_single_definition(CMAKE_EXE_LINKER_FLAGS "-lc++abi")
 endif ()
 
+# The Date library is not defining HAS_UNCAUGHT_EXCEPTIONS even though it specifies -std=gnu++17
+#  which then results in numerous warnings (not errors so it's just noise) of the type
+#  ‘bool std::uncaught_exception()’ is deprecated [-Wdeprecated-declarations]
+add_single_definition(CMAKE_CXX_FLAGS "-DHAS_UNCAUGHT_EXCEPTIONS")
+
 include (CheckPIESupported)
 
 include (find_dependencies)
@@ -57,10 +62,12 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
 
     target_compile_definitions(
         ${MMOTD_TARGET_NAME}
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:_GNU_SOURCE>
-        PRIVATE $<$<CONFIG:Debug>:_DEBUG>
-        PRIVATE $<$<CONFIG:Debug>:DEBUG>
-        PRIVATE $<$<CONFIG:Release>:NDEBUG>
+        # On 'Linux' like compilers this is needed
+        PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:_GNU_SOURCE>
+        # 'DEBUG', '_DEBUG' and 'NDEBUG' comes for free on MSVC compilers
+        PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:DEBUG>
+        PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:_DEBUG>
+        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:NDEBUG>
         # This enables the BOOST_ASSERT macro and the "boost::assertion_failed",
         #  "boost::assertion_failed_msg" functions
         PRIVATE BOOST_ENABLE_ASSERT_HANDLER
@@ -113,6 +120,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wstrict-overflow>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wfloat-equal>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wwrite-strings>
+        # todo: fix_jasoni - these are great warnings but they need a seperate task to enable them
         # PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wconversion>
         # PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wsign-conversion>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wswitch-enum>
@@ -122,15 +130,12 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wold-style-cast>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Woverloaded-virtual>
         # clang only
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wmost>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wweak-vtables>
-        #PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wexit-time-destructors>
-        #PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wglobal-constructors>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wmissing-noreturn>
-        # gnu only?
+        # gnu only
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wtrampolines>
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>
-        # disable this one warning
-        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wno-deprecated-declarations>
 
         # /EHsc # Warning fix!
         # /W4
