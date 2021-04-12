@@ -10,6 +10,8 @@
 #include <fmt/format.h>
 #include <plog/Log.h>
 
+#include <unistd.h>
+
 using fmt::format;
 using namespace std;
 
@@ -48,6 +50,17 @@ void append_option(string &existing_options_str, const string &name, T is_set, U
         existing_options_str += "\n";
     }
     existing_options_str += format("  {} [{}]: {}", name, is_set() ? "SET" : "UNSET", get_value());
+}
+
+auto IsStdoutTtyImpl() {
+    auto is_stdout_tty = isatty(STDOUT_FILENO) != 0;
+    PLOG_VERBOSE << format("stdout is{} a tty", is_stdout_tty ? "" : " not");
+    return is_stdout_tty;
+}
+
+auto IsStdoutTty() {
+    static const auto is_stdout_tty = IsStdoutTtyImpl();
+    return is_stdout_tty;
 }
 
 } // namespace
@@ -135,14 +148,15 @@ bool Options::IsColorWhenSet() const {
 }
 
 Options::ColorWhen Options::GetColorWhen() const {
-    return color_when == ColorWhen::NotSet ? ColorWhen::Always : color_when;
+    return color_when == ColorWhen::NotSet ? ColorWhen::Auto : color_when;
 }
 
-// activate(mode == ColorMode::automatic && isatty(fd) ? ColorMode::always
-//                                                     : mode);
-
 bool Options::IsColorDisabled() const {
-    return color_when == ColorWhen::Never;
+    if (color_when == ColorWhen::NotSet || color_when == ColorWhen::Auto) {
+        return !IsStdoutTty();
+    } else {
+        return color_when == ColorWhen::Never;
+    }
 }
 
 bool Options::SetOutputConfigPath(const std::vector<std::string> &paths) {
