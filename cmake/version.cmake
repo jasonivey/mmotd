@@ -1,4 +1,4 @@
 # cmake/version.cmake
 set(MMOTD_MAJOR 0)
 set(MMOTD_MINOR 1)
-set(MMOTD_PATCHLEVEL 0-alpha)
+set(MMOTD_PATCHLEVEL 1-alpha)
