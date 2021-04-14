@@ -44,6 +44,11 @@ endif ()
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/common/include/version_number.h MMOTD_NEW_VERSION_H)
 
 if (NOT MMOTD_NEW_VERSION_H STREQUAL MMOTD_OLD_VERSION_H)
+    file(COPY
+        ${CMAKE_CURRENT_BINARY_DIR}/common/include/version_number.h
+        DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/common/include
+        USE_SOURCE_PERMISSIONS
+        )
     set(MMOTD_GIT_STATUS " ")
     execute_process(
         COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" status --porcelain -uno
