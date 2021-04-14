@@ -1,13 +1,5 @@
-# mmotd&nbsp;[![MIT License](https://img.shields.io/badge/license-mit-blue.svg?style=flat-square&logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIj8+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxOTYiIGhlaWdodD0iMTk2Ij48Y2lyY2xlIGN4PSI5OCIgY3k9Ijk4IiByPSI5OCIgZmlsbD0iIzgwODA4MCIvPjxjaXJjbGUgY3g9Ijk4IiBjeT0iOTgiIHI9Ijc4IiBmaWxsPSIjZmZmIi8+PGNpcmNsZSBjeD0iOTgiIGN5PSI5OCIgcj0iNTUiIGZpbGw9IiM4MDgwODAiLz48Y2lyY2xlIGN4PSI5OCIgY3k9Ijk4IiByPSIzMCIgZmlsbD0iI2ZmZiIvPjxyZWN0IHdpZHRoPSIzMSIgaGVpZ2h0PSIyNSIgeD0iMTIzIiB5PSI4NSIgZmlsbD0iI2ZmZiIvPjxyZWN0IHdpZHRoPSIyMC41IiBoZWlnaHQ9IjEwMCIgdHJhbnNmb3JtPSJtYXRyaXgoMSwxLC0xLDEsMTM3Ljc1LDM3Ljc1KSIgZmlsbD0iI2ZmZiIvPjxyZWN0IHdpZHRoPSIxNy41IiBoZWlnaHQ9IjEyMCIgdHJhbnNmb3JtPSJtYXRyaXgoMSwxLC0xLDEsMTQ5LjI1LDI5LjI1KSIgZmlsbD0iIzgwODA4MCIvPjwvc3ZnPg==)](https://opensource.org/licenses/MIT)
-
+# mmotd
 ## Modified Message of the Day
-
-[![build results](https://img.shields.io/github/workflow/status/jasonivey/mmotd/Build%20Mmotd?label=Build%20%26%20Test&logo=github-actions&logoColor=white&labelColor=grey&style=flat-square)](https://github.com/jasonivey/mmotd/actions/workflows/push.yml) ![current tag](https://img.shields.io/github/v/tag/jasonivey/mmotd?color=pink&include_prereleases&label=current%20tag&logo=git&sort=semver&style=flat-square) ![current release](https://img.shields.io/github/v/release/jasonivey/mmotd?color=pink&include_prereleases&label=current%20release&logo=git&sort=semver&style=flat-square)
-![supported platforms](https://img.shields.io/badge/platforms%20supported-grey?style=flat-square)![ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=flat-square&logo=ubuntu&logoColor=white&labelColor=D74516&color=310926)![macOS](https://img.shields.io/badge/Apple-000000?style=flat-square&logo=apple&logoColor=5AB73B&labelColor=EDEDED&color=4F9BCD) ![build system](https://img.shields.io/badge/build%20system-CMake-blue?style=flat-square&logo=cmake&logoColor=green)
-[![commit activity](https://img.shields.io/badge/yes-brightgreen?style=flat-square&label=maintained%3F)](https://github.com/jasonivey/mmotd/graphs/commit-activity) [![maintainer](https://img.shields.io/badge/jasonivey-blue?style=flat-square&label=maintainer)](https://github.com/jasonivey) [![commits](https://img.shields.io/github/commit-activity/m/badges/shields?logo=github&style=flat-square)](https://github.com/jasonivey/mmotd/commits/master)
-![code size](https://img.shields.io/github/languages/code-size/jasonivey/mmotd?color=red&logo=c%2B%2B&logoColor=red&style=flat-square)
-
-![demo](https://github.com/jasonivey/mmotd/raw/feature/readme-update/.assets/demo.gif)
 
 ### Introduction
 

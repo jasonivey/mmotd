@@ -8,6 +8,8 @@ set (MMOTD_TARGET_NAME mmotd_common)
 
 project (mmotd_common)
 
+include (git_version)
+
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
     assertion/src/assertion.cpp
