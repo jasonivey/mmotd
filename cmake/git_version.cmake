@@ -29,9 +29,18 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
     endif ()
 endif ()
 
-message (STATUS "writing out version: common/include/version_number.h")
+message (STATUS "Writing out version: common/include/version_number.h")
 configure_file(VERSION.H.IN common/include/version_number.h @ONLY)
+
 file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/common/include/version_number.h MMOTD_OLD_VERSION_H)
+
+if (NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/common/include/version_number.h)
+    file(COPY
+        ${CMAKE_CURRENT_BINARY_DIR}/common/include/version_number.h
+        DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/common/include
+        USE_SOURCE_PERMISSIONS
+        )
+endif ()
 file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/common/include/version_number.h MMOTD_NEW_VERSION_H)
 
 if (NOT MMOTD_NEW_VERSION_H STREQUAL MMOTD_OLD_VERSION_H)
