@@ -29,52 +29,35 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git)
     endif ()
 endif ()
 
-set (VERSION_SOURCE_FILE_CONTENT "// vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#pragma once
-//
-// BUILD GENERATED FILE -- DO NOT MODIFY
-//   MODIFICATIONS WILL BE OVERWRITTEN
-//
-namespace mmotd::version {
+message (STATUS "writing out version: common/include/version_number.h")
+configure_file(VERSION.H.IN common/include/version_number.h @ONLY)
+file(STRINGS ${CMAKE_CURRENT_BINARY_DIR}/common/include/version_number.h MMOTD_OLD_VERSION_H)
+file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/common/include/version_number.h MMOTD_NEW_VERSION_H)
 
-inline constexpr const char *MMOTD_VERSION = \"${MMOTD_VERSION}+${MMOTD_GIT_REVISION}\";
-
-} // namespace mmotd::version
-")
-
-if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/common/include/version_number.h)
-    file (READ ${CMAKE_CURRENT_SOURCE_DIR}/common/include/version_number.h EXISTING_VERSION_SOURCE_FILE_CONTENT)
-else ()
-    set (EXISTING_VERSION_SOURCE_FILE_CONTENT "")
-endif ()
-
-if (NOT "${VERSION_SOURCE_FILE_CONTENT}" STREQUAL "${EXISTING_VERSION_SOURCE_FILE_CONTENT}")
-    message (STATUS "Writing out version: common/include/version_number.h")
-    file (WRITE ${CMAKE_CURRENT_SOURCE_DIR}/common/include/version_number.h "${VERSION_SOURCE_FILE_CONTENT}")
-endif ()
-
-# Check that cmake/version.cmake is the only changed file
-execute_process(
-    COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" status --porcelain -uno
-    OUTPUT_VARIABLE MMOTD_GIT_STATUS
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-string(REPLACE "\n" ";"  MMOTD_GIT_STATUS ${MMOTD_GIT_STATUS})
-
-# If cmake/version.cmake is the only modified file
-if (NOT "x${MMOTD_GIT_STATUS}" STREQUAL "x M cmake/version.cmake")
-    message(STATUS "Unable to create tag for 'cmake/version.cmake'")
-else ()
+if (NOT MMOTD_NEW_VERSION_H STREQUAL MMOTD_OLD_VERSION_H)
+    set(MMOTD_GIT_STATUS "")
     execute_process(
-        COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" add -u
+        COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" status --porcelain -uno
+        OUTPUT_VARIABLE MMOTD_GIT_STATUS
+        OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" commit -m "${MMOTD_VERSION}"
-        )
-    execute_process(
-        COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" tag -f -a "${MMOTD_VERSION}" -m "${MMOTD_VERSION}"
-        )
-    message(STATUS "Version updated to ${MMOTD_VERSION}. Don't forget to:")
-    message(STATUS "  git push origin <feature-branch>")
+    string(REPLACE "\n" ";" MMOTD_GIT_STATUS ${MMOTD_GIT_STATUS})
+
+    # If cmake/version.cmake is the only modified file
+    if (NOT "x${MMOTD_GIT_STATUS}" STREQUAL "x M cmake/version.cmake")
+        message(STATUS "not creating tag for 'cmake/version.cmake'")
+    else ()
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" add -u
+            )
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" commit -m "${MMOTD_VERSION}"
+            )
+        execute_process(
+            COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" tag -f -a "${MMOTD_VERSION}" -m "${MMOTD_VERSION}"
+            )
+        message(STATUS "Version updated to ${MMOTD_VERSION}. Don't forget to:")
+        message(STATUS "  git push origin <feature-branch>")
+    endif()
 endif()
 
