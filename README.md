@@ -7,7 +7,7 @@
 [![commit activity](https://img.shields.io/badge/yes-brightgreen?style=flat-square&label=maintained%3F)](https://github.com/jasonivey/mmotd/graphs/commit-activity) [![maintainer](https://img.shields.io/badge/jasonivey-blue?style=flat-square&label=maintainer)](https://github.com/jasonivey) [![commits](https://img.shields.io/github/commit-activity/m/badges/shields?logo=github&style=flat-square)](https://github.com/jasonivey/mmotd/commits/master)
 ![code size](https://img.shields.io/github/languages/code-size/jasonivey/mmotd?color=red&logo=c%2B%2B&logoColor=red&style=flat-square)
 
-![demo](https://github.com/jasonivey/mmotd/raw/feature/readme-update/.assets/demo.gif)
+![demo](https://github.com/jasonivey/mmotd/raw/master/.assets/demo.gif)
 
 ### Introduction
 
