@@ -18,8 +18,12 @@ TEST_CASE("InvalidArgument inherits from std::invalid_argument", "[exception]") 
     auto ex = InvalidArgument("invalid argument");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::invalid_argument *>(&ex) != nullptr);
+}
+
+TEST_CASE("InvalidArgument contains context", "[exception]") {
+    auto ex = InvalidArgument("invalid argument");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::InvalidArgument::InvalidArgument"));
 }
 
@@ -27,8 +31,12 @@ TEST_CASE("DomainError inherits from std::domain_error", "[exception]") {
     auto ex = DomainError("domain error");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::domain_error *>(&ex) != nullptr);
+}
+
+TEST_CASE("DomainError contains context", "[exception]") {
+    auto ex = DomainError("domain error");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::DomainError::DomainError"));
 }
 
@@ -36,8 +44,12 @@ TEST_CASE("LengthError inherits from std::length_error", "[exception]") {
     auto ex = LengthError("length error");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::length_error *>(&ex) != nullptr);
+}
+
+TEST_CASE("LengthError contains context", "[exception]") {
+    auto ex = LengthError("length error");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::LengthError::LengthError"));
 }
 
@@ -45,8 +57,12 @@ TEST_CASE("OutOfRange inherits from std::out_of_range", "[exception]") {
     auto ex = OutOfRange("out of range");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::out_of_range *>(&ex) != nullptr);
+}
+
+TEST_CASE("OutOfRange contains context", "[exception]") {
+    auto ex = OutOfRange("out of range");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::OutOfRange::OutOfRange"));
 }
 
@@ -54,8 +70,12 @@ TEST_CASE("RuntimeError inherits from std::runtime_error", "[exception]") {
     auto ex = RuntimeError("runtime error");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::runtime_error *>(&ex) != nullptr);
+}
+
+TEST_CASE("RuntimeError contains context", "[exception]") {
+    auto ex = RuntimeError("runtime error");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::RuntimeError::RuntimeError"));
 }
 
@@ -63,8 +83,12 @@ TEST_CASE("RangeError inherits from std::range_error", "[exception]") {
     auto ex = RangeError("range error");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::range_error *>(&ex) != nullptr);
+}
+
+TEST_CASE("RangeError contains context", "[exception]") {
+    auto ex = RangeError("range error");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::RangeError::RangeError"));
 }
 
@@ -72,8 +96,12 @@ TEST_CASE("OverflowError inherits from std::overflow_error", "[exception]") {
     auto ex = OverflowError("overflow error");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::overflow_error *>(&ex) != nullptr);
+}
+
+TEST_CASE("OverflowError contains context", "[exception]") {
+    auto ex = OverflowError("overflow error");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::OverflowError::OverflowError"));
 }
 
@@ -81,8 +109,12 @@ TEST_CASE("UnderflowError inherits from std::underflow_error", "[exception]") {
     auto ex = UnderflowError("underflow error");
     CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
     CHECK(dynamic_cast<const std::underflow_error *>(&ex) != nullptr);
+}
+
+TEST_CASE("UnderflowError contains context", "[exception]") {
+    auto ex = UnderflowError("underflow error");
     auto ex_str = string(ex.what());
-    //fmt::print("{}\n", ex_str);
+    fmt::print("{}\n", ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::UnderflowError::UnderflowError"));
 }
 

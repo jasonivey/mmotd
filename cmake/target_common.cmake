@@ -136,10 +136,10 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # gnu only
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wtrampolines>
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>
-
-        # /EHsc # Warning fix!
-        # /W4
-        # /WX # Treats all compilers warnings as errors
+        # msvc only
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/EHsc> # /EHsc # Warning fix!
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4>   # /W4 increase warning level
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/WX>   # /WX treat all warnings as errors
         # /w14242 # 'identfier': conversion from 'type1' to 'type1', possible loss of data
         # /w14254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
         # /w14263 # 'function': member function does not override any base class virtual member function
@@ -164,15 +164,14 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # /w44061
         # /w44062
         # /w45038
-
-
         )
 
-    # This adds the root mmotd source directory as the only project include directory.
-    #  This means all include files will be relative to this project root directory.
-    #  For example:
-    #    #include "common/include/algorithm.h"
-    #    #include "apps/mmotd/include/cli_app_options_creator.h"
+    # Detect what type of target this is configuring (i.e. STATIC_LIBRARY, SHARED_LIBRARY, EXECUTABLE, etc.)
+    get_target_property (target_type ${MMOTD_TARGET_NAME} TYPE)
+    string (TOLOWER ${target_type} target_type)
+
+    # All internal include files are relative to the project root.  Include paths relative
+    #  to current directory or other schemes are not encouraged.
     target_include_directories(
         ${MMOTD_TARGET_NAME}
         PRIVATE ${PROJECT_ROOT_INCLUDE_PATH}
@@ -191,22 +190,11 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE ${date_SOURCE_DIR}/include
         PRIVATE ${scope_guard_SOURCE_DIR}
         PRIVATE ${OPENSSL_INCLUDE_DIR}
+        PRIVATE $<$<AND:$<STREQUAL:"${target_type}","executable">,$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">>:${catch2_SOURCE_DIR}/single_include>
+        PRIVATE $<$<AND:$<STREQUAL:"${target_type}","executable">,$<NOT:$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">>>:${cli11_SOURCE_DIR}/include>
         )
 
-    get_target_property (target_type ${MMOTD_TARGET_NAME} TYPE)
-    string (TOLOWER ${target_type} target_type)
     if (target_type STREQUAL "executable")
-        if (${MMOTD_TARGET_NAME} STREQUAL "mmotd_test")
-            target_include_directories(
-                ${MMOTD_TARGET_NAME} SYSTEM
-                PRIVATE ${catch2_SOURCE_DIR}/single_include
-                )
-        else ()
-            target_include_directories(
-                ${MMOTD_TARGET_NAME} SYSTEM
-                PRIVATE ${cli11_SOURCE_DIR}/include
-                )
-        endif ()
         target_link_libraries(
             ${MMOTD_TARGET_NAME}
             PRIVATE mmotd_lib
@@ -218,14 +206,15 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
             PRIVATE nlohmann_json::nlohmann_json
             PRIVATE fmt::fmt
             PRIVATE date-tz
+            PRIVATE OpenSSL::SSL
+            PRIVATE OpenSSL::Crypto
+            PRIVATE ZLIB::ZLIB
+            PRIVATE $<$<CXX_COMPILER_ID:MSVC>:OpenSSL::applink>
             PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++>
             PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++abi>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWCoreFoundation}>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWSecurity}>
-            PRIVATE $<$<PLATFORM_ID:Darwin,Linux>:${OPENSSL_CRYPTO_LIBRARY}>
-            PRIVATE $<$<PLATFORM_ID:Darwin,Linux>:${OPENSSL_SSL_LIBRARY}>
-            PRIVATE $<$<PLATFORM_ID:Darwin,Linux>:ZLIB::ZLIB>
-            PRIVATE $<$<STREQUAL:target_type,"mmotd_test">:Catch2::Catch2>
+            PRIVATE $<$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">:Catch2::Catch2>
             PRIVATE Threads::Threads
             PRIVATE ${CMAKE_DL_LIBS}
             )
