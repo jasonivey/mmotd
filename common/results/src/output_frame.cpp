@@ -67,7 +67,7 @@ const Column &Frame::GetColumn(ColumnIndex index) const {
         return idx == index;
     });
     if (i == end(columns_)) {
-        MMOTD_THROW_OUT_OF_RANGE(format("column index {} not found in template columns", index));
+        MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("column index {} not found in template columns"), index));
     }
     const auto &[_, column] = *i;
     return column;
@@ -79,7 +79,7 @@ Column &Frame::GetColumn(ColumnIndex index) {
         return idx == index;
     });
     if (i == end(columns_)) {
-        MMOTD_THROW_OUT_OF_RANGE(format("column index {} not found in template columns", index));
+        MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("column index {} not found in template columns"), index));
     }
     auto &[_, column] = *i;
     return column;
@@ -92,7 +92,7 @@ const Column &Frame::GetColumn(RowId row_id) const {
             return column;
         }
     }
-    MMOTD_THROW_OUT_OF_RANGE(format("row id {} not found in any columns", boost::uuids::to_string(row_id)));
+    MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("row id {} not found in any columns"), boost::uuids::to_string(row_id)));
     static const auto INVALID_COLUMN = Column{};
     return INVALID_COLUMN;
 }
@@ -104,7 +104,7 @@ Column &Frame::GetColumn(RowId row_id) {
             return column;
         }
     }
-    MMOTD_THROW_OUT_OF_RANGE(format("row id {} not found in any columns", boost::uuids::to_string(row_id)));
+    MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("row id {} not found in any columns"), boost::uuids::to_string(row_id)));
     static auto INVALID_COLUMN = Column{};
     return INVALID_COLUMN;
 }
@@ -175,7 +175,7 @@ void Frame::RemoveEmptyRows() {
     auto row_numbers = GetFirstLastRowNumbers();
     for (auto i = begin(row_numbers); i != end(row_numbers); ++i) {
         auto row_number = *i;
-        PLOG_VERBOSE << format("inspecting row: {}, empty rows: {}", row_number, empty_row_count);
+        PLOG_VERBOSE << format(FMT_STRING("inspecting row: {}, empty rows: {}"), row_number, empty_row_count);
         auto row_ids = GetRowIds(row_number);
         if (empty(row_ids)) {
             ++empty_row_count;
@@ -296,7 +296,7 @@ size_t Frame::GetColumnCount(bool include_name_value) const {
             }
         }
     }
-    PLOG_VERBOSE << format("column count: {}, include name value: {}", total_count, include_name_value);
+    PLOG_VERBOSE << format(FMT_STRING("column count: {}, include name value: {}"), total_count, include_name_value);
     return total_count;
 }
 
@@ -306,7 +306,7 @@ const Row &Frame::GetRow(RowId row_id) const {
         const auto &column = GetColumn(index);
         return column.ContainsRow(row_id);
     });
-    MMOTD_CHECKS(i != end(indexes), format("unable to find row id: {}", boost::uuids::to_string(row_id)));
+    MMOTD_CHECKS(i != end(indexes), format(FMT_STRING("unable to find row id: {}"), boost::uuids::to_string(row_id)));
     return GetColumn(*i).GetRow(row_id);
 }
 
@@ -316,7 +316,7 @@ Row &Frame::GetRow(RowId row_id) {
         const auto &column = GetColumn(index);
         return column.ContainsRow(row_id);
     });
-    MMOTD_CHECKS(i != end(indexes), format("unable to find row id: {}", boost::uuids::to_string(row_id)));
+    MMOTD_CHECKS(i != end(indexes), format(FMT_STRING("unable to find row id: {}"), boost::uuids::to_string(row_id)));
     return GetColumn(*i).GetRow(row_id);
 }
 

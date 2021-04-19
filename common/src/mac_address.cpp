@@ -51,7 +51,8 @@ MacAddress MacAddress::from_string(const std::string &input_str) {
 
     // if the number of elements are still not == 6 then we have malformed input
     if (mac_addr_hex_chars.size() != MAC_ADDRESS_SIZE) {
-        auto error_str = format("mac address is not the correct length (size={} != 6)", mac_addr_hex_chars.size());
+        auto error_str =
+            format(FMT_STRING("mac address is not the correct length (size={} != 6)"), mac_addr_hex_chars.size());
         MMOTD_THROW_INVALID_ARGUMENT(error_str);
     }
 
@@ -63,7 +64,7 @@ MacAddress MacAddress::from_string(const std::string &input_str) {
               [&input_str](const auto &hex_char) {
                   if (!all(hex_char, is_xdigit()) || hex_char.empty() || hex_char.size() > 2) {
                       auto error_str =
-                          format("invalid character (\"{}\") found in mac address {}", hex_char, input_str);
+                          format(FMT_STRING("invalid character (\"{}\") found in mac address {}"), hex_char, input_str);
                       MMOTD_THROW_INVALID_ARGUMENT(error_str);
                   }
                   auto value = std::stoul(hex_char, nullptr, 16);
@@ -80,7 +81,7 @@ bool MacAddress::IsZero() const {
 }
 
 string MacAddress::to_string() const {
-    return format("{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+    return format(FMT_STRING("{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}"),
                   static_cast<uint32_t>(data_[0]),
                   static_cast<uint32_t>(data_[1]),
                   static_cast<uint32_t>(data_[2]),

@@ -25,7 +25,7 @@ optional<std::chrono::system_clock::time_point> GetBootTime() {
     uptime_file.open(UPTIME_FILENAME, ios_base::in);
 
     if (!uptime_file.is_open() || uptime_file.fail() || uptime_file.bad()) {
-        PLOG_ERROR << format("unable to open {} for reading, {}",
+        PLOG_ERROR << format(FMT_STRING("unable to open {} for reading, {}"),
                              UPTIME_FILENAME,
                              mmotd::error::ios_flags::to_string(uptime_file));
         return make_optional(std::chrono::system_clock::now());

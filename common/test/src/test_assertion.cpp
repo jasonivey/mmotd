@@ -22,7 +22,7 @@ TEST_CASE("Assertion inherits from RuntimeError", "[assertion]") {
 TEST_CASE("Assertion contains context", "[assertion]") {
     auto assertion = Assertion("assertion");
     auto assertion_str = string(assertion.what());
-    fmt::print("{}\n", assertion_str);
+    fmt::print(FMT_STRING("{}\n"), assertion_str);
     CHECK_THAT(assertion_str, Contains("mmotd::assertion::Assertion::Assertion"));
 }
 

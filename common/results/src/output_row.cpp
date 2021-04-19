@@ -82,7 +82,7 @@ bool Row::BalanceNameValueSize() {
 
 size_t Row::UpdateRowNumber(int row_number) {
     MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
-    PLOG_VERBOSE << format("updating row number: {} to: {} for name: '{}', value: '{}'",
+    PLOG_VERBOSE << format(FMT_STRING("updating row number: {} to: {} for name: '{}', value: '{}'"),
                            item_.row_index,
                            row_number,
                            GetName(0),
@@ -96,14 +96,14 @@ void Row::SetNameValue(const Informations &informations) {
         auto template_string = TemplateString{sub_name};
         auto modified_name =
             template_string.TransformTemplateName(informations, item_, static_cast<size_t>(item_.repeatable_index));
-        PLOG_VERBOSE << format("adding name to row {}: '{}'", GetRowNumber(), modified_name);
+        PLOG_VERBOSE << format(FMT_STRING("adding name to row {}: '{}'"), GetRowNumber(), modified_name);
         AddName(modified_name);
     }
     for (const auto &sub_value : item_.value) {
         auto template_string = TemplateString{sub_value};
         auto modified_value =
             template_string.TransformTemplateValue(informations, item_, static_cast<size_t>(item_.repeatable_index));
-        PLOG_VERBOSE << format("adding value to row {}: '{}'", GetRowNumber(), modified_value);
+        PLOG_VERBOSE << format(FMT_STRING("adding value to row {}: '{}'"), GetRowNumber(), modified_value);
         AddValue(modified_value);
     }
 }

@@ -132,13 +132,13 @@ private:
 };
 
 Table::TableImpl::TableImpl(string table_style, size_t column_count) : table_(), column_count_(column_count) {
-    PLOG_VERBOSE << format("setting border style: {}", table_style);
+    PLOG_VERBOSE << format(FMT_STRING("setting border style: {}"), table_style);
     GetTable().set_border_style(GetTableStyle(table_style));
     PLOG_VERBOSE << "setting ft_set_u8strwid_func to custom: GetStringWidth";
     ft_set_u8strwid_func(&GetStringWidth);
     PLOG_VERBOSE << "setting adding strategy: replace";
     GetTable().set_adding_strategy(fort::add_strategy::replace);
-    PLOG_VERBOSE << format("setting right margin: {}", GetColumnCount());
+    PLOG_VERBOSE << format(FMT_STRING("setting right margin: {}"), GetColumnCount());
     GetTable().set_right_margin(static_cast<unsigned>(GetColumnCount()));
 }
 
@@ -150,7 +150,7 @@ void Table::TableImpl::WriteRow(const Row &row) {
     auto already_written_name = false;
     auto row_line_count = row.GetHeight();
     for (auto i = size_t{0}; i != row_line_count; ++i) {
-        PLOG_VERBOSE << format("writing [{}][{}] {} column",
+        PLOG_VERBOSE << format(FMT_STRING("writing [{}][{}] {} column"),
                                row.GetRowNumber(),
                                row.GetColumnNumberStr(),
                                row.GetColumnPosition().to_string());
@@ -193,11 +193,14 @@ void Table::TableImpl::WriteCell(string text,
                                  size_t col_number,
                                  size_t cell_span,
                                  bool use_cell_span) {
-    PLOG_VERBOSE << format("setting right margin: {}", GetColumnCount());
+    PLOG_VERBOSE << format(FMT_STRING("setting right margin: {}"), GetColumnCount());
     GetTable().set_right_margin(static_cast<unsigned>(GetColumnCount()));
-    auto debug_str = "writing cell, row: {}, column: {}, cell span: {}, text: '{}'";
     auto cell_span_str = use_cell_span ? ::to_string(cell_span) : string{"none"};
-    PLOG_VERBOSE << format(debug_str, row_number, col_number, cell_span_str, text);
+    PLOG_VERBOSE << format(FMT_STRING("writing cell, row: {}, column: {}, cell span: {}, text: '{}'"),
+                           row_number,
+                           col_number,
+                           cell_span_str,
+                           text);
     GetTable().set_cur_cell(row_number, col_number);
     if (use_cell_span) {
         GetTable().cur_cell().set_cell_span(cell_span);
@@ -210,9 +213,9 @@ void Table::TableImpl::WriteNameValue(const Row &row, size_t line_index) {
     auto column_position = row.GetColumnPosition();
     auto column_number = column_position.GetIndex() * row.GetColumnCount();
     auto cell_span = GetColumnCount() - 1;
-    auto text = format("{}{}", GetRowPrefix(row), row.GetName(line_index));
+    auto text = format(FMT_STRING("{}{}"), GetRowPrefix(row), row.GetName(line_index));
     WriteCell(text, row_number, column_number, size_t{0}, false);
-    text = format("{}{}", row.GetValue(line_index), GetRowSuffix(row, line_index));
+    text = format(FMT_STRING("{}{}"), row.GetValue(line_index), GetRowSuffix(row, line_index));
     WriteCell(text, row_number, column_number + 1, cell_span, column_position.IsEntireLine());
 }
 
@@ -221,7 +224,7 @@ void Table::TableImpl::WriteName(const Row &row, size_t line_index) {
     auto column_position = row.GetColumnPosition();
     auto column_number = column_position.GetIndex() * row.GetColumnCount();
     auto cell_span = GetColumnCount() - 1;
-    auto text = format("{}{}{}", GetRowPrefix(row), row.GetName(line_index), GetRowSuffix(row, line_index));
+    auto text = format(FMT_STRING("{}{}{}"), GetRowPrefix(row), row.GetName(line_index), GetRowSuffix(row, line_index));
     WriteCell(text, row_number, column_number, cell_span, column_position.IsEntireLine());
 }
 
@@ -231,7 +234,8 @@ void Table::TableImpl::WriteValue(const Row &row, size_t line_index, bool bump_c
     auto column_number = column_position.GetIndex() * row.GetColumnCount();
     column_number += bump_column ? 1 : 0;
     auto cell_span = bump_column ? GetColumnCount() - 1 : GetColumnCount();
-    auto text = format("{}{}{}", GetRowPrefix(row), row.GetValue(line_index), GetRowSuffix(row, line_index));
+    auto text =
+        format(FMT_STRING("{}{}{}"), GetRowPrefix(row), row.GetValue(line_index), GetRowSuffix(row, line_index));
     WriteCell(text, row_number, column_number, cell_span, column_position.IsEntireLine());
 }
 

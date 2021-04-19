@@ -82,7 +82,7 @@ private:
 
 optional<Greeting> Greetings::FindGreeting() const {
     const auto hour = mmotd::chrono::io::get_current_hour();
-    PLOG_VERBOSE << fmt::format("the current hour is {}", hour);
+    PLOG_VERBOSE << fmt::format(FMT_STRING("the current hour is {}"), hour);
 
     if (value_in_range(hour, MORNING_GREETING.begin(), MORNING_GREETING.end())) {
         return MORNING_GREETING;
@@ -93,7 +93,7 @@ optional<Greeting> Greetings::FindGreeting() const {
     } else {
         if (value_in_range(hour, NIGHT_GREETING.end(), NIGHT_GREETING.begin())) {
             // is outside of the night greeting time... should have been picked up by the above
-            PLOG_ERROR << fmt::format("hour value={} did not find it's way into any block of time", hour);
+            PLOG_ERROR << fmt::format(FMT_STRING("hour value={} did not find it's way into any block of time"), hour);
             return nullopt;
         }
         return NIGHT_GREETING;

@@ -44,7 +44,7 @@ void ComputerInformation::SetInformationProviders() {
     auto &creators = GetInformationProviderCreators();
     information_providers_.resize(creators.size());
     transform(begin(creators), end(creators), begin(information_providers_), [](auto &creator) { return creator(); });
-    PLOG_INFO << format("created {} information providers", information_providers_.size());
+    PLOG_INFO << format(FMT_STRING("created {} information providers"), information_providers_.size());
 }
 
 bool RegisterInformationProvider(InformationProviderCreator creator) {

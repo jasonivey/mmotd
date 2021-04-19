@@ -23,7 +23,7 @@ TEST_CASE("InvalidArgument inherits from std::invalid_argument", "[exception]") 
 TEST_CASE("InvalidArgument contains context", "[exception]") {
     auto ex = InvalidArgument("invalid argument");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::InvalidArgument::InvalidArgument"));
 }
 
@@ -36,7 +36,7 @@ TEST_CASE("DomainError inherits from std::domain_error", "[exception]") {
 TEST_CASE("DomainError contains context", "[exception]") {
     auto ex = DomainError("domain error");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::DomainError::DomainError"));
 }
 
@@ -49,7 +49,7 @@ TEST_CASE("LengthError inherits from std::length_error", "[exception]") {
 TEST_CASE("LengthError contains context", "[exception]") {
     auto ex = LengthError("length error");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::LengthError::LengthError"));
 }
 
@@ -62,7 +62,7 @@ TEST_CASE("OutOfRange inherits from std::out_of_range", "[exception]") {
 TEST_CASE("OutOfRange contains context", "[exception]") {
     auto ex = OutOfRange("out of range");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::OutOfRange::OutOfRange"));
 }
 
@@ -75,7 +75,7 @@ TEST_CASE("RuntimeError inherits from std::runtime_error", "[exception]") {
 TEST_CASE("RuntimeError contains context", "[exception]") {
     auto ex = RuntimeError("runtime error");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::RuntimeError::RuntimeError"));
 }
 
@@ -88,7 +88,7 @@ TEST_CASE("RangeError inherits from std::range_error", "[exception]") {
 TEST_CASE("RangeError contains context", "[exception]") {
     auto ex = RangeError("range error");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::RangeError::RangeError"));
 }
 
@@ -101,7 +101,7 @@ TEST_CASE("OverflowError inherits from std::overflow_error", "[exception]") {
 TEST_CASE("OverflowError contains context", "[exception]") {
     auto ex = OverflowError("overflow error");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::OverflowError::OverflowError"));
 }
 
@@ -114,7 +114,7 @@ TEST_CASE("UnderflowError inherits from std::underflow_error", "[exception]") {
 TEST_CASE("UnderflowError contains context", "[exception]") {
     auto ex = UnderflowError("underflow error");
     auto ex_str = string(ex.what());
-    fmt::print("{}\n", ex_str);
+    fmt::print(FMT_STRING("{}\n"), ex_str);
     CHECK_THAT(ex_str, Contains("mmotd::assertion::UnderflowError::UnderflowError"));
 }
 

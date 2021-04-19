@@ -163,7 +163,7 @@ optional<string> HttpClient::MakeRequestImpl() {
     auto response = Request(*stream);
 
     auto response_str = response.body();
-    PLOG_INFO << format("response from {}:{}{}\n{}", host_, port_, path_, response_str);
+    PLOG_INFO << format(FMT_STRING("response from {}:{}{}\n{}"), host_, port_, path_, response_str);
     CloseStream(*stream);
 
     return make_optional(response_str);
@@ -190,10 +190,10 @@ optional<string> HttpRequest::MakeRequest(string path) {
         return HttpClient{protocol_, host_, port_, path}.MakeRequest();
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format("http client threw boost::exception {}", diag);
+        auto error_str = format(FMT_STRING("http client threw boost::exception {}"), diag);
         PLOG_ERROR << error_str;
     } catch (const std::exception &ex) {
-        auto error_str = format("http client threw {}", ex.what());
+        auto error_str = format(FMT_STRING("http client threw {}"), ex.what());
         PLOG_ERROR << error_str;
     }
     return nullopt;

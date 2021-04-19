@@ -16,7 +16,7 @@ static constexpr const int INVALID_ROW = std::numeric_limits<int>::max();
 namespace mmotd::results {
 
 RowNumberSentinals::RowNumberSentinals(value_type begin, value_type end) : begin_value_(begin), end_value_(end) {
-    PLOG_VERBOSE << format("row sentinal created: {}", to_string());
+    PLOG_VERBOSE << format(FMT_STRING("row sentinal created: {}"), to_string());
 }
 
 RowNumberSentinals::iterator RowNumberSentinals::begin() {
@@ -219,7 +219,7 @@ string RowNumberSentinals::to_string() const {
     if (begin_value_ == INVALID_ROW || end_value_ == INVALID_ROW) {
         return string{"{INVALID : INVALID}"};
     } else {
-        return format("{{{} : {}}}", begin_value_, end_value_);
+        return format(FMT_STRING("{{{} : {}}}"), begin_value_, end_value_);
     }
 }
 

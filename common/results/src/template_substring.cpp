@@ -4,6 +4,7 @@
 
 #include <iterator>
 #include <string>
+#include <string_view>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/range/iterator.hpp>
@@ -40,10 +41,13 @@ void TemplateSubstring::SetValueSubstringRange(const SubstringRange &new_range,
     if (!new_range.match(text)) {
         return;
     } else if (existing_range.empty()) {
-        PLOG_VERBOSE
-            << format("{} was empty, now=[{},{}], text=\"{}\"", name, new_range.position(), new_range.size(), text);
+        PLOG_VERBOSE << format(FMT_STRING("{} was empty, now=[{},{}], text=\"{}\""),
+                               name,
+                               new_range.position(),
+                               new_range.size(),
+                               text);
     } else {
-        PLOG_VERBOSE << format("{} was=[{},{}], now=[{},{}], text=\"{}\"",
+        PLOG_VERBOSE << format(FMT_STRING("{} was=[{},{}], now=[{},{}], text=\"{}\""),
                                name,
                                existing_range.position(),
                                existing_range.size(),
@@ -83,22 +87,22 @@ ColorDefinitions TemplateSubstring::GetColorDefinitions() const {
 
 void TemplateSubstring::SetPrefix(SubstringRange prefix) {
     SetValueSubstringRange(prefix, prefix_, "prefix", GetRawText());
-    PLOG_VERBOSE << format("updated prefix, template substring=\"{}\"", to_string(nullptr));
+    PLOG_VERBOSE << format(FMT_STRING("updated prefix, template substring=\"{}\""), to_string(nullptr));
 }
 
 void TemplateSubstring::SetSuffix(SubstringRange suffix) {
     SetValueSubstringRange(suffix, suffix_, "suffix", GetRawText());
-    PLOG_VERBOSE << format("updated suffix, template substring=\"{}\"", to_string());
+    PLOG_VERBOSE << format(FMT_STRING("updated suffix, template substring=\"{}\""), to_string());
 }
 
 void TemplateSubstring::SetSubstringText(SubstringRange substring_text) {
     SetValueSubstringRange(substring_text, substring_text_, "substring_text", GetRawText());
-    PLOG_VERBOSE << format("updated substring text, template substring=\"{}\"", to_string());
+    PLOG_VERBOSE << format(FMT_STRING("updated substring text, template substring=\"{}\""), to_string());
 }
 
 void TemplateSubstring::SetColorDefinitions(ColorDefinitions color_definitions) {
     color_definitions_ = color_definitions;
-    PLOG_VERBOSE << format("set color definition={} in text=\"{}\"",
+    PLOG_VERBOSE << format(FMT_STRING("set color definition={} in text=\"{}\""),
                            color_definitions_to_string(color_definitions_),
                            GetRawText());
 }
@@ -110,7 +114,7 @@ string TemplateSubstring::to_string() const {
     }
     auto colors = GetColorDefinitions();
     for_each(std::cbegin(colors), std::cend(colors), [&substring_output](const auto &color) {
-        substring_output += format("[{}]", color);
+        substring_output += format(FMT_STRING("[{}]"), color);
     });
     substring_output += GetSubstring();
     if (auto suffix = GetSuffix(); !std::empty(suffix)) {
@@ -120,31 +124,22 @@ string TemplateSubstring::to_string() const {
 }
 
 string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_color) const {
-    PLOG_VERBOSE << format("prefix=\"{}\", color=\"{}\", text=\"{}\", suffix=\"{}\"",
+    PLOG_VERBOSE << format(FMT_STRING("prefix=\"{}\", color=\"{}\", text=\"{}\", suffix=\"{}\""),
                            GetPrefix(),
                            color_definitions_to_string(GetColorDefinitions()),
                            GetSubstring(),
                            GetSuffix());
-    auto substring_output = string{};
-    if (auto prefix = GetPrefix(); !std::empty(prefix)) {
-        substring_output += prefix;
-    }
-    auto colors_disabled = AppOptions::Instance().GetOptions().IsColorDisabled();
-    auto colors = GetColorDefinitions();
+    auto substring_output = GetPrefix();
     auto substring_text = GetSubstring();
-    for (auto color : colors) {
-        if (colors_disabled) {
-            continue;
-        }
-        substring_text = std::empty(substring_text) ? substring_text : format(convert_color(color), substring_text);
+    if (auto colors_disabled = AppOptions::Instance().GetOptions().IsColorDisabled(); !colors_disabled) {
+        const auto &colors = GetColorDefinitions();
+        for_each(begin(colors), end(colors), [&convert_color, &substring_text](const auto &color) {
+            if (!empty(substring_text)) {
+                substring_text = format(convert_color(color), FMT_STRING("{}"), substring_text);
+            }
+        });
     }
-    if (!empty(substring_text)) {
-        substring_output += substring_text;
-    }
-    if (auto suffix = GetSuffix(); !std::empty(suffix)) {
-        substring_output += suffix;
-    }
-    return substring_output;
+    return substring_output + substring_text + GetSuffix();
 }
 
 } // namespace mmotd::results

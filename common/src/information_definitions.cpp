@@ -29,7 +29,7 @@ const InformationDefinitions &InformationDefinitions::Instance() {
 Information InformationDefinitions::GetInformationDefinition(InformationId id) const {
     auto i = find_if(begin(informations_), end(informations_), [id](const auto &info) { return info.GetId() == id; });
     if (i == end(informations_)) {
-        auto msg = format("unable to find information id={}", id);
+        auto msg = format(FMT_STRING("unable to find information id={}"), id);
         MMOTD_THROW_RUNTIME_ERROR(msg);
     }
     return *i;

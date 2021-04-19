@@ -61,7 +61,7 @@ string GetPlatformNameVersion(int major, int minor) {
     auto platform_name = GetPlatformIdentifier(major, minor, PLATFORM_NAMES);
     auto version_name = GetPlatformIdentifier(major, minor, VERSION_NAMES);
 
-    return format("{} {}", platform_name, version_name);
+    return format(FMT_STRING("{} {}"), platform_name, version_name);
 }
 
 optional<tuple<int, int, int>> GetOsVersion() {
@@ -69,7 +69,8 @@ optional<tuple<int, int, int>> GetOsVersion() {
     size_t miblen = 512;
     if (sysctlnametomib("kern.osproductversion", mib, &miblen) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format("error calling sysctlnametomib with kern.osproductversion, details: {}", error_str);
+        PLOG_ERROR << format(FMT_STRING("error calling sysctlnametomib with kern.osproductversion, details: {}"),
+                             error_str);
         return nullopt;
     }
     char version[512] = {0};
@@ -77,7 +78,7 @@ optional<tuple<int, int, int>> GetOsVersion() {
     size_t length = sizeof(long long);
     if (sysctl(mib, 2, version, &length, NULL, 0) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format("error calling sysctl with kern.osproductversion, details: {}", error_str);
+        PLOG_ERROR << format(FMT_STRING("error calling sysctl with kern.osproductversion, details: {}"), error_str);
         return nullopt;
     }
     auto versions = vector<string>{};
@@ -98,9 +99,9 @@ optional<tuple<int, int, int>> GetOsVersion() {
 optional<KernelDetails> GetKernelDetails() {
     struct utsname buf = {};
     int retval = uname(&buf);
-    PLOG_DEBUG << format("uname returned {} [{}]", retval, retval == 0 ? "success" : "failed");
+    PLOG_DEBUG << format(FMT_STRING("uname returned {} [{}]"), retval, retval == 0 ? "success" : "failed");
     if (retval != 0) {
-        PLOG_ERROR << format("uname failed with return code '{}'", retval);
+        PLOG_ERROR << format(FMT_STRING("uname failed with return code '{}'"), retval);
         return nullopt;
     }
 
@@ -145,7 +146,7 @@ SystemDetails GetSystemInformationDetails() {
     }
 
     auto [major, minor, patch] = *os_version_holder;
-    details.platform_version = format("{}.{}.{}", major, minor, patch);
+    details.platform_version = format(FMT_STRING("{}.{}.{}"), major, minor, patch);
     details.platform_name = GetPlatformNameVersion(major, minor);
 
     return details;

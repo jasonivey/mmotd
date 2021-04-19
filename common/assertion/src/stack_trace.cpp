@@ -75,7 +75,7 @@ pair<size_t, size_t> FindParens(string backtrace_detail) {
 string StripFunctionArgs(string backtrace_detail) {
     auto [open_paren, close_paren] = FindParens(backtrace_detail);
     if (open_paren != string::npos && close_paren != string::npos && open_paren + 1 != close_paren) {
-        backtrace_detail = format("{}(...){}",
+        backtrace_detail = format(FMT_STRING("{}(...){}"),
                                   string{begin(backtrace_detail), begin(backtrace_detail) + open_paren},
                                   string{begin(backtrace_detail) + close_paren + 1, end(backtrace_detail)});
     }
@@ -137,7 +137,7 @@ string ReverseStackTraceImpl(vector<string> backtrace_details) {
         for (auto j = begin(details); j != end(details); ++j) {
             auto &sub_detail = *j;
             if (j == begin(details)) {
-                auto index_str = format("#{:<5}", count++);
+                auto index_str = format(FMT_STRING("#{:<5}"), count++);
                 copy(begin(index_str), end(index_str), begin(sub_detail));
             }
             new_backtrace.push_back(StripFunctionArgs(sub_detail));

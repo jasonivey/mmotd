@@ -21,7 +21,7 @@ optional<int32_t> GetCpuCount() {
         PLOG_ERROR << "sysconf returned -1 calling get processor count _SC_NPROCESSORS_ONLN";
         return nullopt;
     } else {
-        PLOG_INFO << format("sysconf for _SC_NPROCESSORS_ONLN returned {} processors", cpu_count);
+        PLOG_INFO << format(FMT_STRING("sysconf for _SC_NPROCESSORS_ONLN returned {} processors"), cpu_count);
         return make_optional(cpu_count);
     }
 }
@@ -33,7 +33,7 @@ optional<double> GetSystemLoadAverage() {
         PLOG_ERROR << "sysctlbyname returned -1 calling vm.loadavg";
         return nullopt;
     } else {
-        PLOG_INFO << format("sysctlbyname returned 1 min: {}, 5 min: {}, 15 min: {}",
+        PLOG_INFO << format(FMT_STRING("sysctlbyname returned 1 min: {}, 5 min: {}, 15 min: {}"),
                             load.ldavg[0] / static_cast<double>(load.fscale),
                             load.ldavg[1] / static_cast<double>(load.fscale),
                             load.ldavg[2] / static_cast<double>(load.fscale));

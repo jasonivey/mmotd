@@ -29,7 +29,7 @@ optional<mmotd::system::KernelDetails> GetKernelDetails() {
     auto retval = uname(&buf);
     if (retval != 0) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format("error calling uname, {}", error_str);
+        PLOG_ERROR << format(FMT_STRING("error calling uname, {}"), error_str);
         return nullopt;
     }
 
@@ -63,7 +63,7 @@ constexpr static const char *OS_RELEASE = "/etc/os-release";
 vector<string> GetOsVersionFile() {
     auto os_release_path = fs::path(OS_RELEASE);
     if (!fs::is_regular_file(os_release_path) || !fs::is_symlink(os_release_path)) {
-        PLOG_ERROR << format("{} release file does not exist", OS_RELEASE);
+        PLOG_ERROR << format(FMT_STRING("{} release file does not exist"), OS_RELEASE);
         return vector<string>{};
     }
 
@@ -72,7 +72,7 @@ vector<string> GetOsVersionFile() {
     ifs.open(os_release_path, ios_base::in);
     if (!ifs.is_open() || ifs.fail() || ifs.bad()) {
         auto ifs_err = mmotd::error::ios_flags::to_string(ifs);
-        PLOG_ERROR << format("unable to open {}, {}", OS_RELEASE, ifs_err);
+        PLOG_ERROR << format(FMT_STRING("unable to open {}, {}"), OS_RELEASE, ifs_err);
         return vector<string>{};
     }
 
@@ -80,7 +80,7 @@ vector<string> GetOsVersionFile() {
     for (string version_line; getline(ifs, version_line);) {
         if (ifs.fail() || ifs.bad()) {
             auto ifs_err = mmotd::error::ios_flags::to_string(ifs);
-            PLOG_ERROR << format("error reading {}, {}", OS_RELEASE, ifs_err);
+            PLOG_ERROR << format(FMT_STRING("error reading {}, {}"), OS_RELEASE, ifs_err);
             return vector<string>{};
         }
         version_lines.push_back(version_line);
@@ -99,11 +99,11 @@ optional<int> ParseIndividualOsVersion(const string &version_str) {
 
     if (i != end(updated_version_str)) {
         auto offset = std::distance(begin(updated_version_str), i);
-        PLOG_DEBUG << format("found integer offset for {} to be {}", updated_version_str, offset);
+        PLOG_DEBUG << format(FMT_STRING("found integer offset for {} to be {}"), updated_version_str, offset);
         updated_version_str = updated_version_str.substr(offset);
     }
     if (updated_version_str.empty()) {
-        PLOG_DEBUG << format("stripped front of version string {} and now it's empty", version_str);
+        PLOG_DEBUG << format(FMT_STRING("stripped front of version string {} and now it's empty"), version_str);
         return nullopt;
     }
 
@@ -113,15 +113,15 @@ optional<int> ParseIndividualOsVersion(const string &version_str) {
 
     if (j != end(updated_version_str)) {
         auto offset = std::distance(begin(updated_version_str), j);
-        PLOG_DEBUG << format("found integer offset for {} to be {}", updated_version_str, offset);
+        PLOG_DEBUG << format(FMT_STRING("found integer offset for {} to be {}"), updated_version_str, offset);
         updated_version_str = updated_version_str.substr(0, offset);
     }
     if (updated_version_str.empty()) {
-        PLOG_DEBUG << format("stripped back of version string {} and now it's empty", version_str);
+        PLOG_DEBUG << format(FMT_STRING("stripped back of version string {} and now it's empty"), version_str);
         return nullopt;
     }
 
-    PLOG_DEBUG << format("stripped version string is {}", updated_version_str);
+    PLOG_DEBUG << format(FMT_STRING("stripped version string is {}"), updated_version_str);
 
     return make_optional(std::stoi(updated_version_str));
 }
@@ -130,7 +130,7 @@ optional<tuple<int, int, int>> ParseOsVersion(const string &version_str) {
     auto version_numbers = vector<string>{};
     boost::split(version_numbers, version_str, boost::is_any_of("."), boost::token_compress_on);
     if (version_numbers.size() < 2) {
-        PLOG_ERROR << format("unable to split '{}' into a version string", version_str);
+        PLOG_ERROR << format(FMT_STRING("unable to split '{}' into a version string"), version_str);
         return nullopt;
     }
     int major, minor, patch = 0;
@@ -203,7 +203,7 @@ optional<tuple<string, int, int, int>> GetOsVersion() {
             codename = ParseCodename(string{i.end(), file_line.end()});
         }
     }
-    return make_optional(make_tuple(format("{} {}", name, codename), major, minor, patch));
+    return make_optional(make_tuple(format(FMT_STRING("{} {}"), name, codename), major, minor, patch));
 }
 
 } // namespace
@@ -232,7 +232,7 @@ SystemDetails GetSystemInformationDetails() {
     details.byte_order = mmotd::system::to_string(kernel_details.endian);
 
     auto [platform_name, major, minor, patch] = *os_version_holder;
-    details.platform_version = format("{}.{:02}.{}", major, minor, patch);
+    details.platform_version = format(FMT_STRING("{}.{:02}.{}"), major, minor, patch);
     details.platform_name = platform_name;
 
     return details;

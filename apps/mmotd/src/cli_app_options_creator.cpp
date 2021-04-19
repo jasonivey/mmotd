@@ -28,7 +28,7 @@ public:
         using namespace boost;
         func_ = [](std::string &when) {
             if (!iequals(when, "Always") && !iequals(when, "Auto") && !iequals(when, "Never")) {
-                return format("--color '{}' is invalid (should be 'always', 'auto' or 'never'", when);
+                return format(FMT_STRING("--color '{}' is invalid (should be 'always', 'auto' or 'never'"), when);
             }
             return std::string();
         };
@@ -61,12 +61,12 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         MMOTD_LOG_INFO(msg);
         cout << msg << endl;
     } catch (const CLI::CallForVersion &version) {
-        const string msg = format("version: {}", mmotd::version::Version::Instance().to_string());
+        const string msg = format(FMT_STRING("version: {}"), mmotd::version::Version::Instance().to_string());
         MMOTD_LOG_INFO(msg);
         cout << msg << endl;
     } catch (const CLI::ParseError &err) {
         if (err.get_exit_code() != 0) {
-            MMOTD_LOG_ERROR(format("error code {}: {}", err.get_exit_code(), err.what()));
+            MMOTD_LOG_ERROR(format(FMT_STRING("error code {}: {}"), err.get_exit_code(), err.what()));
         }
         error_exit_ = true;
     }
@@ -80,7 +80,7 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         CreateDefaultOutputTemplate(*options_.output_template_path);
         app_finished_ = true;
     }
-    MMOTD_LOG_DEBUG(format("Options:\n{}", options_.to_string()));
+    MMOTD_LOG_DEBUG(format(FMT_STRING("Options:\n{}"), options_.to_string()));
 }
 
 void CliAppOptionsCreator::AddOptionDeclarations(CLI::App &app) {

@@ -28,7 +28,7 @@ optional<int32_t> GetCpuCount() {
         PLOG_ERROR << "sysconf returned -1 calling get processor count _SC_NPROCESSORS_ONLN";
         return nullopt;
     } else {
-        PLOG_INFO << format("sysconf for _SC_NPROCESSORS_ONLN returned {} processors", cpu_count);
+        PLOG_INFO << format(FMT_STRING("sysconf for _SC_NPROCESSORS_ONLN returned {} processors"), cpu_count);
         return make_optional(cpu_count);
     }
 }
@@ -38,11 +38,11 @@ optional<double> FromString(string str) {
         auto value = stod(str, nullptr);
         return make_optional(value);
     } catch (const std::invalid_argument &ex) {
-        PLOG_ERROR << format("unable to convert {} to double: {}", str, ex.what());
+        PLOG_ERROR << format(FMT_STRING("unable to convert {} to double: {}"), str, ex.what());
     } catch (const std::out_of_range &ex) {
-        PLOG_ERROR << format("unable to convert {} to double: {}", str, ex.what());
+        PLOG_ERROR << format(FMT_STRING("unable to convert {} to double: {}"), str, ex.what());
     } catch (const std::exception &ex) {
-        PLOG_ERROR << format("unable to convert {} to double: {}.  RETHROWING", str, ex.what());
+        PLOG_ERROR << format(FMT_STRING("unable to convert {} to double: {}.  RETHROWING"), str, ex.what());
         throw;
     }
     return nullopt;
@@ -52,7 +52,7 @@ optional<double> ParseLoadAverage(const string &line) {
     auto parts = vector<string>{};
     boost::split(parts, line, boost::is_any_of(" "), boost::token_compress_on);
     if (parts.size() < 2) {
-        PLOG_ERROR << format("unable to parse '{}' into valid load averages", line);
+        PLOG_ERROR << format(FMT_STRING("unable to parse '{}' into valid load averages"), line);
         return nullopt;
     }
     return FromString(boost::trim_copy(parts.front()));
@@ -64,7 +64,7 @@ optional<double> GetSystemLoadAverage() {
     load_average_file.open(LOAD_AVERAGE_FILENAME, ios_base::in);
 
     if (!load_average_file.is_open() || load_average_file.fail() || load_average_file.bad()) {
-        PLOG_ERROR << format("unable to open {} for reading, {}",
+        PLOG_ERROR << format(FMT_STRING("unable to open {} for reading, {}"),
                              LOAD_AVERAGE_FILENAME,
                              mmotd::error::ios_flags::to_string(load_average_file));
         return nullopt;

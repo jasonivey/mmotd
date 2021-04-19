@@ -79,7 +79,8 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     //"http://wttr.in/?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
     //"http://wttr.in/Lehi%20UT%20US?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
     auto http_request = HttpRequest(HttpProtocol::HTTP, "wttr.in");
-    auto url = format("/{}?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en", replace_all_copy(string{LOCATION}, " ", "%20"));
+    auto url = format(FMT_STRING("/{}?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"),
+                      replace_all_copy(string{LOCATION}, " ", "%20"));
     auto http_response = http_request.MakeRequest(url);
     if (!http_response) {
         return make_tuple(string{}, string{}, string{}, string{});
@@ -103,17 +104,17 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     }
 
     auto weather = trim_copy(weather_str.substr(0, match.position(0)));
-    PLOG_INFO << format("weather: '{}'", weather);
+    PLOG_INFO << format(FMT_STRING("weather: '{}'"), weather);
     auto sunrise_str = weather_str.substr(match.position(1), match.length(1));
-    PLOG_INFO << format("sunrise: '{}'", sunrise_str);
+    PLOG_INFO << format(FMT_STRING("sunrise: '{}'"), sunrise_str);
     auto sunset_str = weather_str.substr(match.position(2), match.length(2));
-    PLOG_INFO << format("sunset: '{}'", sunset_str);
+    PLOG_INFO << format(FMT_STRING("sunset: '{}'"), sunset_str);
 
     auto [sunrise_parsed, sunset_parsed] = ParseSunriseSunset(sunrise_str, sunset_str);
     sunrise_parsed = empty(sunrise_parsed) ? sunrise_str : sunrise_parsed;
     sunset_parsed = empty(sunset_parsed) ? sunset_str : sunset_parsed;
 
-    PLOG_INFO << format("weather: '{}, Sunrise (parsed): {}, Sunset (parsed): {}'",
+    PLOG_INFO << format(FMT_STRING("weather: '{}, Sunrise (parsed): {}, Sunset (parsed): {}'"),
                         weather,
                         sunrise_parsed,
                         sunset_parsed);

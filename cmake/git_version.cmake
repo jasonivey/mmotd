@@ -55,6 +55,9 @@ if (NOT MMOTD_NEW_VERSION_H STREQUAL MMOTD_OLD_VERSION_H)
         OUTPUT_VARIABLE MMOTD_GIT_STATUS
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
+    if (STREQUAL MMOTD_GIT_STATUS "")
+        set(MMOTD_GIT_STATUS " ")
+    endif ()
     string(REPLACE "\n" ";" MMOTD_GIT_STATUS ${MMOTD_GIT_STATUS})
 
     # If cmake/version.cmake is the only modified file

@@ -47,7 +47,7 @@ string OutputTemplate::GetDefaultTemplate() const {
 bool OutputTemplate::ParseTemplateFile(string template_file_name) {
     auto ec = std::error_code{};
     if (auto file_exists = fs::exists(template_file_name, ec); !file_exists || ec) {
-        PLOG_ERROR << format("determining whether template file {} exists", template_file_name);
+        PLOG_ERROR << format(FMT_STRING("determining whether template file {} exists"), template_file_name);
         return false;
     }
     return ParseJson(template_file_name);
@@ -82,11 +82,11 @@ unique_ptr<OutputTemplate> MakeOutputTemplate(string template_file_name) {
                    nullptr;
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format("caught boost::exception in creating template: {}", diag);
+        auto error_str = format(FMT_STRING("caught boost::exception in creating template: {}"), diag);
         PLOG_ERROR << error_str;
         return nullptr;
     } catch (const std::exception &ex) {
-        auto error_str = format("caught std::exception in creating template: {}", ex.what());
+        auto error_str = format(FMT_STRING("caught std::exception in creating template: {}"), ex.what());
         PLOG_ERROR << error_str;
         return nullptr;
     }
@@ -99,10 +99,10 @@ void CreateDefaultOutputTemplate(string template_file_name) {
         ostrm.flush();
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format("caught boost::exception in creating template: {}", diag);
+        auto error_str = format(FMT_STRING("caught boost::exception in creating template: {}"), diag);
         PLOG_ERROR << error_str;
     } catch (const std::exception &ex) {
-        auto error_str = format("caught std::exception in creating template: {}", ex.what());
+        auto error_str = format(FMT_STRING("caught std::exception in creating template: {}"), ex.what());
         PLOG_ERROR << error_str;
     }
 }

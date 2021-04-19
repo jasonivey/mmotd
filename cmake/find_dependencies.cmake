@@ -100,8 +100,6 @@ if (NOT certify_POPULATED)
     target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
 endif ()
 
-#add_definitions(-DFMT_ENFORCE_COMPILE_STRING=1)
-add_definitions(-DFMT_EXTENDED_COLORS=1)
 # Component: fmt.  The library will be added into C++20 and is already a great substitue for both iostreams and
 #                  printf.  There is support for most all types, re-ordered argument assignment, and builtin
 #                  support for std::date and std::time using the formatting arguments specified with both strftime

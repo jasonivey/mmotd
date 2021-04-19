@@ -46,7 +46,7 @@ string KernelRelease::to_string() const {
         return str;
     }
     if (build) {
-        str += format("{}{}", (build.value()[0] == '-' ? "" : "."), build.value());
+        str += format(FMT_STRING("{}{}"), (build.value()[0] == '-' ? "" : "."), build.value());
     } else {
         return str;
     }
@@ -139,7 +139,8 @@ KernelRelease KernelRelease::from_string(const string &release) {
         release_parts.push_back(part);
     }
     if (release_parts.size() < 2) {
-        auto error_str = format("uname release string is not of the format 'xx.yy' instead it is '{}'", release);
+        auto error_str =
+            format(FMT_STRING("uname release string is not of the format 'xx.yy' instead it is '{}'"), release);
         MMOTD_THROW_RUNTIME_ERROR(error_str);
     }
     auto kernel_release = KernelRelease{};
