@@ -23,7 +23,8 @@ namespace {
 
 string GetInformationNameString(const mmotd::information::Information &information) {
     const auto &name = information.GetName();
-    return !empty(name) ? format(fg(color::lime_green) | emphasis::bold, "{}", name) + ": " : string{};
+    static const auto formatting_color = fg(color::lime_green) | emphasis::bold;
+    return !empty(name) ? format(formatting_color, FMT_STRING("{}"), name) + ": " : string{};
 }
 
 size_t GetInformationNameStringSize(const mmotd::information::Information &information) {
@@ -32,7 +33,8 @@ size_t GetInformationNameStringSize(const mmotd::information::Information &infor
 
 string GetInformationValueString(const mmotd::information::Information &information) {
     const auto &value = information.GetValue();
-    return !empty(value) ? format(fg(color::white) | emphasis::bold, "{}", value) : string{};
+    static const auto formatting_color = fg(color::white) | emphasis::bold;
+    return !empty(value) ? format(formatting_color, FMT_STRING("{}"), value) : string{};
 }
 
 size_t GetColumnWidth(const mmotd::information::Informations &informations) {
@@ -53,12 +55,12 @@ void PrintMmotdRaw() {
         if (!empty(name) && !empty(value)) {
             if (width > 0) {
                 //print("  {:<18} {}\n", name, value);
-                print("  {:<{}} {}\n", name, width, value);
+                print(FMT_STRING("  {:<{}} {}\n"), name, width, value);
             } else {
-                print("  {}{}\n", name, value);
+                print(FMT_STRING("  {}{}\n"), name, value);
             }
         } else if (!empty(value)) {
-            print("  {}\n", value);
+            print(FMT_STRING("  {}\n"), value);
         }
     }
 }
@@ -74,18 +76,18 @@ int main(int argc, char *argv[]) {
         PrintMmotdRaw();
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format("caught boost::exception in main: {}", diag);
+        auto error_str = format(FMT_STRING("caught boost::exception in main: {}"), diag);
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     } catch (const std::exception &ex) {
-        auto error_str = format("caught std::exception in main: {}", ex.what());
+        auto error_str = format(FMT_STRING("caught std::exception in main: {}"), ex.what());
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     } catch (...) {
         auto diag = boost::current_exception_diagnostic_information();
-        auto error_str = format("caught unknown exception in main: {}", diag);
+        auto error_str = format(FMT_STRING("caught unknown exception in main: {}"), diag);
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;

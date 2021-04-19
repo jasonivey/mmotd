@@ -28,27 +28,31 @@ vector<string> GetProcessDirectories() {
     //auto flags = fs::directory_options::skip_permission_denied;
     for (auto &dir_entry : fs::directory_iterator(PROC_DIRECTORY, ec /*, flags*/)) {
         if (ec) {
-            PLOG_ERROR << format("error encountered while iterating {} directory, {}", PROC_DIRECTORY, ec.message());
+            PLOG_ERROR << format(FMT_STRING("error encountered while iterating {} directory, {}"),
+                                 PROC_DIRECTORY,
+                                 ec.message());
             return vector<string>{};
         }
 
         auto path_entry = dir_entry.path();
         if (!dir_entry.is_directory()) {
-            //PLOG_DEBUG << format("ignoring {} since it is not a directory", path_entry.string());
+            //PLOG_DEBUG << format(FMT_STRING("ignoring {} since it is not a directory"), path_entry.string());
             continue;
         }
 
         const auto &name = path_entry.stem().string();
         if (!all_of(begin(name), end(name), boost::is_digit())) {
-            //PLOG_DEBUG << format("ignoring {} since it is not all digits", path_entry.string());
+            //PLOG_DEBUG << format(FMT_STRING("ignoring {} since it is not all digits"), path_entry.string());
             continue;
         }
-        //PLOG_DEBUG << format("adding process directory {}", path_entry.string());
+        //PLOG_DEBUG << format(FMT_STRING("adding process directory {}"), path_entry.string());
         process_subdirs.push_back(path_entry.string());
     }
 
     if (ec) {
-        PLOG_ERROR << format("error encountered while iterating {} directory, {}", PROC_DIRECTORY, ec.message());
+        PLOG_ERROR << format(FMT_STRING("error encountered while iterating {} directory, {}"),
+                             PROC_DIRECTORY,
+                             ec.message());
         return vector<string>{};
     }
 

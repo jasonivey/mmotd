@@ -23,7 +23,7 @@ bool FileSystem::FindInformation() {
     auto ec = error_code{};
     auto root_fs = std::filesystem::space("/", ec);
     if (ec) {
-        PLOG_ERROR << format("getting fs::space on root file system, details: {}", ec.message());
+        PLOG_ERROR << format(FMT_STRING("getting fs::space on root file system, details: {}"), ec.message());
         return false;
     }
 

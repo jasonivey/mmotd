@@ -26,7 +26,7 @@ optional<SwapDetails> GetSwapMemoryUsage() {
     if (sysctl(mib, 2, &swap_usage, &size, NULL, 0) == -1) {
         auto error_str = string{"sysctl(VM_SWAPUSAGE) syscall failed"};
         if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
-            error_str += format(", details: {}", errno_str);
+            error_str += format(FMT_STRING(", details: {}"), errno_str);
         }
         PLOG_ERROR << error_str;
         return nullopt;
@@ -42,10 +42,14 @@ optional<SwapDetails> GetSwapMemoryUsage() {
     auto swap_details =
         SwapDetails{swap_usage.xsu_total, swap_usage.xsu_avail, percent_used, swap_usage.xsu_encrypted != 0};
 
-    PLOG_VERBOSE << format("swap memory total: {}, {} bytes", to_human_size(swap_details.total), swap_details.total);
-    PLOG_VERBOSE << format("swap memory free: {}, {} bytes", to_human_size(swap_details.free), swap_details.free);
-    PLOG_VERBOSE << format("swap memory percent used: {:.02f}", swap_details.percent_used);
-    PLOG_VERBOSE << format("swap memory encrypted: {}", swap_details.encrypted);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory total: {}, {} bytes"),
+                           to_human_size(swap_details.total),
+                           swap_details.total);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory free: {}, {} bytes"),
+                           to_human_size(swap_details.free),
+                           swap_details.free);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory percent used: {:.02f}"), swap_details.percent_used);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory encrypted: {}"), swap_details.encrypted);
 
     return make_optional(swap_details);
 }

@@ -26,7 +26,7 @@ optional<string> GetBootTime() {
     //if (sysctl(mib, 2, &result, &result_len, NULL, 0) == -1) {
     //    auto error_str = string{"sysctl(KERN_BOOTTIME) syscall failed"};
     //    if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
-    //        error_str += format(", details: {}", errno_str);
+    //        error_str += format(FMT_STRING(", details: {}"), errno_str);
     //    }
     //    PLOG_ERROR << error_str;
     //    return nullopt;

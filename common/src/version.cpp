@@ -51,7 +51,9 @@ int32_t FromString(string_view str) {
     auto result = int32_t{0};
     auto [ptr, ec] = std::from_chars(begin(str), end(str), result);
     if (ec != std::errc{}) {
-        PLOG_ERROR << format("unable to convert {} into an integer, {}", str, make_error_code(ec).message());
+        PLOG_ERROR << format(FMT_STRING("unable to convert {} into an integer, {}"),
+                             str,
+                             make_error_code(ec).message());
     }
     return result;
 }
@@ -68,11 +70,11 @@ optional<version> version::from_string(string_view str) {
       (?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$)"_verbose; // build number
 
     const auto &pattern = REGEX_SEMVER_PATTERN;
-    PLOG_INFO << format("pattern should now match verbose mode \"{}\"", pattern);
+    PLOG_INFO << format(FMT_STRING("pattern should now match verbose mode \"{}\""), pattern);
     auto semver_regex = regex(pattern);
     auto matches = std::cmatch{};
     if (!std::regex_match(begin(str), end(str), matches, semver_regex)) {
-        PLOG_ERROR << format("version {} is not a semver compliant version string", str);
+        PLOG_ERROR << format(FMT_STRING("version {} is not a semver compliant version string"), str);
         return nullopt;
     }
 
@@ -97,12 +99,12 @@ optional<version> version::from_string(string_view str) {
 }
 
 string version::to_string() const {
-    auto version_str = format("{}.{}.{}", major, minor, patch);
+    auto version_str = format(FMT_STRING("{}.{}.{}"), major, minor, patch);
     if (!prerelease.empty()) {
-        version_str += format("-{}", prerelease);
+        version_str += format(FMT_STRING("-{}"), prerelease);
     }
     if (!build_number.empty()) {
-        version_str += format("+{}", build_number);
+        version_str += format(FMT_STRING("+{}"), build_number);
     }
     return version_str;
 }
@@ -119,7 +121,7 @@ const Version &Version::Instance() {
 Version::Version(string_view str) : version_() {
     auto version_wrapper = mmotd::semver::version::from_string(str);
     if (!version_wrapper) {
-        PLOG_ERROR << format("unable to create semver version from {} version string", str);
+        PLOG_ERROR << format(FMT_STRING("unable to create semver version from {} version string"), str);
     }
     version_ = make_unique<mmotd::semver::version>(version_wrapper ? *version_wrapper : mmotd::semver::version{});
 }

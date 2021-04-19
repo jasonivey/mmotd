@@ -53,9 +53,12 @@ inline auto from_string(std::string input, std::string chrono_format) {
     std::istringstream stream{input};
     stream >> date::parse(chrono_format, seconds_since_midnight);
     auto tod = date::make_time(seconds_since_midnight);
-    PLOG_VERBOSE << fmt::format("parsed time: {}, using format: {}, from string: '{}'", tod, chrono_format, input);
+    PLOG_VERBOSE << fmt::format(FMT_STRING("parsed time: {}, using format: {}, from string: '{}'"),
+                                tod,
+                                chrono_format,
+                                input);
     if (stream.fail()) {
-        PLOG_ERROR << fmt::format("failed to parse string: '{}', using format: {}", input, chrono_format);
+        PLOG_ERROR << fmt::format(FMT_STRING("failed to parse string: '{}', using format: {}"), input, chrono_format);
     }
     return !stream.fail() ? std::make_optional(tod) : std::nullopt;
 }
@@ -63,7 +66,7 @@ inline auto from_string(std::string input, std::string chrono_format) {
 inline auto get_current_hour() {
     auto now_time_zoned = date::make_zoned(date::current_zone(), std::chrono::system_clock::now());
     auto tod = date::make_time(now_time_zoned.get_local_time().time_since_epoch());
-    PLOG_VERBOSE << fmt::format("current hour: {}, from current time: {}", tod.hours().count(), tod);
+    PLOG_VERBOSE << fmt::format(FMT_STRING("current hour: {}, from current time: {}"), tod.hours().count(), tod);
     return tod.hours().count();
 }
 

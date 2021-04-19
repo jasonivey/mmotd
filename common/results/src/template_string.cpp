@@ -48,7 +48,7 @@ optional<Information> TemplateString::FindInformation(const string &information_
         },
         [](const auto &information) { return &information; });
     if (information_index >= std::size(information_ptrs)) {
-        PLOG_ERROR << format("attempting to find the index={} of id={} when there is only {} of that id",
+        PLOG_ERROR << format(FMT_STRING("attempting to find the index={} of id={} when there is only {} of that id"),
                              information_index,
                              information_id,
                              std::size(information_ptrs));
@@ -65,12 +65,12 @@ optional<string> TemplateString::GetInformationValue(const string &information_i
                                                      size_t information_index) {
     auto information_holder = TemplateString::FindInformation(information_id, informations, information_index);
     if (!information_holder) {
-        PLOG_ERROR << format("unable to find information id {}", information_id);
+        PLOG_ERROR << format(FMT_STRING("unable to find information id {}"), information_id);
         return nullopt;
     }
     const auto &information = *information_holder;
     auto information_value = information.GetValue();
-    PLOG_VERBOSE << format("found {} with value {}", information_id, information_value);
+    PLOG_VERBOSE << format(FMT_STRING("found {} with value {}"), information_id, information_value);
     return make_optional(information_value);
 }
 
@@ -80,7 +80,7 @@ TemplateString::ReplaceInformationIds(const string &text, const Informations &in
         return text;
     }
 
-    PLOG_VERBOSE << format("template str: {}", text);
+    PLOG_VERBOSE << format(FMT_STRING("template str: {}"), text);
     const auto pattern = regex(R"(%(ID_[_A-Z]+)%)");
     auto replacement_token = sregex_iterator(begin(text), end(text), pattern);
 
@@ -88,13 +88,13 @@ TemplateString::ReplaceInformationIds(const string &text, const Informations &in
     auto index = size_t{0};
     for (auto i = replacement_token; i != sregex_iterator{}; ++i) {
         auto match = *i;
-        PLOG_VERBOSE << format("index: {}, pos: {}, len: {}, iterator: {}",
+        PLOG_VERBOSE << format(FMT_STRING("index: {}, pos: {}, len: {}, iterator: {}"),
                                index,
                                match.position(),
                                match.length(),
                                match.str());
         if (match.position() > static_cast<ptrdiff_t>(index)) {
-            PLOG_VERBOSE << format("adding prefix: \"{}\"",
+            PLOG_VERBOSE << format(FMT_STRING("adding prefix: \"{}\""),
                                    text.substr(index, static_cast<size_t>(match.position()) - index));
             formatted_str += text.substr(index, static_cast<size_t>(match.position()) - index);
         }
@@ -104,10 +104,10 @@ TemplateString::ReplaceInformationIds(const string &text, const Informations &in
         }
     }
     if (index < size(text)) {
-        PLOG_VERBOSE << format("adding suffix: \"{}\"", text.substr(index));
+        PLOG_VERBOSE << format(FMT_STRING("adding suffix: \"{}\""), text.substr(index));
         formatted_str += text.substr(index);
     }
-    PLOG_VERBOSE << format("formatted: {}", formatted_str);
+    PLOG_VERBOSE << format(FMT_STRING("formatted: {}"), formatted_str);
     return formatted_str;
 }
 
@@ -124,10 +124,10 @@ InformationId TemplateString::FindFirstInformationId(const string &text, const I
 
 vector<string> TemplateString::SplitColorCodeDefinitions(const string &color_str, const char delimeter) {
     if (std::empty(color_str)) {
-        PLOG_VERBOSE << format("input is empty delim='{}', input=\"{}\"", delimeter, color_str);
+        PLOG_VERBOSE << format(FMT_STRING("input is empty delim='{}', input=\"{}\""), delimeter, color_str);
         return vector<string>{};
     } else if (color_str.front() != delimeter || color_str.back() != delimeter) {
-        PLOG_VERBOSE << format("input is not wrapped by delim='{}', input=\"{}\"", delimeter, color_str);
+        PLOG_VERBOSE << format(FMT_STRING("input is not wrapped by delim='{}', input=\"{}\""), delimeter, color_str);
         return vector<string>{color_str};
     }
     auto color_definitions = vector<string>{};
@@ -140,7 +140,7 @@ vector<string> TemplateString::SplitColorCodeDefinitions(const string &color_str
             auto str_end = cbegin(color_str) + static_cast<ptrdiff_t>(index);
             color_definitions.push_back(string{str_begin, str_end});
             index += std::size(string(size_t{2}, delimeter));
-            PLOG_VERBOSE << format("found {}, index={}, in=\"{}\", created color def=\"{}\"",
+            PLOG_VERBOSE << format(FMT_STRING("found {}, index={}, in=\"{}\", created color def=\"{}\""),
                                    string(size_t{2}, delimeter),
                                    index,
                                    color_str,
@@ -149,7 +149,7 @@ vector<string> TemplateString::SplitColorCodeDefinitions(const string &color_str
             auto str_begin = cbegin(color_str) + previous;
             auto str_end = cend(color_str) - 1;
             color_definitions.push_back(string{str_begin, str_end});
-            PLOG_VERBOSE << format("unable to find {}, index={}, in=\"{}\", created color def=\"{}\"",
+            PLOG_VERBOSE << format(FMT_STRING("unable to find {}, index={}, in=\"{}\", created color def=\"{}\""),
                                    string(size_t{2}, delimeter),
                                    previous,
                                    color_str,
@@ -199,7 +199,7 @@ void TemplateString::CreateTemplateSubstring(const string &text,
     }
 
     template_substrings.emplace_back(make_unique<TemplateSubstring>(text, prefix, substring_text, color_definitions));
-    PLOG_VERBOSE << format("created template substring=\"{}\" from \"{}\"",
+    PLOG_VERBOSE << format(FMT_STRING("created template substring=\"{}\" from \"{}\""),
                            template_substrings.back().to_string(),
                            text);
 }
@@ -208,17 +208,17 @@ void TemplateString::UpdateLastTemplateSubstring(const string &text,
                                                  TemplateSubstrings &template_substrings,
                                                  size_t next_template_substring_position) {
     if (std::empty(template_substrings)) {
-        PLOG_VERBOSE << format("there was no previous substring to updated end marker in \"{}\"", text);
+        PLOG_VERBOSE << format(FMT_STRING("there was no previous substring to updated end marker in \"{}\""), text);
         return;
     }
 
-    PLOG_VERBOSE << format("updating previous substring end marker to {} in \"{}\"",
+    PLOG_VERBOSE << format(FMT_STRING("updating previous substring end marker to {} in \"{}\""),
                            next_template_substring_position,
                            text);
     auto previous_range = template_substrings.back().GetSubstringRange();
     auto new_range = SubstringRange{previous_range.position(), next_template_substring_position};
     if (previous_range == new_range) {
-        PLOG_VERBOSE << format("both new and existing substrings are equal [{}:{}], [{}:{}] in \"{}\"",
+        PLOG_VERBOSE << format(FMT_STRING("both new and existing substrings are equal [{}:{}], [{}:{}] in \"{}\""),
                                previous_range.position(),
                                previous_range.size(),
                                new_range.position(),
@@ -227,27 +227,30 @@ void TemplateString::UpdateLastTemplateSubstring(const string &text,
         return;
     }
 
-    PLOG_VERBOSE << format("setting substring text from [{}:{}] to [{}:{}] in \"{}\"",
+    PLOG_VERBOSE << format(FMT_STRING("setting substring text from [{}:{}] to [{}:{}] in \"{}\""),
                            previous_range.position(),
                            previous_range.size(),
                            new_range.position(),
                            new_range.size(),
                            text);
     template_substrings.back().SetSubstringText(new_range);
-    PLOG_VERBOSE << format("new substring text \"{}\" in \"{}\"", template_substrings.back().GetSubstring(), text);
+    PLOG_VERBOSE << format(FMT_STRING("new substring text \"{}\" in \"{}\""),
+                           template_substrings.back().GetSubstring(),
+                           text);
 }
 
 bool TemplateString::IsColorCodeMatchValid(const string &text, const smatch &matches) {
     if (static_cast<size_t>(matches.position()) > std::size(text) ||
         static_cast<size_t>(matches.position() + matches.length()) > std::size(text)) {
-        PLOG_ERROR << format("color definition is beyond EOS, match start={}, match len={}, str size={}, str={}",
-                             matches.position(),
-                             matches.length(),
-                             std::size(text),
-                             text);
+        PLOG_ERROR << format(
+            FMT_STRING("color definition is beyond EOS, match start={}, match len={}, str size={}, str={}"),
+            matches.position(),
+            matches.length(),
+            std::size(text),
+            text);
         return false;
     }
-    PLOG_VERBOSE << format("color definition is valid start={}, len={}, str size={}, match={}, str={}",
+    PLOG_VERBOSE << format(FMT_STRING("color definition is valid start={}, len={}, str size={}, match={}, str={}"),
                            matches.position(),
                            matches.length(),
                            std::size(text),
@@ -264,7 +267,7 @@ void TemplateString::ParseColorCodeSubstring(const string &text,
 
     if (!regex_search(cbegin(text) + static_cast<ptrdiff_t>(index), cend(text), matches, regex_color_pattern)) {
         auto input_substr = string_view{text.c_str() + index};
-        PLOG_VERBOSE << format("color code not found in \"{}\"", input_substr);
+        PLOG_VERBOSE << format(FMT_STRING("color code not found in \"{}\""), input_substr);
         TemplateString::UpdateLastTemplateSubstring(text, template_substrings, std::size(text));
         index = std::size(text);
         return;
@@ -278,7 +281,7 @@ void TemplateString::ParseColorCodeSubstring(const string &text,
     auto match_substr = string{cbegin(text) + static_cast<ptrdiff_t>(index) + matches.position(),
                                cbegin(text) + static_cast<ptrdiff_t>(index) + matches.position() + matches.length()};
     auto input_substr = string_view{text.c_str() + index};
-    PLOG_VERBOSE << format("color code found match={}, text=\"{}\"", match_substr, input_substr);
+    PLOG_VERBOSE << format(FMT_STRING("color code found match={}, text=\"{}\""), match_substr, input_substr);
 
     auto prefix = SubstringRange{};
     if (!std::empty(template_substrings)) {
@@ -310,7 +313,8 @@ TemplateSubstrings TemplateString::GenerateTemplateSubstrings(const string &text
                                                                             ColorDefinitions{}));
         }
     }
-    PLOG_ERROR_IF(loop_count == 10) << format("parse color code exited after 10 iterations, text=\"{}\"", text);
+    PLOG_ERROR_IF(loop_count == 10) << format(FMT_STRING("parse color code exited after 10 iterations, text=\"{}\""),
+                                              text);
     return template_substrings;
 }
 
@@ -331,7 +335,7 @@ string TemplateString::ReplaceEmbeddedColorCodes(TemplateType template_type,
     if (AppOptions::Instance().GetOptions().IsColorDisabled()) {
         return formatted_str;
     } else {
-        return format(color_style, formatted_str);
+        return format(color_style, FMT_STRING("{}"), formatted_str);
     }
 }
 
@@ -341,9 +345,9 @@ string TemplateString::TransformTemplate(TemplateType template_type,
                                          const TemplateColumnItem &item,
                                          size_t information_index) {
     auto updated_text1 = TemplateString::ReplaceInformationIds(text, informations, information_index);
-    PLOG_VERBOSE << format("transforming \"{}\" to \"{}\"", text, updated_text1);
+    PLOG_VERBOSE << format(FMT_STRING("transforming \"{}\" to \"{}\""), text, updated_text1);
     auto updated_text2 = TemplateString::ReplaceEmbeddedColorCodes(template_type, updated_text1, item);
-    PLOG_VERBOSE << format("transformed \"{}\" to \"{}\"", updated_text1, updated_text2);
+    PLOG_VERBOSE << format(FMT_STRING("transformed \"{}\" to \"{}\""), updated_text1, updated_text2);
     return updated_text2;
 }
 

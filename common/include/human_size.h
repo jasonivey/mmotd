@@ -30,7 +30,7 @@ std::string to_human_size(T number) {
         floating_point_bytes = bytes / static_cast<double>(KILO_BYTE);
         bytes /= KILO_BYTE;
     }
-    return fmt::format("{:.02f} {}", floating_point_bytes, suffix);
+    return fmt::format(FMT_STRING("{:.02f} {}"), floating_point_bytes, suffix);
 }
 
 } // namespace mmotd::algorithm::string

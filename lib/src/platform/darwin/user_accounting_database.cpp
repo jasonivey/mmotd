@@ -43,16 +43,19 @@ DbEntries GetUserAccountEntriesImpl() {
     auto i = size_t{0};
     for (const utmpx *utmpx_ptr = getutxent(); utmpx_ptr != nullptr; utmpx_ptr = getutxent(), ++i) {
         auto ut_type_str = DbEntry::entry_type_to_string(utmpx_ptr->ut_type);
-        PLOG_VERBOSE << format("iteration #{}, type: {}, utmpx *: {}", i + 1, ut_type_str, fmt::ptr(utmpx_ptr));
+        PLOG_VERBOSE << format(FMT_STRING("iteration #{}, type: {}, utmpx *: {}"),
+                               i + 1,
+                               ut_type_str,
+                               fmt::ptr(utmpx_ptr));
 
         auto entry = DbEntry::from_utmpx(*utmpx_ptr);
         if (!entry.empty()) {
             entries.push_back(entry);
-            PLOG_VERBOSE << format("adding user account entry #{}", entries.size());
+            PLOG_VERBOSE << format(FMT_STRING("adding user account entry #{}"), entries.size());
         }
     }
 
-    PLOG_VERBOSE << format("returning {} user account entries", entries.size());
+    PLOG_VERBOSE << format(FMT_STRING("returning {} user account entries"), entries.size());
     return entries;
 }
 
@@ -68,11 +71,12 @@ UserInformation GetUserInformationImpl() {
     auto user_id = geteuid();
     auto retval = getpwuid_r(user_id, &pwd, buf.data(), buf.size(), &pwd_ptr);
     if (pwd_ptr == nullptr && retval == 0) {
-        PLOG_ERROR << format("getpwnam_r for user id {} did not return a pwd structure or an error code", user_id);
+        PLOG_ERROR << format(FMT_STRING("getpwnam_r for user id {} did not return a pwd structure or an error code"),
+                             user_id);
         return UserInformation{};
     } else if (pwd_ptr == nullptr && retval != 0) {
         auto error_str = pe::to_string(retval);
-        PLOG_ERROR << format("getpwnam_r for user id {} failed, {}", user_id, error_str);
+        PLOG_ERROR << format(FMT_STRING("getpwnam_r for user id {} failed, {}"), user_id, error_str);
         return UserInformation{};
     }
     return UserInformation::from_passwd(pwd);
@@ -85,7 +89,7 @@ namespace mmotd::platform::user_account_database {
 string DbEntry::to_string() const {
     auto time_point = std::chrono::system_clock::from_time_t(seconds);
     auto time_str = mmotd::chrono::io::to_string(time_point, "%d-%h-%Y %I:%M%p %Z");
-    return format("user: {}, device: {}, hostname: {}, time: {}, ip: {}, type: {}",
+    return format(FMT_STRING("user: {}, device: {}, hostname: {}, time: {}, ip: {}, type: {}"),
                   user,
                   device_name,
                   hostname,
@@ -103,14 +107,14 @@ DbEntry DbEntry::from_utmpx(const utmpx &db) {
     auto username = strlen(db.ut_user) > 0 ? string{db.ut_user} : string{};
     auto hostname = strlen(db.ut_host) > 0 ? string{db.ut_host} : string{};
 
-    PLOG_VERBOSE << format("utmpx id: {}", string(db.ut_id, db.ut_id + 4));
+    PLOG_VERBOSE << format(FMT_STRING("utmpx id: {}"), string(db.ut_id, db.ut_id + 4));
     auto entry = DbEntry{static_cast<ENTRY_TYPE>(db.ut_type),
                          device_name,
                          username,
                          hostname,
                          db.ut_tv.tv_sec,
                          boost::asio::ip::address{}};
-    PLOG_VERBOSE << format("parsed entry: {}", entry.to_string());
+    PLOG_VERBOSE << format(FMT_STRING("parsed entry: {}"), entry.to_string());
     return entry;
 }
 

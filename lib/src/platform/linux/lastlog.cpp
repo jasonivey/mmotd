@@ -25,12 +25,12 @@ LastLoginDetails GetLastLogDetails() {
 
     auto entries = GetDbEntries<ENTRY_TYPE::User>();
     auto user_info = GetUserInformation();
-    PLOG_VERBOSE << format("last login: entries size: {}, user info: {}",
+    PLOG_VERBOSE << format(FMT_STRING("last login: entries size: {}, user info: {}"),
                            entries.size(),
                            user_info.empty() ? "empty" : user_info.username);
 
     if (entries.empty() || user_info.empty()) {
-        PLOG_ERROR << format("last login: entries size: {}, user info: {}",
+        PLOG_ERROR << format(FMT_STRING("last login: entries size: {}, user info: {}"),
                              entries.size(),
                              user_info.empty() ? "empty" : "valid");
         return LastLoginDetails{};
@@ -45,18 +45,18 @@ LastLoginDetails GetLastLogDetails() {
     }
 
     const auto &entry = *i;
-    PLOG_VERBOSE << format("last log: found {}", entry.to_string());
+    PLOG_VERBOSE << format(FMT_STRING("last log: found {}"), entry.to_string());
 
-    auto summary = format("{} logged into {}", entry.user, entry.device_name);
+    auto summary = format(FMT_STRING("{} logged into {}"), entry.user, entry.device_name);
     if (!entry.hostname.empty()) {
-        summary += format(" from {}", entry.hostname);
+        summary += format(FMT_STRING(" from {}"), entry.hostname);
     }
 
     auto log_in_time = std::chrono::system_clock::from_time_t(entry.seconds);
     auto details = LastLoginDetails{summary, log_in_time, std::chrono::system_clock::time_point{}};
 
-    PLOG_VERBOSE << format("last login: {}", details.summary);
-    PLOG_VERBOSE << format("last log in: {}", to_string(details.log_in, "%d-%h-%Y %I:%M:%S%p %Z"));
+    PLOG_VERBOSE << format(FMT_STRING("last login: {}"), details.summary);
+    PLOG_VERBOSE << format(FMT_STRING("last log in: {}"), to_string(details.log_in, "%d-%h-%Y %I:%M:%S%p %Z"));
     PLOG_VERBOSE << "last log out: still logged in";
 
     return details;

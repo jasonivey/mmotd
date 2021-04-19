@@ -53,7 +53,9 @@ optional<uint32_t> FromString(string_view str, int base = 10) {
     if (auto [ptr, ec] = from_chars(begin(str), end(str), result, base); ec == std::errc{}) {
         return make_optional(result);
     } else {
-        PLOG_ERROR << format("unable to convert {} into an integer, {}", str, make_error_code(ec).message());
+        PLOG_ERROR << format(FMT_STRING("unable to convert {} into an integer, {}"),
+                             str,
+                             make_error_code(ec).message());
         return nullopt;
     }
 }
@@ -87,7 +89,7 @@ optional<fmt::text_style> GetRgbColorValue(string value) {
         auto green = FromString(string_view(matches.str(2)));
         auto blue = FromString(string_view(matches.str(3)));
         if (!red || !green || !blue || *red > 0xFF || *green > 0xFF || *blue > 0xFF) {
-            PLOG_ERROR << format("invalid rgb value red={}, blue={}, green={} (all values should be 0-255)",
+            PLOG_ERROR << format(FMT_STRING("invalid rgb value red={}, blue={}, green={} (all values should be 0-255)"),
                                  *red,
                                  *blue,
                                  *green);
@@ -104,7 +106,9 @@ optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
     const auto color_regex = regex(colors, regex_constants::ECMAScript | regex_constants::icase);
     auto match = smatch{};
     if (!regex_search(value, match, color_regex)) {
-        PLOG_ERROR << format("no terminal color was specified within {} (valid colors are: {})", value, colors);
+        PLOG_ERROR << format(FMT_STRING("no terminal color was specified within {} (valid colors are: {})"),
+                             value,
+                             colors);
         return nullopt;
     }
     auto color_str = match.str();
@@ -112,8 +116,8 @@ optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
         return boost::iequals(color_name, color_str);
     });
     if (i == end(TerminalColors)) {
-        auto color_list = format("[{}]", boost::join(ConvertTerminalColors(), string{", "}));
-        PLOG_ERROR << format("terminal color regex matched to {} but unable to find color in {}",
+        auto color_list = format(FMT_STRING("[{}]"), boost::join(ConvertTerminalColors(), string{", "}));
+        PLOG_ERROR << format(FMT_STRING("terminal color regex matched to {} but unable to find color in {}"),
                              color_str,
                              color_list);
         return nullopt;
@@ -125,7 +129,7 @@ optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
     } else {
         color = *(TerminalColorIndexes.begin() + offset);
     }
-    PLOG_VERBOSE << format("found a terminal color, offset={}, color code={} within value={}",
+    PLOG_VERBOSE << format(FMT_STRING("found a terminal color, offset={}, color code={} within value={}"),
                            offset,
                            static_cast<uint8_t>(color),
                            value);
@@ -136,23 +140,23 @@ optional<tuple<bool, bool, bool, bool, bool>> GetTerminalColorEmphasis(string va
     auto bold = false, italic = false, underline = false, strikethrough = false, bright = false;
     if (boost::icontains(value, "bold_") || boost::icontains(value, "_bold")) {
         bold = true;
-        PLOG_VERBOSE << format("found bold specified in terminal color {}", value);
+        PLOG_VERBOSE << format(FMT_STRING("found bold specified in terminal color {}"), value);
     }
     if (boost::icontains(value, "italic_") || boost::icontains(value, "_italic")) {
         italic = true;
-        PLOG_VERBOSE << format("found italic specified in terminal color {}", value);
+        PLOG_VERBOSE << format(FMT_STRING("found italic specified in terminal color {}"), value);
     }
     if (boost::icontains(value, "underline_") || boost::icontains(value, "_underline")) {
         underline = true;
-        PLOG_VERBOSE << format("found underline specified in terminal color {}", value);
+        PLOG_VERBOSE << format(FMT_STRING("found underline specified in terminal color {}"), value);
     }
     if (boost::icontains(value, "strikethrough_") || boost::icontains(value, "_strikethrough")) {
         strikethrough = true;
-        PLOG_VERBOSE << format("found strikethrough specified in terminal color {}", value);
+        PLOG_VERBOSE << format(FMT_STRING("found strikethrough specified in terminal color {}"), value);
     }
     if (boost::icontains(value, "bright_") || boost::icontains(value, "_bright")) {
         bright = true;
-        PLOG_VERBOSE << format("found bright specified in terminal color {}", value);
+        PLOG_VERBOSE << format(FMT_STRING("found bright specified in terminal color {}"), value);
     }
     return make_optional(make_tuple(bold, italic, underline, strikethrough, bright));
 }
@@ -221,7 +225,7 @@ string to_string(fmt::text_style txt_style) {
         return string{};
     }
     if (txt_style.get_foreground().is_rgb) {
-        return format("hex({:06X})", txt_style.get_foreground().value.rgb_color);
+        return format(FMT_STRING("hex({:06X})"), txt_style.get_foreground().value.rgb_color);
     }
     auto terminal_color = string{};
     if (txt_style.has_emphasis()) {
@@ -257,7 +261,7 @@ fmt::text_style from_color_string(string input) {
 namespace mmotd::results::data {
 
 string TemplateItemSettings::to_string() const {
-    auto template_settings_str = R"(indent_size: {},
+    return format(FMT_STRING(R"(indent_size: {},
 row_index: {},
 repeatable_index: {},
 column: {},
@@ -268,8 +272,7 @@ is_optional: {},
 name: {},
 name_color: {},
 value: {},
-value_color: {})";
-    return format(template_settings_str,
+value_color: {})"),
                   indent_size,
                   row_index,
                   repeatable_index,
@@ -287,14 +290,14 @@ value_color: {})";
 bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
     auto i = find(begin(default_config.columns), end(default_config.columns), column);
     if (i == end(default_config.columns)) {
-        PLOG_ERROR << format("column item at row index={} and column={} but config.columns olny specify {}",
+        PLOG_ERROR << format(FMT_STRING("column item at row index={} and column={} but config.columns olny specify {}"),
                              row_index,
                              column_to_string(column),
                              default_config.columns_to_string());
         return false;
     }
     if (empty(name) && empty(value)) {
-        PLOG_ERROR << format("column item at row index={} does not have a name or a value", row_index);
+        PLOG_ERROR << format(FMT_STRING("column item at row index={} does not have a name or a value"), row_index);
         return false;
     }
     return true;
@@ -393,8 +396,8 @@ void from_json(const json &root, TemplateItemSettings &settings) {
 }
 
 std::string OutputSettings::to_string() const {
-    auto collapse_column_rows_str = format("collapse_column_rows = {}\n", collapse_column_rows);
-    auto table_type_str = format("table_type = {}", table_type);
+    auto collapse_column_rows_str = format(FMT_STRING("collapse_column_rows = {}\n"), collapse_column_rows);
+    auto table_type_str = format(FMT_STRING("table_type = {}"), table_type);
     return collapse_column_rows_str + table_type_str;
 }
 
@@ -420,9 +423,9 @@ void to_json(json &root, const OutputSettings &settings) {
 }
 
 string TemplateConfig::to_string() const {
-    auto columns_str = format("columns = {}\n", columns_to_string());
-    auto output_settings_str = format("output_settings = {}\n", output_settings_to_string());
-    auto settings_str = format("default_settings = [\n{}]", default_settings_to_string());
+    auto columns_str = format(FMT_STRING("columns = {}\n"), columns_to_string());
+    auto output_settings_str = format(FMT_STRING("output_settings = {}\n"), output_settings_to_string());
+    auto settings_str = format(FMT_STRING("default_settings = [\n{}]"), default_settings_to_string());
     return columns_str + output_settings_str + settings_str;
 }
 
@@ -437,7 +440,7 @@ string TemplateConfig::default_settings_to_string() const {
 string TemplateConfig::columns_to_string() const {
     using mmotd::algorithms::join;
     auto columns_str = join(columns, ", ", [](int value) { return column_to_string(value); });
-    return format("[{}]", columns_str);
+    return format(FMT_STRING("[{}]"), columns_str);
 }
 
 void TemplateConfig::columns_from_json(const json &root) {
@@ -491,7 +494,7 @@ void to_json(json &root, const TemplateConfig &template_config) {
 
 string to_string(const TemplateColumnItems &items) {
     return mmotd::algorithms::join(items, "\n", [](const auto &item) {
-        return format("item: [\n{}]\n", item.to_string());
+        return format(FMT_STRING("item: [\n{}]\n"), item.to_string());
     });
 }
 

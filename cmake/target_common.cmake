@@ -86,6 +86,9 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         #  conflicting with the ones in the standard C++ library as they are unintendedly
         #  loaded into the global namespace (doh!).
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:BOOST_BIND_GLOBAL_PLACEHOLDERS=1>
+        # FMT_ENFORCE_COMPILE_STRING requires all format strings to use FMT_STRING which enables
+        #  compile time checking of the format string against the arguments.
+        PRIVATE FMT_ENFORCE_COMPILE_STRING
         # When defined the discovery of system properties will be done serially
         #PRIVATE MMOTD_ASYNC_DISABLED
         )

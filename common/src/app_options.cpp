@@ -20,7 +20,7 @@ namespace {
 optional<string> GetEnvironmentVariableValue(string variable_name) {
     auto env_value = getenv(variable_name.c_str());
     if (env_value == nullptr) {
-        PLOG_ERROR << format("getenv failed when attempting to look up variable {}", variable_name);
+        PLOG_ERROR << format(FMT_STRING("getenv failed when attempting to look up variable {}"), variable_name);
         return nullopt;
     }
     return make_optional(string{env_value});
@@ -36,10 +36,10 @@ auto GetDefaultTemplatePath() {
     auto ec = error_code{};
     if (fs::exists(template_path, ec) && !ec &&
         ((fs::is_regular_file(template_path, ec) && !ec) || (fs::is_symlink(template_path, ec) && !ec))) {
-        PLOG_VERBOSE << format("found the default mmotd template ({})", template_path.string());
+        PLOG_VERBOSE << format(FMT_STRING("found the default mmotd template ({})"), template_path.string());
         return template_path;
     } else {
-        PLOG_ERROR << format("unable to locate the default mmotd template ({})", template_path.string());
+        PLOG_ERROR << format(FMT_STRING("unable to locate the default mmotd template ({})"), template_path.string());
         return fs::path{};
     }
 }
@@ -49,12 +49,12 @@ void append_option(string &existing_options_str, const string &name, T is_set, U
     if (!existing_options_str.empty()) {
         existing_options_str += "\n";
     }
-    existing_options_str += format("  {} [{}]: {}", name, is_set() ? "SET" : "UNSET", get_value());
+    existing_options_str += format(FMT_STRING("  {} [{}]: {}"), name, is_set() ? "SET" : "UNSET", get_value());
 }
 
 auto IsStdoutTtyImpl() {
     auto is_stdout_tty = isatty(STDOUT_FILENO) != 0;
-    PLOG_VERBOSE << format("stdout is{} a tty", is_stdout_tty ? "" : " not");
+    PLOG_VERBOSE << format(FMT_STRING("stdout is{} a tty"), is_stdout_tty ? "" : " not");
     return is_stdout_tty;
 }
 

@@ -60,19 +60,19 @@ int main(int argc, char *argv[]) {
         PrintMmotd(*app_options);
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format("caught boost::exception in main: {}", diag);
+        auto error_str = format(FMT_STRING("caught boost::exception in main: {}"), diag);
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     } catch (const std::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format("caught std::exception in main: {}", empty(diag) ? ex.what() : data(diag));
+        auto error_str = format(FMT_STRING("caught std::exception in main: {}"), empty(diag) ? ex.what() : data(diag));
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     } catch (...) {
         auto diag = boost::current_exception_diagnostic_information();
-        auto error_str = format("caught unknown exception in main: {}", diag);
+        auto error_str = format(FMT_STRING("caught unknown exception in main: {}"), diag);
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;

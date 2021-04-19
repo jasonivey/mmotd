@@ -31,6 +31,17 @@ void DefaultInitializeLogging(const string &filename) {
     plog::init<CONSOLE_LOG>(gConsoleAppenderVerbosity, &console_appender);
 }
 
+// enum Severity
+// {
+//     none = 0,
+//     fatal = 1,
+//     error = 2,
+//     warning = 3,
+//     info = 4,
+//     debug = 5,
+//     verbose = 6
+// };
+
 static plog::Severity convert_verbosity(size_t verbosity) {
     if (verbosity == 0) {
         return plog::none;
@@ -42,6 +53,9 @@ static plog::Severity convert_verbosity(size_t verbosity) {
     }
 }
 
+// verbosity is a 0-based value where 0=none, 1=info, 2=debug, 3=verbose
+//  conversion from this range to the `plog::Severity` is a simple off by 3
+//  calculation where the ceil is 6=verbose.
 void UpdateSeverityFilter(size_t verbosity) {
     plog::Severity new_severity = convert_verbosity(verbosity);
     auto new_file_severity = std::max(new_severity, gFileAppenderVerbosity);

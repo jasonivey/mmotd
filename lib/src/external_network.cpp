@@ -26,10 +26,10 @@ static const bool external_network_information_factory_registered =
 #if 0
 static void walk_ptree(const pt::ptree &tree, size_t indent) {
     const string data = tree.data();
-    cout << fmt::format("{}data: \"{}\"\n", string(indent, ' '), data);
+    cout << fmt::format(FMT_STRING("{}data: \"{}\"\n"), string(indent, ' '), data);
     for (auto i = begin(tree); i != end(tree); ++i) {
         const auto &child = *i;
-        cout << fmt::format("{}child: \"{}\"\n", string(indent, ' '), child.first);
+        cout << fmt::format(FMT_STRING("{}child: \"{}\"\n"), string(indent, ' '), child.first);
         walk_ptree(child.second, indent + 2);
     }
 }
@@ -62,7 +62,7 @@ bool ExternalNetwork::ParseJsonResponse(const string &response) {
 
     auto retval = false;
     if (auto ip_address_value = tree.get_optional<string>("ip"); ip_address_value) {
-        PLOG_DEBUG << format("found ip address: {} in json response body", *ip_address_value);
+        PLOG_DEBUG << format(FMT_STRING("found ip address: {} in json response body"), *ip_address_value);
         auto ip_address = make_address(*ip_address_value);
         auto ip = GetInfoTemplate(InformationId::ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP);
         ip.SetValueArgs(ip_address.to_string());
@@ -70,37 +70,37 @@ bool ExternalNetwork::ParseJsonResponse(const string &response) {
         retval = true;
     }
     if (auto city_value = tree.get_optional<string>("city"); city_value) {
-        PLOG_DEBUG << format("found city: {} in json response body", *city_value);
+        PLOG_DEBUG << format(FMT_STRING("found city: {} in json response body"), *city_value);
         auto city = GetInfoTemplate(InformationId::ID_LOCATION_INFO_CITY);
         city.SetValueArgs(*city_value);
         AddInformation(city);
     }
     if (auto country_value = tree.get_optional<string>("country"); country_value) {
-        PLOG_DEBUG << format("found country: {} in json response body", *country_value);
+        PLOG_DEBUG << format(FMT_STRING("found country: {} in json response body"), *country_value);
         auto country = GetInfoTemplate(InformationId::ID_LOCATION_INFO_COUNTRY);
         country.SetValueArgs(*country_value);
         AddInformation(country);
     }
     if (auto gps_location_value = tree.get_optional<string>("loc"); gps_location_value) {
-        PLOG_DEBUG << format("found gps location: {} in json response body", *gps_location_value);
+        PLOG_DEBUG << format(FMT_STRING("found gps location: {} in json response body"), *gps_location_value);
         auto gps = GetInfoTemplate(InformationId::ID_LOCATION_INFO_GPS_LOCATION);
         gps.SetValueArgs(*gps_location_value);
         AddInformation(gps);
     }
     if (auto zip_code_value = tree.get_optional<string>("postal"); zip_code_value) {
-        PLOG_DEBUG << format("found zip code: {} in json response body", *zip_code_value);
+        PLOG_DEBUG << format(FMT_STRING("found zip code: {} in json response body"), *zip_code_value);
         auto zipcode = GetInfoTemplate(InformationId::ID_LOCATION_INFO_ZIP_CODE);
         zipcode.SetValueArgs(*zip_code_value);
         AddInformation(zipcode);
     }
     if (auto state_value = tree.get_optional<string>("region"); state_value) {
-        PLOG_DEBUG << format("found state: {} in json response body", *state_value);
+        PLOG_DEBUG << format(FMT_STRING("found state: {} in json response body"), *state_value);
         auto state = GetInfoTemplate(InformationId::ID_LOCATION_INFO_STATE);
         state.SetValueArgs(*state_value);
         AddInformation(state);
     }
     if (auto timezone_value = tree.get_optional<string>("timezone"); timezone_value) {
-        PLOG_DEBUG << format("found timezone: {} in json response body", *timezone_value);
+        PLOG_DEBUG << format(FMT_STRING("found timezone: {} in json response body"), *timezone_value);
         auto tz = GetInfoTemplate(InformationId::ID_LOCATION_INFO_TIMEZONE);
         tz.SetValueArgs(*timezone_value);
         AddInformation(tz);

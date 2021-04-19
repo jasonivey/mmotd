@@ -35,7 +35,7 @@ bool GetVmStat(vm_statistics_data_t *vmstat) {
 
     auto retval = host_statistics(mach_port, HOST_VM_INFO, reinterpret_cast<host_info_t>(vmstat), &count);
     if (retval != KERN_SUCCESS) {
-        PLOG_ERROR << format("when calling host_statistics, details: {}", mach_error_string(retval));
+        PLOG_ERROR << format(FMT_STRING("when calling host_statistics, details: {}"), mach_error_string(retval));
         return false;
     }
 
@@ -49,7 +49,7 @@ optional<uint64_t> GetTotalMemory() {
     if (sysctl(mib, 2, &total, &len, NULL, 0) == -1) {
         auto error_str = string{"sysctl(HW_MEMSIZE) syscall failed"};
         if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
-            error_str += format(", details: {}", errno_str);
+            error_str += format(FMT_STRING(", details: {}"), errno_str);
         }
         PLOG_ERROR << error_str;
         return nullopt;
@@ -71,20 +71,20 @@ optional<mmotd::platform::MemoryDetails> GetMemoryUsage() {
 
     const auto pagesize = getpagesize();
 
-    PLOG_VERBOSE << format("pagesize: {}", pagesize);
-    PLOG_VERBOSE << format("active count: {}, {}",
+    PLOG_VERBOSE << format(FMT_STRING("pagesize: {}"), pagesize);
+    PLOG_VERBOSE << format(FMT_STRING("active count: {}, {}"),
                            to_human_size(vm_statistics_data.active_count),
                            vm_statistics_data.active_count);
-    PLOG_VERBOSE << format("inactive count: {}, {}",
+    PLOG_VERBOSE << format(FMT_STRING("inactive count: {}, {}"),
                            to_human_size(vm_statistics_data.inactive_count),
                            vm_statistics_data.inactive_count);
-    PLOG_VERBOSE << format("wire count: {}, {}",
+    PLOG_VERBOSE << format(FMT_STRING("wire count: {}, {}"),
                            to_human_size(vm_statistics_data.wire_count),
                            vm_statistics_data.wire_count);
-    PLOG_VERBOSE << format("free count: {}, {}",
+    PLOG_VERBOSE << format(FMT_STRING("free count: {}, {}"),
                            to_human_size(vm_statistics_data.free_count),
                            vm_statistics_data.free_count);
-    PLOG_VERBOSE << format("speculative count: {}, {}",
+    PLOG_VERBOSE << format(FMT_STRING("speculative count: {}, {}"),
                            to_human_size(vm_statistics_data.speculative_count),
                            vm_statistics_data.speculative_count);
 
@@ -93,21 +93,21 @@ optional<mmotd::platform::MemoryDetails> GetMemoryUsage() {
     auto wired = static_cast<uint64_t>(vm_statistics_data.wire_count) * pagesize;
     auto free = static_cast<uint64_t>(vm_statistics_data.free_count) * pagesize;
     auto speculative = static_cast<uint64_t>(vm_statistics_data.speculative_count) * pagesize;
-    PLOG_VERBOSE << format("active: {}, {}", to_human_size(active), active);
-    PLOG_VERBOSE << format("inactive: {}, {}", to_human_size(inactive), inactive);
-    PLOG_VERBOSE << format("wired: {}, {}", to_human_size(wired), wired);
-    PLOG_VERBOSE << format("free: {}, {}", to_human_size(free), free);
-    PLOG_VERBOSE << format("speculative: {}, {}", to_human_size(speculative), speculative);
+    PLOG_VERBOSE << format(FMT_STRING("active: {}, {}"), to_human_size(active), active);
+    PLOG_VERBOSE << format(FMT_STRING("inactive: {}, {}"), to_human_size(inactive), inactive);
+    PLOG_VERBOSE << format(FMT_STRING("wired: {}, {}"), to_human_size(wired), wired);
+    PLOG_VERBOSE << format(FMT_STRING("free: {}, {}"), to_human_size(free), free);
+    PLOG_VERBOSE << format(FMT_STRING("speculative: {}, {}"), to_human_size(speculative), speculative);
 
     auto avail = inactive + free;
     auto used = active + wired;
     free = speculative < free ? free - speculative : 0;
-    PLOG_VERBOSE << format("avail = inactive + free: {}, {}", to_human_size(avail), avail);
-    PLOG_VERBOSE << format("used = active + wired: {}, {}", to_human_size(used), used);
-    PLOG_VERBOSE << format("free = free - speculative: {}, {}", to_human_size(free), free);
+    PLOG_VERBOSE << format(FMT_STRING("avail = inactive + free: {}, {}"), to_human_size(avail), avail);
+    PLOG_VERBOSE << format(FMT_STRING("used = active + wired: {}, {}"), to_human_size(used), used);
+    PLOG_VERBOSE << format(FMT_STRING("free = free - speculative: {}, {}"), to_human_size(free), free);
 
     auto percent = (static_cast<double>(total - avail) / static_cast<double>(total)) * 100.0;
-    PLOG_VERBOSE << format("percent used: {:.01f}", percent);
+    PLOG_VERBOSE << format(FMT_STRING("percent used: {:.01f}"), percent);
 
     return make_optional(mmotd::platform::MemoryDetails{total, avail, percent, used, free, active, inactive, wired});
 }

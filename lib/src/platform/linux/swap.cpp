@@ -42,7 +42,7 @@ optional<SwapDetails> GetSwapMemoryUsage() {
     struct sysinfo info {};
     if (sysinfo(&info) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format("error calling sysinfo, {}", error_str);
+        PLOG_ERROR << format(FMT_STRING("error calling sysinfo, {}"), error_str);
         return nullopt;
     }
 
@@ -55,10 +55,14 @@ optional<SwapDetails> GetSwapMemoryUsage() {
 
     auto swap_details = SwapDetails{total, free, percent_used, false};
 
-    PLOG_VERBOSE << format("swap memory total: {}, {} bytes", to_human_size(swap_details.total), swap_details.total);
-    PLOG_VERBOSE << format("swap memory free: {}, {} bytes", to_human_size(swap_details.free), swap_details.free);
-    PLOG_VERBOSE << format("swap memory percent used: {:.02f}", swap_details.percent_used);
-    PLOG_VERBOSE << format("swap memory encrypted: {}", swap_details.encrypted);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory total: {}, {} bytes"),
+                           to_human_size(swap_details.total),
+                           swap_details.total);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory free: {}, {} bytes"),
+                           to_human_size(swap_details.free),
+                           swap_details.free);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory percent used: {:.02f}"), swap_details.percent_used);
+    PLOG_VERBOSE << format(FMT_STRING("swap memory encrypted: {}"), swap_details.encrypted);
 
     return make_optional(swap_details);
 }

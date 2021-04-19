@@ -101,7 +101,7 @@ string TemplateSubstrings::to_string(function<fmt::text_style(string)> convert_c
     auto i = size_t{0};
     for (const auto &template_substring : *this) {
         auto substring_output = template_substring.to_string(convert_color);
-        PLOG_VERBOSE << format("{}: formatted text=\"{}\"", i, substring_output);
+        PLOG_VERBOSE << format(FMT_STRING("{}: formatted text=\"{}\""), i, substring_output);
         output += substring_output;
     }
     return output;

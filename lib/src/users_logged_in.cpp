@@ -38,7 +38,7 @@ string UsersLoggedIn::GetUsersLoggedIn() {
     auto user_information = GetUserInformation();
     auto user_account_enteries = GetDbEntries<ENTRY_TYPE::User>();
     if (user_information.empty() || user_account_enteries.empty()) {
-        PLOG_ERROR << format("user information empty: {}, user account entry size: {}",
+        PLOG_ERROR << format(FMT_STRING("user information empty: {}, user account entry size: {}"),
                              user_information.empty(),
                              user_account_enteries.size());
         // should never happen
@@ -60,15 +60,18 @@ string UsersLoggedIn::GetUsersLoggedIn() {
                                });
 
     if (user_count == 0 || user_account_entry_ptr == nullptr) {
-        PLOG_ERROR << format("user count: {}, user account ptr: {}", user_count, fmt::ptr(user_account_entry_ptr));
+        PLOG_ERROR << format(FMT_STRING("user count: {}, user account ptr: {}"),
+                             user_count,
+                             fmt::ptr(user_account_entry_ptr));
         // should never happen
         return string{};
     }
 
     const auto &user_account_entry = *user_account_entry_ptr;
-    auto session_str = format("{} logged in {} time{}", user_account_entry.user, user_count, user_count > 1 ? "s" : "");
+    auto session_str =
+        format(FMT_STRING("{} logged in {} time{}"), user_account_entry.user, user_count, user_count > 1 ? "s" : "");
     if (!user_account_entry.hostname.empty()) {
-        session_str += format(" from {}", user_account_entry.hostname);
+        session_str += format(FMT_STRING(" from {}"), user_account_entry.hostname);
     }
     return session_str;
 }

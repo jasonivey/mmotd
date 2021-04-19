@@ -38,12 +38,12 @@ public:
 
     template<typename S, typename... Args>
     void SetValueFormat(const S &format, Args &&...args) {
-        SetValueImpl(std::string_view(format), fmt::make_args_checked<Args...>(std::string_view(format), args...));
+        SetValueImpl(std::string_view(format), fmt::format_arg_store<fmt::format_context, Args...>(args...));
     }
 
     template<typename... Args>
     void SetValueArgs(Args &&...args) {
-        SetValueImpl(std::data(format_str_), fmt::make_args_checked<Args...>(std::data(format_str_), args...));
+        SetValueImpl(std::string_view(format_str_), fmt::format_arg_store<fmt::format_context, Args...>(args...));
     }
 
 private:

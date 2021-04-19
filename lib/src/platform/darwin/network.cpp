@@ -37,14 +37,15 @@ namespace {
 
 bool IsInterfaceActive(const string &name, sa_family_t family) {
     if (family != AF_INET && family != AF_INET6) {
-        PLOG_ERROR << format("only able to open sockets to INET & INET6 where as this is {}", family);
+        PLOG_ERROR << format(FMT_STRING("only able to open sockets to INET & INET6 where as this is {}"), family);
         return false;
     }
     auto sock = socket(family, SOCK_DGRAM, 0);
     if (sock < 0) {
-        PLOG_ERROR << format("opening socket failed, family: {}, type: SOCK_DGRAM, protocol: 0, details: {}",
-                             family,
-                             mmotd::error::posix_error::to_string());
+        PLOG_ERROR << format(
+            FMT_STRING("opening socket failed, family: {}, type: SOCK_DGRAM, protocol: 0, details: {}"),
+            family,
+            mmotd::error::posix_error::to_string());
         return false;
     }
     auto socket_closer = sg::make_scope_guard([sock]() noexcept { close(sock); });
@@ -54,19 +55,20 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
     memcpy(ifmr.ifm_name, data(name), min(size(name), static_cast<size_t>(IFNAMSIZ - 1)));
 
     if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
-        PLOG_ERROR << format("iterface does not support SIOCGIFMEDIA, details: {}",
+        PLOG_ERROR << format(FMT_STRING("iterface does not support SIOCGIFMEDIA, details: {}"),
                              mmotd::error::posix_error::to_string());
         return false;
     }
 
     if (ifmr.ifm_count == 0) {
-        PLOG_DEBUG << format("ioctl SIOCGIFMEDIA returned no ifmediareq for {}", name);
+        PLOG_DEBUG << format(FMT_STRING("ioctl SIOCGIFMEDIA returned no ifmediareq for {}"), name);
         return false;
     }
 
     int *media_list = static_cast<int *>(malloc(static_cast<size_t>(ifmr.ifm_count) * sizeof(int)));
     if (media_list == NULL) {
-        PLOG_ERROR << format("malloc failed to allocate {} bytes", static_cast<size_t>(ifmr.ifm_count) * sizeof(int));
+        PLOG_ERROR << format(FMT_STRING("malloc failed to allocate {} bytes"),
+                             static_cast<size_t>(ifmr.ifm_count) * sizeof(int));
         return false;
     }
 
@@ -74,12 +76,13 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
     ifmr.ifm_ulist = media_list;
 
     if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
-        PLOG_ERROR << format("ioctl SIOCGIFMEDIA failed, details: {}", mmotd::error::posix_error::to_string());
+        PLOG_ERROR << format(FMT_STRING("ioctl SIOCGIFMEDIA failed, details: {}"),
+                             mmotd::error::posix_error::to_string());
         return false;
     }
 
     auto active = (ifmr.ifm_status & IFM_AVALID) != 0 && (ifmr.ifm_status & IFM_ACTIVE) != 0;
-    PLOG_INFO << format("interface {}: {}active", name, active ? "" : "in");
+    PLOG_INFO << format(FMT_STRING("interface {}: {}active"), name, active ? "" : "in");
 
     return active;
 }
@@ -91,7 +94,7 @@ namespace mmotd::platform {
 NetworkDevices GetNetworkDevices() {
     struct ifaddrs *addrs = nullptr;
     if (getifaddrs(&addrs) != 0) {
-        PLOG_ERROR << format("getifaddrs failed, {}", mmotd::error::posix_error::to_string());
+        PLOG_ERROR << format(FMT_STRING("getifaddrs failed, {}"), mmotd::error::posix_error::to_string());
         return NetworkDevices{};
     }
     auto freeifaddrs_deleter = sg::make_scope_guard([addrs]() noexcept { freeifaddrs(addrs); });
@@ -111,9 +114,10 @@ NetworkDevices GetNetworkDevices() {
             const auto ntoa_str = string(link_ntoa(sock_addr));
             const auto index = ntoa_str.find(':');
             if (index == string::npos) {
-                PLOG_DEBUG << format("{} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx",
-                                     interface_name,
-                                     ntoa_str);
+                PLOG_DEBUG << format(
+                    FMT_STRING("{} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx"),
+                    interface_name,
+                    ntoa_str);
                 continue;
             }
             auto mac_address = ntoa_str.substr(index + 1);
@@ -133,8 +137,8 @@ NetworkDevices GetNetworkDevices() {
                 }
             }
             const auto family_name = address_family == AF_INET ? string{"ipv4"} : string{"ipv6"};
-            PLOG_DEBUG << format("{} found ip {} for family {}", interface_name, ip_str, family_name);
-            PLOG_DEBUG << format("has network device {} been checked for active status? {} ",
+            PLOG_DEBUG << format(FMT_STRING("{} found ip {} for family {}"), interface_name, ip_str, family_name);
+            PLOG_DEBUG << format(FMT_STRING("has network device {} been checked for active status? {} "),
                                  interface_name,
                                  network_devices.HasActiveBeenTested(interface_name) ? "no" :
                                  network_devices.IsActive(interface_name)            ? "yes, {active}" :
@@ -146,20 +150,20 @@ NetworkDevices GetNetworkDevices() {
 
             auto ip_address = make_address(ip_str);
             if (ip_address.is_unspecified()) {
-                PLOG_DEBUG << format("{} with ip address {} is unspecified (bad)",
+                PLOG_DEBUG << format(FMT_STRING("{} with ip address {} is unspecified (bad)"),
                                      interface_name,
                                      ip_address.to_string());
                 continue;
             }
             if (ip_address.is_loopback()) {
-                PLOG_DEBUG << format("{} with ip address {} is a loopback device",
+                PLOG_DEBUG << format(FMT_STRING("{} with ip address {} is a loopback device"),
                                      interface_name,
                                      ip_address.to_string());
                 continue;
             }
             if (ip_address.is_multicast()) {
                 // not a problem that we won't add the ip address
-                PLOG_DEBUG << format("{} with ip address {} is a multicast device",
+                PLOG_DEBUG << format(FMT_STRING("{} with ip address {} is a multicast device"),
                                      interface_name,
                                      ip_address.to_string());
             }
@@ -168,7 +172,7 @@ NetworkDevices GetNetworkDevices() {
                 continue;
             }
 
-            PLOG_DEBUG << format("adding ip address {} to the network device: {}",
+            PLOG_DEBUG << format(FMT_STRING("adding ip address {} to the network device: {}"),
                                  ip_address.to_string(),
                                  interface_name);
 
