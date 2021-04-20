@@ -40,6 +40,7 @@ TEST_CASE("category ids are correct", "[CategoryId]") {
     CHECK(CategoryId::ID_SYSTEM_INFORMATION == static_cast<CategoryId>(0x7Bllu << 32));
     CHECK(CategoryId::ID_LOGGED_IN == static_cast<CategoryId>(0x7Cllu << 32));
     CHECK(CategoryId::ID_WEATHER == static_cast<CategoryId>(0x7Dllu << 32));
+    CHECK(CategoryId::ID_PACKAGE_MANAGEMENT == static_cast<CategoryId>(0x7Ellu << 32));
 }
 
 TEST_CASE("information ids are correct", "[InformationId]") {
@@ -150,6 +151,9 @@ TEST_CASE("information ids are correct", "[InformationId]") {
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_WEATHER, 15001)));
     CHECK(InformationId::ID_WEATHER_LOCATION ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_WEATHER, 15002)));
+
+    CHECK(InformationId::ID_PACKAGE_MANAGEMENT_UPDATE ==
+          static_cast<InformationId>(MakeInformationId(CategoryId::ID_PACKAGE_MANAGEMENT, 16001)));
 }
 
 } // namespace mmotd::test
