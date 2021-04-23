@@ -2,6 +2,7 @@
 #include "common/include/iostream_error.h"
 #include "lib/include/platform/load_average.h"
 
+#include <cerrno>
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
@@ -37,7 +38,7 @@ optional<int32_t> GetCpuCount() {
 optional<double> FromString(string str) {
     char *str_end = nullptr;
     auto value = strtod(data(str), &str_end);
-    if (data(str) == str_end || value == HUGE_VAL) {
+    if (data(str) == str_end || errno == ERANGE) {
         PLOG_ERROR << format(FMT_STRING("error converting string '{}' into a valid double"), str);
         value = double{0.0};
     }
