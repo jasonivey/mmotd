@@ -2,7 +2,7 @@
 #include "common/include/iostream_error.h"
 #include "lib/include/platform/load_average.h"
 
-#include <charconv>
+#include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <optional>
@@ -35,9 +35,13 @@ optional<int32_t> GetCpuCount() {
 }
 
 optional<double> FromString(string str) {
-    auto value = double{};
-    auto [ptr, ec] = std::from_chars(data(str), data(str) + size(str), value, chars_format::scientific);
-    return ec == std::errc() ? {value} : nullopt;
+    char *str_end = nullptr;
+    auto value = strtod(data(str), &str_end);
+    if (data(str) == str_end || value == HUGE_VAL) {
+        PLOG_ERROR << format(FMT_STRING("error converting string '{}' into a valid double"), str);
+        value = double{0.0};
+    }
+    return value;
 }
 
 optional<double> ParseLoadAverage(const string &line) {
