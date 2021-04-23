@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include "common/include/app_options.h"
 
 #include <string>
 
@@ -10,7 +11,7 @@ namespace mmotd::logging {
 inline static const constexpr int CONSOLE_LOG = 1;
 
 void DefaultInitializeLogging(const std::string &filename);
-void UpdateSeverityFilter(size_t severity);
+void UpdateSeverityFilter(Options::Verbosity verbosity);
 
 } // namespace mmotd::logging
 

@@ -2,6 +2,8 @@
 #include "common/include/iostream_error.h"
 #include "lib/include/platform/load_average.h"
 
+#include <cerrno>
+#include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <optional>
@@ -34,18 +36,13 @@ optional<int32_t> GetCpuCount() {
 }
 
 optional<double> FromString(string str) {
-    try {
-        auto value = stod(str, nullptr);
-        return make_optional(value);
-    } catch (const std::invalid_argument &ex) {
-        PLOG_ERROR << format(FMT_STRING("unable to convert {} to double: {}"), str, ex.what());
-    } catch (const std::out_of_range &ex) {
-        PLOG_ERROR << format(FMT_STRING("unable to convert {} to double: {}"), str, ex.what());
-    } catch (const std::exception &ex) {
-        PLOG_ERROR << format(FMT_STRING("unable to convert {} to double: {}.  RETHROWING"), str, ex.what());
-        throw;
+    char *str_end = nullptr;
+    auto value = strtod(data(str), &str_end);
+    if (data(str) == str_end || errno == ERANGE) {
+        PLOG_ERROR << format(FMT_STRING("error converting string '{}' into a valid double"), str);
+        value = double{0.0};
     }
-    return nullopt;
+    return value;
 }
 
 optional<double> ParseLoadAverage(const string &line) {

@@ -30,7 +30,7 @@ using mmotd::results::data::TemplateColumnItem;
 
 namespace mmotd::results {
 
-TemplateString::TemplateString(string text) : text_(text) {
+TemplateString::TemplateString(std::string text, fmt::text_style color_style) : text_(text), color_style_(color_style) {
 }
 
 optional<Information> TemplateString::FindInformation(const string &information_id,
@@ -326,12 +326,9 @@ fmt::text_style TemplateString::GetColorValue(string color_specification) {
     return mmotd::results::color::from_color_string(color_specification);
 }
 
-string TemplateString::ReplaceEmbeddedColorCodes(TemplateType template_type,
-                                                 const string &text,
-                                                 const TemplateColumnItem &item) {
+string TemplateString::ReplaceEmbeddedColorCodes(const string &text, fmt::text_style color_style) {
     auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
     auto formatted_str = template_substrings.to_string(&TemplateString::GetColorValue);
-    auto color_style = template_type == TemplateType::Name ? item.name_color : item.value_color;
     if (AppOptions::Instance().GetOptions().IsColorDisabled()) {
         return formatted_str;
     } else {
@@ -339,26 +336,19 @@ string TemplateString::ReplaceEmbeddedColorCodes(TemplateType template_type,
     }
 }
 
-string TemplateString::TransformTemplate(TemplateType template_type,
-                                         const string &text,
+string TemplateString::TransformTemplate(const string &text,
+                                         fmt::text_style color_style,
                                          const Informations &informations,
-                                         const TemplateColumnItem &item,
                                          size_t information_index) {
     auto updated_text1 = TemplateString::ReplaceInformationIds(text, informations, information_index);
     PLOG_VERBOSE << format(FMT_STRING("transforming \"{}\" to \"{}\""), text, updated_text1);
-    auto updated_text2 = TemplateString::ReplaceEmbeddedColorCodes(template_type, updated_text1, item);
+    auto updated_text2 = TemplateString::ReplaceEmbeddedColorCodes(updated_text1, color_style);
     PLOG_VERBOSE << format(FMT_STRING("transformed \"{}\" to \"{}\""), updated_text1, updated_text2);
     return updated_text2;
 }
 
-string
-TemplateString::TransformTemplateName(const Informations &informations, const TemplateColumnItem &item, size_t index) {
-    return TemplateString::TransformTemplate(TemplateType::Name, text_, informations, item, index);
-}
-
-string
-TemplateString::TransformTemplateValue(const Informations &informations, const TemplateColumnItem &item, size_t index) {
-    return TemplateString::TransformTemplate(TemplateType::Value, text_, informations, item, index);
+string TemplateString::TransformTemplate(const Informations &informations, size_t index) {
+    return TemplateString::TransformTemplate(text_, color_style_, informations, index);
 }
 
 InformationId TemplateString::GetFirstInformationId(const Informations &informations) {

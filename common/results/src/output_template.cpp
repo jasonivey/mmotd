@@ -75,36 +75,14 @@ bool OutputTemplate::ParseJson(string template_file_name) {
 }
 
 unique_ptr<OutputTemplate> MakeOutputTemplate(string template_file_name) {
-    try {
-        auto output_template = OutputTemplate{};
-        return output_template.ParseTemplateFile(template_file_name) ?
-                   std::make_unique<OutputTemplate>(output_template) :
-                   nullptr;
-    } catch (boost::exception &ex) {
-        auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("caught boost::exception in creating template: {}"), diag);
-        PLOG_ERROR << error_str;
-        return nullptr;
-    } catch (const std::exception &ex) {
-        auto error_str = format(FMT_STRING("caught std::exception in creating template: {}"), ex.what());
-        PLOG_ERROR << error_str;
-        return nullptr;
-    }
+    auto output_template = make_unique<OutputTemplate>();
+    return output_template->ParseTemplateFile(template_file_name) ? move(output_template) : nullptr;
 }
 
 void CreateDefaultOutputTemplate(string template_file_name) {
-    try {
-        auto ostrm = ofstream(template_file_name.c_str());
-        ostrm << OutputTemplate{}.GetDefaultTemplate();
-        ostrm.flush();
-    } catch (boost::exception &ex) {
-        auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("caught boost::exception in creating template: {}"), diag);
-        PLOG_ERROR << error_str;
-    } catch (const std::exception &ex) {
-        auto error_str = format(FMT_STRING("caught std::exception in creating template: {}"), ex.what());
-        PLOG_ERROR << error_str;
-    }
+    auto ostrm = ofstream(fs::path(template_file_name));
+    ostrm << OutputTemplate{}.GetDefaultTemplate();
+    ostrm.flush();
 }
 
 } // namespace mmotd::results

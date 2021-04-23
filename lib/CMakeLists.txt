@@ -22,6 +22,7 @@ add_library (${MMOTD_TARGET_NAME} STATIC
     src/memory.cpp
     src/network.cpp
     src/platform/system_information.cpp
+    src/package_management.cpp
     src/processes.cpp
     src/swap.cpp
     src/system_details.cpp
@@ -33,6 +34,7 @@ add_library (${MMOTD_TARGET_NAME} STATIC
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/load_average.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/memory.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/network.cpp
+    src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/package_management.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/processes.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/swap.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/system_information.cpp

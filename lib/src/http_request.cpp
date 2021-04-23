@@ -186,17 +186,7 @@ HttpRequest::HttpRequest(HttpProtocol protocol, string host, string port) :
 }
 
 optional<string> HttpRequest::MakeRequest(string path) {
-    try {
-        return HttpClient{protocol_, host_, port_, path}.MakeRequest();
-    } catch (boost::exception &ex) {
-        auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("http client threw boost::exception {}"), diag);
-        PLOG_ERROR << error_str;
-    } catch (const std::exception &ex) {
-        auto error_str = format(FMT_STRING("http client threw {}"), ex.what());
-        PLOG_ERROR << error_str;
-    }
-    return nullopt;
+    return HttpClient{protocol_, host_, port_, path}.MakeRequest();
 }
 
 } // namespace mmotd::networking

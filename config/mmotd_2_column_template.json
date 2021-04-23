@@ -13,9 +13,13 @@
             "is_repeatable": false,
             "is_optional": false,
             "name": [],
-            "name_color": "bold_bright_cyan",
+            "name_color": [
+                "bold_bright_cyan"
+            ],
             "value": [],
-            "value_color": "bold_bright_white"
+            "value_color": [
+                "bold_bright_white"
+            ]
         },
         "output_settings": {
             "collapse_column_rows": true,
@@ -31,7 +35,9 @@
             "value": [
                 "%ID_GENERAL_GREETING%, %ID_GENERAL_USER_NAME%! %ID_GENERAL_LOCAL_TIME_EMOJI% Welcome to %ID_SYSTEM_INFORMATION_PLATFORM_NAME% %ID_SYSTEM_INFORMATION_PLATFORM_VERSION% (%ID_SYSTEM_INFORMATION_KERNEL_TYPE% %ID_SYSTEM_INFORMATION_KERNEL_RELEASE% %ID_SYSTEM_INFORMATION_ARCHITECTURE%)"
             ],
-            "value_color": "bold_bright_green",
+            "value_color": [
+                "bold_bright_green"
+            ],
             "append_newlines": 2
         },
         {
@@ -41,7 +47,9 @@
             "value": [
                 "System information as of %ID_GENERAL_LOCAL_DATE_TIME%"
             ],
-            "value_color": "bold_bright_yellow",
+            "value_color": [
+                "bold_bright_yellow"
+            ],
             "append_newlines": 2
         },
         {
@@ -57,15 +65,25 @@
         {
             "column": "ENTIRE_LINE",
             "row_index": 4,
+            "name_color": [
+                "bold_bright_cyan",
+                "bold_bright_cyan",
+                "bold_bright_cyan"
+            ],
             "name": [
                 "Last Login:",
                 "",
                 ""
             ],
+            "value_color": [
+                "bold_bright_white",
+                "bold_bright_green",
+                "bold_bright_green"
+            ],
             "value": [
-                "%color:bold_bright_white%%ID_LAST_LOGIN_LOGIN_SUMMARY%",
-                "%color:bold_bright_green%Log in: %color:bold_bright_white%%ID_LAST_LOGIN_LOGIN_TIME%",
-                "%color:bold_bright_green%Log out: %color:bold_bright_white%%ID_LAST_LOGIN_LOGOUT_TIME%"
+                "%ID_LAST_LOGIN_LOGIN_SUMMARY%",
+                "Log in: %color:bold_bright_white%%ID_LAST_LOGIN_LOGIN_TIME%",
+                "Log out: %color:bold_bright_white%%ID_LAST_LOGIN_LOGOUT_TIME%"
             ]
         },
         {
@@ -184,12 +202,44 @@
             ]
         },
         {
+            "append_newlines": 1,
             "indent_size": 0,
             "column": "ENTIRE_LINE",
             "row_index": 12,
             "name": [],
             "value": [
-                "%color:bold_bright_cyan%%ID_FORTUNE_FORTUNE%"
+                "%ID_PACKAGE_MANAGEMENT_UPDATE_DETAILS%"
+            ],
+            "value_color": [
+                "bold_bright_yellow"
+            ],
+            "prepend_newlines": 1
+        },
+        {
+            "append_newlines": 1,
+            "indent_size": 0,
+            "column": "ENTIRE_LINE",
+            "row_index": 13,
+            "name": [],
+            "value": [
+                "%ID_FORTUNE_FORTUNE%"
+            ],
+            "value_color": [
+                "bold_bright_cyan"
+            ],
+            "prepend_newlines": 1
+        },
+        {
+            "append_newlines": 1,
+            "indent_size": 0,
+            "column": "ENTIRE_LINE",
+            "row_index": 14,
+            "name": [],
+            "value": [
+                "%ID_PACKAGE_MANAGEMENT_REBOOT_REQUIRED%"
+            ],
+            "value_color": [
+                "bold_bright_red"
             ],
             "prepend_newlines": 1
         }

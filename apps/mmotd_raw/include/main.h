@@ -59,7 +59,10 @@ bool ForceLinkOptionalProviders() {
     extern bool gLinkGeneralGenerator;
     gLinkGeneralGenerator = true;
 #endif
-
+#if !defined(OMIT_LINK_PACKAGE_MANAGEMENT)
+    extern bool gLinkPackageManagementInfo;
+    gLinkPackageManagementInfo = true;
+#endif
     return true;
 }
 

@@ -260,6 +260,26 @@ fmt::text_style from_color_string(string input) {
 
 namespace mmotd::results::data {
 
+fmt::text_style TemplateItemSettings::GetNameColor(size_t index) const noexcept {
+    if (index < size(name_color)) {
+        return name_color[index];
+    } else if (!empty(name_color)) {
+        return name_color.front();
+    } else {
+        return fmt::text_style{};
+    }
+}
+
+fmt::text_style TemplateItemSettings::GetValueColor(size_t index) const noexcept {
+    if (index < size(value_color)) {
+        return value_color[index];
+    } else if (!empty(value_color)) {
+        return value_color.front();
+    } else {
+        return fmt::text_style{};
+    }
+}
+
 string TemplateItemSettings::to_string() const {
     return format(FMT_STRING(R"(indent_size: {},
 row_index: {},
@@ -269,10 +289,10 @@ prepend_newlines: {},
 append_newlines: {},
 is_repeatable: {},
 is_optional: {},
-name: {},
-name_color: {},
-value: {},
-value_color: {})"),
+name: [{}],
+name_color: [{}],
+value: [{}],
+value_color: [{}])"),
                   indent_size,
                   row_index,
                   repeatable_index,
@@ -282,9 +302,9 @@ value_color: {})"),
                   is_repeatable,
                   is_optional,
                   fmt::join(name, ", "),
-                  color::to_string(name_color),
+                  mmotd::algorithms::join(name_color, ", ", color::to_string),
                   fmt::join(value, ", "),
-                  color::to_string(value_color));
+                  mmotd::algorithms::join(value_color, ", ", color::to_string));
 }
 
 bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
@@ -301,6 +321,22 @@ bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
         return false;
     }
     return true;
+}
+
+vector<fmt::text_style> TemplateItemSettings::read_colors(const json &color_list) const {
+    auto color_defs = vector<fmt::text_style>{};
+    for (auto color_str : color_list) {
+        color_defs.push_back(color::from_color_string(color_str));
+    }
+    return color_defs;
+}
+
+json TemplateItemSettings::write_colors(const vector<fmt::text_style> &color_defs) const {
+    auto color_strs = vector<string>{};
+    for (auto color_def : color_defs) {
+        color_strs.push_back(color::to_string(color_def));
+    }
+    return json{color_strs};
 }
 
 void TemplateItemSettings::from_json(const json &root, const TemplateItemSettings *default_settings) {
@@ -354,7 +390,7 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
         PLOG_WARNING << "item missing name property (should leave an empty [] name for completeness)";
     }
     if (root.contains("name_color")) {
-        name_color = color::from_color_string(root.at("name_color"));
+        name_color = read_colors(root["name_color"]);
     } else if (default_settings != nullptr) {
         name_color = default_settings->name_color;
     }
@@ -366,7 +402,7 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
         PLOG_WARNING << "item missing value property (should leave an empty [] value for completeness)";
     }
     if (root.contains("value_color")) {
-        value_color = color::from_color_string(root.at("value_color"));
+        value_color = read_colors(root["value_color"]);
     } else if (default_settings != nullptr) {
         value_color = default_settings->value_color;
     }
@@ -382,9 +418,9 @@ void TemplateItemSettings::to_json(json &root) const {
                 {"is_repeatable", is_repeatable},
                 {"is_optional", is_optional},
                 {"name", name},
-                {"name_color", color::to_string(name_color)},
+                {"name_color", write_colors(name_color)},
                 {"value", value},
-                {"value_color", color::to_string(value_color)}};
+                {"value_color", write_colors(value_color)}};
 }
 
 void to_json(json &root, const TemplateItemSettings &settings) {

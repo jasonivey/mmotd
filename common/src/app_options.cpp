@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/algorithm.h"
 #include "common/include/app_options.h"
 #include "common/include/app_options_creator.h"
 
@@ -131,6 +132,29 @@ std::string Options::to_string() const {
     return options_str;
 }
 
+void Options::SetVerbose(std::int64_t level) noexcept {
+    using mmotd::algorithms::value_in_range;
+    if (value_in_range(level, static_cast<int64_t>(Verbosity::Off), static_cast<int64_t>(Verbosity::Inavlid))) {
+        verbose = static_cast<Verbosity>(level);
+    } else if (level < 0) {
+        verbose = Verbosity::Off;
+    } else {
+        verbose = Verbosity::Verbose;
+    }
+}
+
+bool Options::IsVerboseSet() const noexcept {
+    return verbose != Verbosity::Inavlid;
+}
+
+bool Options::IsVerbosityEnabled() const noexcept {
+    return verbose != Verbosity::Inavlid && verbose != Verbosity::Off;
+}
+
+Options::Verbosity Options::GetVerbosityLevel() const noexcept {
+    return verbose == Verbosity::Inavlid ? Verbosity::Off : verbose;
+}
+
 bool Options::SetColorWhen(const std::vector<std::string> &whens) {
     auto when = empty(whens) ? string{} : whens.front();
     if (boost::iequals(when, "Always")) {
@@ -164,9 +188,17 @@ bool Options::SetOutputConfigPath(const std::vector<std::string> &paths) {
     return true;
 }
 
+optional<string> Options::GetOutputConfigPath() const {
+    return output_config_path;
+}
+
 bool Options::SetOutputTemplatePath(const std::vector<std::string> &paths) {
     output_template_path = empty(paths) ? string{} : paths.front();
     return true;
+}
+
+optional<string> Options::GetOutputTemplatePath() const {
+    return output_template_path;
 }
 
 bool Options::SetTemplatePath(const std::vector<std::string> &paths) {

@@ -2,6 +2,7 @@
 #include "common/assertion/include/assertion.h"
 #include "common/include/information.h"
 #include "common/include/informations.h"
+#include "common/results/include/output_common.h"
 #include "common/results/include/output_position_index.h"
 #include "common/results/include/output_row.h"
 #include "common/results/include/template_string.h"
@@ -92,18 +93,44 @@ size_t Row::UpdateRowNumber(int row_number) {
 }
 
 void Row::SetNameValue(const Informations &informations) {
-    for (const auto &sub_name : item_.name) {
-        auto template_string = TemplateString{sub_name};
-        auto modified_name =
-            template_string.TransformTemplateName(informations, item_, static_cast<size_t>(item_.repeatable_index));
-        PLOG_VERBOSE << format(FMT_STRING("adding name to row {}: '{}'"), GetRowNumber(), modified_name);
+    for (auto i = size_t{0}; i != size(item_.name); ++i) {
+        const auto &sub_name = item_.name[i];
+        auto sub_color = item_.GetNameColor(i);
+        auto sub_row_name = format(FMT_STRING("{}{}"), GetRowNumber(), string(size_t{1}, 'a' + i));
+        if (empty(sub_name)) {
+            PLOG_VERBOSE << format(FMT_STRING("skipping row {} since it's name is empty"), sub_row_name);
+            continue;
+        }
+        auto information_index = static_cast<size_t>(item_.repeatable_index);
+        auto name_xfr_ids = TemplateString::ReplaceInformationIds(sub_name, informations, information_index);
+        if (empty(name_xfr_ids)) {
+            PLOG_VERBOSE << format(
+                FMT_STRING("skipping row {} since the 'name' converted from information ids is empty"),
+                sub_row_name);
+            continue;
+        }
+        auto modified_name = TemplateString::ReplaceEmbeddedColorCodes(name_xfr_ids, sub_color);
+        PLOG_VERBOSE << format(FMT_STRING("adding to row {}, name: '{}'"), sub_row_name, modified_name);
         AddName(modified_name);
     }
-    for (const auto &sub_value : item_.value) {
-        auto template_string = TemplateString{sub_value};
-        auto modified_value =
-            template_string.TransformTemplateValue(informations, item_, static_cast<size_t>(item_.repeatable_index));
-        PLOG_VERBOSE << format(FMT_STRING("adding value to row {}: '{}'"), GetRowNumber(), modified_value);
+    for (auto i = size_t{0}; i != size(item_.value); ++i) {
+        const auto &sub_value = item_.value[i];
+        auto sub_color = item_.GetValueColor(i);
+        auto sub_row_name = format(FMT_STRING("{}{}"), GetRowNumber(), string(size_t{1}, 'a' + i));
+        if (empty(sub_value)) {
+            PLOG_VERBOSE << format(FMT_STRING("skipping row {} since it's value is empty"), sub_row_name);
+            continue;
+        }
+        auto information_index = static_cast<size_t>(item_.repeatable_index);
+        auto value_xfr_ids = TemplateString::ReplaceInformationIds(sub_value, informations, information_index);
+        if (empty(value_xfr_ids)) {
+            PLOG_VERBOSE << format(
+                FMT_STRING("skipping row {} since the 'value' converted from information ids is empty"),
+                sub_row_name);
+            continue;
+        }
+        auto modified_value = TemplateString::ReplaceEmbeddedColorCodes(value_xfr_ids, sub_color);
+        PLOG_VERBOSE << format(FMT_STRING("adding to row {}, value: '{}'"), sub_row_name, modified_value);
         AddValue(modified_value);
     }
 }
