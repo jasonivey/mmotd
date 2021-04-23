@@ -15,20 +15,21 @@
 #include <plog/Formatters/TxtFormatter.h>
 #include <plog/Init.h>
 #include <plog/Log.h>
+#include <plog/Severity.h>
 
 using fmt::format;
 using namespace std;
 
 namespace mmotd::logging {
 
-plog::Severity gFileAppenderVerbosity = plog::verbose;
-plog::Severity gConsoleAppenderVerbosity = plog::warning;
+plog::Severity gFileSeverity = plog::verbose;
+plog::Severity gConsoleSeverity = plog::warning;
 
 void DefaultInitializeLogging(const string &filename) {
     static auto file_appender = plog::RollingFileAppender<plog::TxtFormatter>(filename.c_str(), 5 * 1048576, 3);
     static auto console_appender = plog::ColorConsoleAppender<plog::TxtFormatter>{};
-    plog::init(gFileAppenderVerbosity, &file_appender);
-    plog::init<CONSOLE_LOG>(gConsoleAppenderVerbosity, &console_appender);
+    plog::init(gFileSeverity, &file_appender);
+    plog::init<CONSOLE_LOG>(gConsoleSeverity, &console_appender);
 }
 
 // enum Severity
@@ -42,33 +43,30 @@ void DefaultInitializeLogging(const string &filename) {
 //     verbose = 6
 // };
 
-static plog::Severity convert_verbosity(size_t verbosity) {
-    if (verbosity == 0) {
-        return plog::none;
-    }
-    if (static_cast<plog::Severity>(verbosity + 3) > plog::verbose) {
+// mapping from mmotd verbosity to plog severity modes
+static inline constexpr plog::Severity convert_verbosity(Options::Verbosity verbosity) {
+    if (verbosity == Options::Verbosity::Info) {
+        return plog::info;
+    } else if (verbosity == Options::Verbosity::Debug) {
+        return plog::debug;
+    } else if (verbosity == Options::Verbosity::Verbose) {
         return plog::verbose;
     } else {
-        return static_cast<plog::Severity>(verbosity + 3);
+        // Options::Verbosity::Off or Options::Verbosity::Inavlid
+        return plog::none;
     }
 }
 
-// verbosity is a 0-based value where 0=none, 1=info, 2=debug, 3=verbose
-//  conversion from this range to the `plog::Severity` is a simple off by 3
-//  calculation where the ceil is 6=verbose.
-void UpdateSeverityFilter(size_t verbosity) {
-    plog::Severity new_severity = convert_verbosity(verbosity);
-    auto new_file_severity = std::max(new_severity, gFileAppenderVerbosity);
-    auto new_console_severity = std::max(new_severity, gConsoleAppenderVerbosity);
-    if (gFileAppenderVerbosity != new_file_severity) {
-        gFileAppenderVerbosity = new_file_severity;
+void UpdateSeverityFilter(Options::Verbosity verbosity) {
+    if (auto severity = std::max(convert_verbosity(verbosity), gFileSeverity); severity != gFileSeverity) {
+        gFileSeverity = severity;
         auto *file_log = plog::get();
-        file_log->setMaxSeverity(gFileAppenderVerbosity);
+        file_log->setMaxSeverity(gFileSeverity);
     }
-    if (gConsoleAppenderVerbosity != new_console_severity) {
-        gConsoleAppenderVerbosity = new_console_severity;
+    if (auto severity = std::max(convert_verbosity(verbosity), gConsoleSeverity); severity != gConsoleSeverity) {
+        gConsoleSeverity = severity;
         auto *console_log = plog::get<CONSOLE_LOG>();
-        console_log->setMaxSeverity(gConsoleAppenderVerbosity);
+        console_log->setMaxSeverity(gConsoleSeverity);
     }
 }
 

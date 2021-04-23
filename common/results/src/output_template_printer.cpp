@@ -8,7 +8,7 @@ namespace mmotd::results {
 
 void PrintOutputTemplate(const OutputTemplate &output_template, const mmotd::information::Informations &informations) {
     auto frame = Frame::CreateFrame(output_template, informations);
-    fmt::print(FMT_STRING("{}"), frame.to_string());
+    fmt::print(FMT_STRING("{}\n"), frame.to_string());
 }
 
 } // namespace mmotd::results

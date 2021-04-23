@@ -10,6 +10,9 @@
 #include <string>
 #include <vector>
 
+#include <boost/exception/diagnostic_information.hpp>
+#include <fmt/format.h>
+
 using namespace std;
 
 namespace mmotd::information {
@@ -25,7 +28,19 @@ const std::vector<Information> &InformationProvider::GetInformations() const {
 }
 
 bool InformationProvider::LookupInformation() {
-    return FindInformation();
+    try {
+        return FindInformation();
+    } catch (boost::exception &ex) {
+        auto diag = boost::diagnostic_information(ex);
+        auto error_str = format(FMT_STRING("caught boost::exception in LookupInformation: {}"), diag);
+        PLOG_ERROR << error_str;
+    } catch (const std::exception &ex) {
+        auto diag = boost::diagnostic_information(ex);
+        auto error_str =
+            format(FMT_STRING("caught std::exception in LookupInformation: {}"), empty(diag) ? ex.what() : data(diag));
+        PLOG_ERROR << error_str;
+    }
+    return false;
 }
 
 void InformationProvider::AddInformation(Information information) {

@@ -44,24 +44,23 @@ class TemplateString {
 
 public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(TemplateString);
-    TemplateString(std::string text);
+    TemplateString(std::string text, fmt::text_style color_style);
 
-    std::string TransformTemplateName(const mmotd::information::Informations &informations,
-                                      const mmotd::results::data::TemplateColumnItem &item,
-                                      size_t information_index);
-    std::string TransformTemplateValue(const mmotd::information::Informations &informations,
-                                       const mmotd::results::data::TemplateColumnItem &item,
-                                       size_t information_index);
+    std::string TransformTemplate(const mmotd::information::Informations &informations, size_t information_index);
 
     mmotd::information::InformationId GetFirstInformationId(const mmotd::information::Informations &informations);
 
+    static std::string ReplaceInformationIds(const std::string &text,
+                                             const mmotd::information::Informations &informations,
+                                             size_t information_index);
+
+    static std::string ReplaceEmbeddedColorCodes(const std::string &text, fmt::text_style color_style);
+
 private:
-    enum class TemplateType { Name, Value };
-    static std::string TransformTemplate(TemplateType template_type,
-                                         const std::string &text,
+    static std::string TransformTemplate(const std::string &text,
+                                         fmt::text_style color_style,
                                          const mmotd::information::Informations &informations,
-                                         const mmotd::results::data::TemplateColumnItem &item,
-                                         size_t index);
+                                         size_t information_index);
 
     static std::optional<mmotd::information::Information>
     FindInformation(const std::string &information_id,
@@ -72,9 +71,6 @@ private:
                                                           const mmotd::information::Informations &informations,
                                                           size_t information_index);
 
-    static std::string ReplaceInformationIds(const std::string &text,
-                                             const mmotd::information::Informations &informations,
-                                             size_t information_index);
     static mmotd::information::InformationId
     FindFirstInformationId(const std::string &text, const mmotd::information::Informations &informations);
 
@@ -99,11 +95,9 @@ private:
     static TemplateSubstrings GenerateTemplateSubstrings(const std::string &text);
 
     static fmt::text_style GetColorValue(std::string color_specification);
-    static std::string ReplaceEmbeddedColorCodes(TemplateType template_type,
-                                                 const std::string &text,
-                                                 const mmotd::results::data::TemplateColumnItem &item);
 
     std::string text_;
+    fmt::text_style color_style_ = fmt::text_style(fmt::emphasis());
 };
 
 } // namespace mmotd::results

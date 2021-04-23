@@ -3,8 +3,9 @@
 
 #include <string>
 
-namespace mmotd::platform {
+namespace mmotd::platform::package_management {
 
-std::string GetPackageManagementUpdate();
+std::string GetUpdateDetails();
+std::string GetRebootRequired();
 
-} // namespace mmotd::platform
+} // namespace mmotd::platform::package_management

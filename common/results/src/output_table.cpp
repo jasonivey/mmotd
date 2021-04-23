@@ -1,16 +1,19 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
+#include "common/include/app_options.h"
+#include "common/results/include/output_common.h"
 #include "common/results/include/output_row.h"
 #include "common/results/include/output_table.h"
 
 #include <memory>
-#include <regex>
 
 #include <boost/algorithm/string.hpp>
-#include <fmt/format.h>
+#include <fmt/color.h>
 #include <fort.hpp>
 #include <plog/Log.h>
 
 using fmt::format;
+using mmotd::results::common::RemoveAsciiEscapeCodes;
 using namespace std;
 
 namespace {
@@ -53,43 +56,67 @@ decltype(auto) GetTableStyle(string style_str) {
     }
 }
 
-string RemoveColorCodes(string input) {
-    // all color codes start with 0x1b, "[", other stuff in the middle, ending with "m"
-    const auto color_code_regex = regex(R"(\x1b\[[^m]+m)", std::regex::ECMAScript);
-    auto output = regex_replace(input, color_code_regex, "");
-    return output;
+bool IsRawStringValid(const char *beg, const char *end) {
+    if (beg == nullptr || end == nullptr) {
+        PLOG_ERROR << format(FMT_STRING("string width error, begin or end is null (b:{}, e:{})"),
+                             fmt::ptr(beg),
+                             fmt::ptr(end));
+        return false;
+    } else if (end < beg) {
+        PLOG_ERROR << format(FMT_STRING("string width error, end comes before begin (b:{}, e:{})"),
+                             fmt::ptr(beg),
+                             fmt::ptr(end));
+        return false;
+    } else {
+        auto raw_length = end - beg;
+        static constexpr const auto MAX_RAW_STRING_LENGTH = ptrdiff_t{8 * 1024};
+        if (raw_length > MAX_RAW_STRING_LENGTH) {
+            PLOG_ERROR << format(FMT_STRING("string width error, end - begin > 8K (b:{}, e:{}, length: {})"),
+                                 fmt::ptr(beg),
+                                 fmt::ptr(end),
+                                 raw_length);
+            return false;
+        }
+        return true;
+    }
 }
 
 int GetStringWidth(const void *vbeg, const void *vend, size_t *width) {
     static auto width_cache = vector<pair<string, size_t>>{};
-    if (vbeg == nullptr || vend == nullptr) {
-        PLOG_ERROR << "unable to get string width when pointer to begin or end is null";
+    if (!IsRawStringValid(reinterpret_cast<const char *>(vbeg), reinterpret_cast<const char *>(vend))) {
         return 1;
     }
-
     auto input = string(reinterpret_cast<const char *>(vbeg), reinterpret_cast<const char *>(vend));
     auto i = find_if(begin(width_cache), end(width_cache), [&input](const auto &cache_item) {
         const auto &[cache_str, _] = cache_item;
         return input == cache_str;
     });
-
     auto input_width = size_t{0};
     if (i != end(width_cache)) {
         const auto &[_, cached_width] = *i;
         input_width = cached_width;
     } else {
-        auto stripped_str = RemoveColorCodes(input);
+        // PLOG_VERBOSE << format(FMT_STRING("calculating string width: '{}'"), input);
+        auto stripped_str = RemoveAsciiEscapeCodes(input);
         const char *buffer_ptr = data(stripped_str);
         auto state = mbstate_t{};
         input_width = mbsrtowcs(nullptr, &buffer_ptr, 0, &state);
+        if (input_width == SIZE_MAX) {
+            PLOG_ERROR << "invalid multibyte character was encountered";
+            return 1;
+        }
+        MMOTD_CHECKS(input_width <= size(input),
+                     format(FMT_STRING("the visible width ({}) should never be more than the input string size ({})"),
+                            input_width,
+                            size(input)));
         width_cache.push_back(make_pair(input, input_width));
     }
-
     if (width != nullptr) {
+        // PLOG_VERBOSE << format(FMT_STRING("width: {}, string: '{}'"), input_width, input);
         *width = input_width;
         return 0;
     } else {
-        PLOG_ERROR << "unable to return string width output width is null";
+        PLOG_ERROR << "output width parameter is null";
         return 1;
     }
 }
@@ -107,21 +134,16 @@ public:
     void WriteRow(const Row &row);
 
 private:
-    string GetRowPrefix(const Row &row) const;
+    string GetRowPrefix(const Row &row, size_t line_index, bool is_internal_column = false) const;
     string GetRowSuffix(const Row &row, size_t line_index) const;
 
+    void SetCellDefaults();
     void WriteCell(string text, size_t row_number, size_t col_number, size_t span, bool is_entire_line);
     void WriteNameValue(const Row &row, size_t line_index);
     void WriteName(const Row &row, size_t line_index);
     void WriteValue(const Row &row, size_t line_index, bool bump_column);
 
-#if defined(__APPLE__)
     using TableType = fort::utf8_table;
-#elif defined(__linux__)
-    using TableType = fort::char_table;
-#else
-    using TableType = fort::char_table;
-#endif
 
     TableType &GetTable() { return table_; }
     const TableType &GetTable() const { return table_; }
@@ -132,14 +154,17 @@ private:
 };
 
 Table::TableImpl::TableImpl(string table_style, size_t column_count) : table_(), column_count_(column_count) {
-    PLOG_VERBOSE << format(FMT_STRING("setting border style: {}"), table_style);
     GetTable().set_border_style(GetTableStyle(table_style));
-    PLOG_VERBOSE << "setting ft_set_u8strwid_func to custom: GetStringWidth";
     ft_set_u8strwid_func(&GetStringWidth);
-    PLOG_VERBOSE << "setting adding strategy: replace";
     GetTable().set_adding_strategy(fort::add_strategy::replace);
-    PLOG_VERBOSE << format(FMT_STRING("setting right margin: {}"), GetColumnCount());
-    GetTable().set_right_margin(static_cast<unsigned>(GetColumnCount()));
+    GetTable().set_cell_min_width(0);
+    GetTable().set_cell_text_align(fort::text_align::left);
+    GetTable().set_cell_top_padding(0);
+    GetTable().set_cell_bottom_padding(0);
+    GetTable().set_cell_left_padding(0);
+    GetTable().set_cell_right_padding(0);
+    GetTable().set_cell_text_style(fort::text_style::default_style);
+    GetTable().set_cell_content_text_style(fort::text_style::default_style);
 }
 
 string Table::TableImpl::to_string() const {
@@ -169,14 +194,18 @@ void Table::TableImpl::WriteRow(const Row &row) {
     }
 }
 
-string Table::TableImpl::GetRowPrefix(const Row &row) const {
+string Table::TableImpl::GetRowPrefix(const Row &row, size_t line_index, bool is_internal_column) const {
     auto column_position = row.GetColumnPosition();
     auto newline_count = static_cast<size_t>(row.GetPrependNewlineCount());
     auto indent_count = static_cast<size_t>(row.GetIndentCount());
-    if (column_position.IsStartOfLine()) {
-        return string(newline_count, '\n') + string(indent_count, ' ');
+    auto prefix = string{};
+    if (column_position.IsStartOfLine() && line_index == 0) {
+        prefix += string(newline_count, '\n');
     }
-    return string{};
+    if (!is_internal_column) {
+        prefix += string(indent_count, ' ');
+    }
+    return prefix;
 }
 
 string Table::TableImpl::GetRowSuffix(const Row &row, size_t line_index) const {
@@ -188,13 +217,22 @@ string Table::TableImpl::GetRowSuffix(const Row &row, size_t line_index) const {
     return string{};
 }
 
+void Table::TableImpl::SetCellDefaults() {
+    GetTable().cur_cell().set_cell_min_width(0);
+    GetTable().cur_cell().set_cell_text_align(fort::text_align::left);
+    GetTable().cur_cell().set_cell_top_padding(0);
+    GetTable().cur_cell().set_cell_bottom_padding(0);
+    GetTable().cur_cell().set_cell_left_padding(0);
+    GetTable().cur_cell().set_cell_right_padding(0);
+    GetTable().cur_cell().set_cell_text_style(fort::text_style::default_style);
+    GetTable().cur_cell().set_cell_content_text_style(fort::text_style::default_style);
+}
+
 void Table::TableImpl::WriteCell(string text,
                                  size_t row_number,
                                  size_t col_number,
                                  size_t cell_span,
                                  bool use_cell_span) {
-    PLOG_VERBOSE << format(FMT_STRING("setting right margin: {}"), GetColumnCount());
-    GetTable().set_right_margin(static_cast<unsigned>(GetColumnCount()));
     auto cell_span_str = use_cell_span ? ::to_string(cell_span) : string{"none"};
     PLOG_VERBOSE << format(FMT_STRING("writing cell, row: {}, column: {}, cell span: {}, text: '{}'"),
                            row_number,
@@ -202,6 +240,7 @@ void Table::TableImpl::WriteCell(string text,
                            cell_span_str,
                            text);
     GetTable().set_cur_cell(row_number, col_number);
+    SetCellDefaults();
     if (use_cell_span) {
         GetTable().cur_cell().set_cell_span(cell_span);
     }
@@ -213,7 +252,7 @@ void Table::TableImpl::WriteNameValue(const Row &row, size_t line_index) {
     auto column_position = row.GetColumnPosition();
     auto column_number = column_position.GetIndex() * row.GetColumnCount();
     auto cell_span = GetColumnCount() - 1;
-    auto text = format(FMT_STRING("{}{}"), GetRowPrefix(row), row.GetName(line_index));
+    auto text = format(FMT_STRING("{}{}"), GetRowPrefix(row, line_index), row.GetName(line_index));
     WriteCell(text, row_number, column_number, size_t{0}, false);
     text = format(FMT_STRING("{}{}"), row.GetValue(line_index), GetRowSuffix(row, line_index));
     WriteCell(text, row_number, column_number + 1, cell_span, column_position.IsEntireLine());
@@ -224,7 +263,8 @@ void Table::TableImpl::WriteName(const Row &row, size_t line_index) {
     auto column_position = row.GetColumnPosition();
     auto column_number = column_position.GetIndex() * row.GetColumnCount();
     auto cell_span = GetColumnCount() - 1;
-    auto text = format(FMT_STRING("{}{}{}"), GetRowPrefix(row), row.GetName(line_index), GetRowSuffix(row, line_index));
+    auto text = format(FMT_STRING("{}"), row.HasName(line_index) ? row.GetName(line_index) : string{});
+    text = format(FMT_STRING("{}{}{}"), GetRowPrefix(row, line_index), text, GetRowSuffix(row, line_index));
     WriteCell(text, row_number, column_number, cell_span, column_position.IsEntireLine());
 }
 
@@ -232,10 +272,15 @@ void Table::TableImpl::WriteValue(const Row &row, size_t line_index, bool bump_c
     auto row_number = static_cast<size_t>(row.GetRowNumber()) + line_index;
     auto column_position = row.GetColumnPosition();
     auto column_number = column_position.GetIndex() * row.GetColumnCount();
-    column_number += bump_column ? 1 : 0;
+    auto text = string{};
+    if (bump_column) {
+        WriteCell(string{" "}, row_number, column_number, size_t{0}, false);
+        ++column_number;
+    }
     auto cell_span = bump_column ? GetColumnCount() - 1 : GetColumnCount();
-    auto text =
-        format(FMT_STRING("{}{}{}"), GetRowPrefix(row), row.GetValue(line_index), GetRowSuffix(row, line_index));
+    text = format(FMT_STRING("{}"), row.GetValue(line_index));
+    text =
+        format(FMT_STRING("{}{}{}"), GetRowPrefix(row, line_index, bump_column), text, GetRowSuffix(row, line_index));
     WriteCell(text, row_number, column_number, cell_span, column_position.IsEntireLine());
 }
 

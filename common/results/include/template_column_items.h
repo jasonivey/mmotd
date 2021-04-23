@@ -37,9 +37,12 @@ struct TemplateItemSettings {
     bool is_repeatable = false;
     bool is_optional = false;
     std::vector<std::string> name;
-    fmt::text_style name_color = fmt::text_style{fmt::emphasis::bold} | fmt::fg(fmt::terminal_color::bright_cyan);
+    std::vector<fmt::text_style> name_color;
     std::vector<std::string> value;
-    fmt::text_style value_color = fmt::text_style{fmt::emphasis::bold} | fmt::fg(fmt::terminal_color::bright_white);
+    std::vector<fmt::text_style> value_color;
+
+    fmt::text_style GetNameColor(size_t index) const noexcept;
+    fmt::text_style GetValueColor(size_t index) const noexcept;
 
     std::string to_string() const;
     bool validate(const TemplateConfig &default_settings);
@@ -48,6 +51,8 @@ struct TemplateItemSettings {
     void to_json(nlohmann::json &root) const;
 
 private:
+    std::vector<fmt::text_style> read_colors(const nlohmann::json &color_list) const;
+    nlohmann::json write_colors(const std::vector<fmt::text_style> &color_defs) const;
 };
 
 void from_json(const nlohmann::json &root, TemplateItemSettings &settings);

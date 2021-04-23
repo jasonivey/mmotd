@@ -7,6 +7,7 @@
 #include "common/results/include/output_template_printer.h"
 #include "lib/include/computer_information.h"
 
+#include <clocale>
 #include <cstdlib>
 #include <iostream>
 
@@ -42,22 +43,29 @@ void PrintMmotd(const AppOptions &app_options) {
     }
 }
 
-} // namespace
+int main_impl(int argc, char **argv) {
+    setlocale(LC_ALL, "en_US.UTF-8");
 
-int main(int argc, char *argv[]) {
     mmotd::logging::DefaultInitializeLogging("mmotd.log");
 
     auto [error_encountered, app_options] = LoadAppOptions(argc, argv);
     if (app_options == nullptr) {
         return error_encountered ? EXIT_FAILURE : EXIT_SUCCESS;
     }
+    if (app_options->GetOptions().IsVerboseSet()) {
+        mmotd::logging::UpdateSeverityFilter(app_options->GetOptions().GetVerbosityLevel());
+    }
 
+    PrintMmotd(*app_options);
+    return EXIT_SUCCESS;
+}
+
+} // namespace
+
+int main(int argc, char *argv[]) {
     auto retval = EXIT_SUCCESS;
     try {
-        if (app_options->GetOptions().IsVerboseSet()) {
-            mmotd::logging::UpdateSeverityFilter(app_options->GetOptions().GetVerbosityLevel());
-        }
-        PrintMmotd(*app_options);
+        retval = main_impl(argc, argv);
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
         auto error_str = format(FMT_STRING("caught boost::exception in main: {}"), diag);
@@ -77,6 +85,5 @@ int main(int argc, char *argv[]) {
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     }
-
     return retval;
 }

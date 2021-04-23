@@ -12,60 +12,18 @@
 
 class AppOptionsCreator;
 
-struct Options {
+class Options {
+public:
     Options() = default;
 
     std::string to_string() const;
 
     enum class ColorWhen { Always, Auto, Never, NotSet };
+    enum class Verbosity : std::int64_t { Off = 0, Info, Debug, Verbose, Inavlid };
 
-    int verbose = 0;
-    ColorWhen color_when = ColorWhen::NotSet;
-    std::optional<std::string> output_config_path;
-    std::optional<std::string> output_template_path;
-    std::string config_path;
-    std::string template_path;
-    boost::tribool last_login = boost::indeterminate;
-    boost::tribool computer_name = boost::indeterminate;
-    boost::tribool host_name = boost::indeterminate;
-    boost::tribool public_ip = boost::indeterminate;
-    boost::tribool unread_mail = boost::indeterminate;
-    boost::tribool system_load = boost::indeterminate;
-    boost::tribool processor_count = boost::indeterminate;
-    boost::tribool disk_usage = boost::indeterminate;
-    boost::tribool users_count = boost::indeterminate;
-    boost::tribool memory_usage = boost::indeterminate;
-    boost::tribool swap_usage = boost::indeterminate;
-    boost::tribool active_network_interfaces = boost::indeterminate;
-    boost::tribool greeting = boost::indeterminate;
-    boost::tribool header = boost::indeterminate;
-    boost::tribool sub_header = boost::indeterminate;
-    boost::tribool quote = boost::indeterminate;
-
-    void SetVerbose(std::int64_t count) { verbose = static_cast<int>(count); }
-    bool SetColorWhen(const std::vector<std::string> &whens);
-    bool SetOutputConfigPath(const std::vector<std::string> &paths);
-    bool SetOutputTemplatePath(const std::vector<std::string> &paths);
-    bool SetTemplatePath(const std::vector<std::string> &paths);
-    void SetLastLogin(int value) { last_login = value == -1 ? false : true; }
-    void SetComputerName(int value) { computer_name = value == -1 ? false : true; }
-    void SetHostName(int value) { host_name = value == -1 ? false : true; }
-    void SetPublicIp(int value) { public_ip = value == -1 ? false : true; }
-    void SetUnreadMail(int value) { unread_mail = value == -1 ? false : true; }
-    void SetSystemLoad(int value) { system_load = value == -1 ? false : true; }
-    void SetProcessorCount(int value) { processor_count = value == -1 ? false : true; }
-    void SetDiskUsage(int value) { disk_usage = value == -1 ? false : true; }
-    void SetUsersCount(int value) { users_count = value == -1 ? false : true; }
-    void SetMemoryUsage(int value) { memory_usage = value == -1 ? false : true; }
-    void SetSwapUsage(int value) { swap_usage = value == -1 ? false : true; }
-    void SetActiveNetworkInterfaces(int value) { active_network_interfaces = value == -1 ? false : true; }
-    void SetGreeting(int value) { greeting = value == -1 ? false : true; }
-    void SetHeader(int value) { header = value == -1 ? false : true; }
-    void SetSubHeader(int value) { sub_header = value == -1 ? false : true; }
-    void SetQuote(int value) { quote = value == -1 ? false : true; }
-
-    bool IsVerboseSet() const { return verbose > 0; }
-    int GetVerbosityLevel() const { return verbose; }
+    bool IsVerboseSet() const noexcept;
+    bool IsVerbosityEnabled() const noexcept;
+    Verbosity GetVerbosityLevel() const noexcept;
     bool IsColorWhenSet() const;
     bool IsColorDisabled() const;
     ColorWhen GetColorWhen() const;
@@ -103,6 +61,56 @@ struct Options {
     bool GetSubHeaderValue() const { return sub_header.value; }
     bool IsQuoteSet() const { return !indeterminate(quote); }
     bool GetQuoteValue() const { return quote.value; }
+
+    void SetVerbose(std::int64_t count) noexcept;
+    bool SetColorWhen(const std::vector<std::string> &whens);
+    bool SetTemplatePath(const std::vector<std::string> &paths);
+    void SetLastLogin(int value) { last_login = value == -1 ? false : true; }
+    void SetComputerName(int value) { computer_name = value == -1 ? false : true; }
+    void SetHostName(int value) { host_name = value == -1 ? false : true; }
+    void SetPublicIp(int value) { public_ip = value == -1 ? false : true; }
+    void SetUnreadMail(int value) { unread_mail = value == -1 ? false : true; }
+    void SetSystemLoad(int value) { system_load = value == -1 ? false : true; }
+    void SetProcessorCount(int value) { processor_count = value == -1 ? false : true; }
+    void SetDiskUsage(int value) { disk_usage = value == -1 ? false : true; }
+    void SetUsersCount(int value) { users_count = value == -1 ? false : true; }
+    void SetMemoryUsage(int value) { memory_usage = value == -1 ? false : true; }
+    void SetSwapUsage(int value) { swap_usage = value == -1 ? false : true; }
+    void SetActiveNetworkInterfaces(int value) { active_network_interfaces = value == -1 ? false : true; }
+    void SetGreeting(int value) { greeting = value == -1 ? false : true; }
+    void SetHeader(int value) { header = value == -1 ? false : true; }
+    void SetSubHeader(int value) { sub_header = value == -1 ? false : true; }
+    void SetQuote(int value) { quote = value == -1 ? false : true; }
+
+    bool SetOutputConfigPath(const std::vector<std::string> &paths);
+    std::optional<std::string> GetOutputConfigPath() const;
+    bool SetOutputTemplatePath(const std::vector<std::string> &paths);
+    std::optional<std::string> GetOutputTemplatePath() const;
+
+private:
+    Verbosity verbose = Verbosity::Inavlid;
+    ColorWhen color_when = ColorWhen::NotSet;
+    std::string config_path;
+    std::string template_path;
+    boost::tribool last_login = boost::indeterminate;
+    boost::tribool computer_name = boost::indeterminate;
+    boost::tribool host_name = boost::indeterminate;
+    boost::tribool public_ip = boost::indeterminate;
+    boost::tribool unread_mail = boost::indeterminate;
+    boost::tribool system_load = boost::indeterminate;
+    boost::tribool processor_count = boost::indeterminate;
+    boost::tribool disk_usage = boost::indeterminate;
+    boost::tribool users_count = boost::indeterminate;
+    boost::tribool memory_usage = boost::indeterminate;
+    boost::tribool swap_usage = boost::indeterminate;
+    boost::tribool active_network_interfaces = boost::indeterminate;
+    boost::tribool greeting = boost::indeterminate;
+    boost::tribool header = boost::indeterminate;
+    boost::tribool sub_header = boost::indeterminate;
+    boost::tribool quote = boost::indeterminate;
+
+    std::optional<std::string> output_config_path;
+    std::optional<std::string> output_template_path;
 };
 
 class AppOptions {

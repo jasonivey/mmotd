@@ -49,16 +49,12 @@ if (NOT MMOTD_NEW_VERSION_H STREQUAL MMOTD_OLD_VERSION_H)
         DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/common/include
         USE_SOURCE_PERMISSIONS
         )
-    set(MMOTD_GIT_STATUS " ")
     execute_process(
         COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}" status --porcelain -uno
         OUTPUT_VARIABLE MMOTD_GIT_STATUS
         OUTPUT_STRIP_TRAILING_WHITESPACE
         )
-    if (STREQUAL ${MMOTD_GIT_STATUS} "")
-        set(MMOTD_GIT_STATUS " ")
-    endif ()
-    string(REPLACE "\n" ";" MMOTD_GIT_STATUS ${MMOTD_GIT_STATUS})
+    string(REPLACE "\n" ";" MMOTD_GIT_STATUS "${MMOTD_GIT_STATUS}")
 
     # If cmake/version.cmake is the only modified file
     if (NOT "x${MMOTD_GIT_STATUS}" STREQUAL "x M cmake/version.cmake")
@@ -77,4 +73,3 @@ if (NOT MMOTD_NEW_VERSION_H STREQUAL MMOTD_OLD_VERSION_H)
         message(STATUS "  git push origin <feature-branch>")
     endif()
 endif()
-

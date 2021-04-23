@@ -3,12 +3,20 @@
 
 #include <string>
 
+#include <plog/Log.h>
+
 using namespace std;
 
-namespace mmotd::platform {
+namespace mmotd::platform::package_management {
 
-string GetPackageManagementUpdate() {
+string GetUpdateDetails() {
+    PLOG_VERBOSE << "[windows] getting package management update details";
     return string{};
 }
 
-} // namespace mmotd::platform
+string GetRebootRequired() {
+    PLOG_VERBOSE << "[windows] getting package management reboot required";
+    return string{};
+}
+
+} // namespace mmotd::platform::package_management

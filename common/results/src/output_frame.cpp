@@ -18,6 +18,7 @@
 #include <iterator>
 
 #include <boost/uuid/uuid_io.hpp>
+#include <fmt/color.h>
 #include <fmt/format.h>
 #include <plog/Log.h>
 
@@ -110,7 +111,7 @@ Column &Frame::GetColumn(RowId row_id) {
 }
 
 size_t Frame::GetRowValueInformationIdCount(const string &value, const Informations &informations) const {
-    auto id = TemplateString{value}.GetFirstInformationId(informations);
+    auto id = TemplateString{value, fmt::text_style{}}.GetFirstInformationId(informations);
     if (id == InformationId::ID_INVALID_INVALID_INFORMATION) {
         return size_t{0};
     }

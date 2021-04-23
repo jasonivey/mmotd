@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
 #include "common/include/algorithm.h"
 #include "common/include/chrono_io.h"
 #include "common/include/iostream_error.h"
@@ -81,9 +82,15 @@ private:
 };
 
 optional<Greeting> Greetings::FindGreeting() const {
-    const auto hour = mmotd::chrono::io::get_current_hour();
-    PLOG_VERBOSE << fmt::format(FMT_STRING("the current hour is {}"), hour);
-
+    auto hour_holder = mmotd::chrono::io::get_current_hour();
+    auto hour = HourType{};
+    if (!hour_holder) {
+        hour = HourType{5};
+        PLOG_ERROR << "unable to query for the current hour, defaulting to 5am";
+    } else {
+        hour = *hour_holder;
+        PLOG_VERBOSE << fmt::format(FMT_STRING("the current hour is {}"), hour);
+    }
     if (value_in_range(hour, MORNING_GREETING.begin(), MORNING_GREETING.end())) {
         return MORNING_GREETING;
     } else if (value_in_range(hour, AFTERNOON_GREETING.begin(), AFTERNOON_GREETING.end())) {
@@ -91,11 +98,8 @@ optional<Greeting> Greetings::FindGreeting() const {
     } else if (value_in_range(hour, EVENING_GREETING.begin(), EVENING_GREETING.end())) {
         return EVENING_GREETING;
     } else {
-        if (value_in_range(hour, NIGHT_GREETING.end(), NIGHT_GREETING.begin())) {
-            // is outside of the night greeting time... should have been picked up by the above
-            PLOG_ERROR << fmt::format(FMT_STRING("hour value={} did not find it's way into any block of time"), hour);
-            return nullopt;
-        }
+        MMOTD_CHECKS(value_in_range(hour, NIGHT_GREETING.end(), NIGHT_GREETING.begin()),
+                     fmt::format(FMT_STRING("hour value={} did not find it's way into any block of time"), hour));
         return NIGHT_GREETING;
     }
 }

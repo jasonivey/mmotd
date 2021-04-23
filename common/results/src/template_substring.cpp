@@ -129,7 +129,6 @@ string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_co
                            color_definitions_to_string(GetColorDefinitions()),
                            GetSubstring(),
                            GetSuffix());
-    auto substring_output = GetPrefix();
     auto substring_text = GetSubstring();
     if (auto colors_disabled = AppOptions::Instance().GetOptions().IsColorDisabled(); !colors_disabled) {
         const auto &colors = GetColorDefinitions();
@@ -139,7 +138,7 @@ string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_co
             }
         });
     }
-    return substring_output + substring_text + GetSuffix();
+    return GetPrefix() + substring_text + GetSuffix();
 }
 
 } // namespace mmotd::results

@@ -5,6 +5,7 @@
 #include "lib/include/computer_information.h"
 
 #include <algorithm>
+#include <clocale>
 #include <cstdlib>
 #include <iostream>
 #include <regex>
@@ -54,26 +55,32 @@ void PrintMmotdRaw() {
         auto value = GetInformationValueString(information);
         if (!empty(name) && !empty(value)) {
             if (width > 0) {
-                //print("  {:<18} {}\n", name, value);
                 print(FMT_STRING("  {:<{}} {}\n"), name, width, value);
             } else {
                 print(FMT_STRING("  {}{}\n"), name, value);
             }
         } else if (!empty(value)) {
-            print(FMT_STRING("  {}\n"), value);
+            print(FMT_STRING("{}\n"), value);
         }
     }
+}
+
+int main_impl(int argc, char **argv) {
+    setlocale(LC_ALL, "en_US.UTF-8");
+
+    mmotd::algorithms::unused(argc, argv);
+    mmotd::logging::DefaultInitializeLogging("mmotd_raw.log");
+
+    PrintMmotdRaw();
+    return EXIT_SUCCESS;
 }
 
 } // namespace
 
 int main(int argc, char *argv[]) {
-    mmotd::algorithms::unused(argc, argv);
-    mmotd::logging::DefaultInitializeLogging("mmotd_raw.log");
-
     auto retval = EXIT_SUCCESS;
     try {
-        PrintMmotdRaw();
+        retval = main_impl(argc, argv);
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
         auto error_str = format(FMT_STRING("caught boost::exception in main: {}"), diag);
@@ -81,7 +88,8 @@ int main(int argc, char *argv[]) {
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     } catch (const std::exception &ex) {
-        auto error_str = format(FMT_STRING("caught std::exception in main: {}"), ex.what());
+        auto diag = boost::diagnostic_information(ex);
+        auto error_str = format(FMT_STRING("caught std::exception in main: {}"), empty(diag) ? ex.what() : data(diag));
         PLOG_FATAL << error_str;
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
@@ -92,6 +100,5 @@ int main(int argc, char *argv[]) {
         std::cerr << error_str << std::endl;
         retval = EXIT_FAILURE;
     }
-
     return retval;
 }
