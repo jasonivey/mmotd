@@ -33,8 +33,6 @@ mmotd::logging::Severity LOGGING_SEVERITY = mmotd::logging::Severity::verbose;
 
 namespace {
 
-static std::mutex LOGGER_IO_MUTEX;
-
 class FileLogger {
 public:
     FileLogger() = default;
