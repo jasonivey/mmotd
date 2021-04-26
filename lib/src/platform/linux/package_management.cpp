@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/logging.h"
 #include "lib/include/platform/package_management.h"
 
 #include <algorithm>
@@ -9,7 +10,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -21,16 +21,16 @@ constexpr static const char *REBOOT_REQUIRED_FILE = "/var/run/reboot-required";
 namespace {
 
 string ReadFile(const char *path_str) {
-    PLOG_VERBOSE << "reading file" << path_str;
+    LOG_VERBOSE("reading file {}", path_str);
     auto path = fs::path(path_str);
     std::error_code ec;
     if (auto file_exists = fs::exists(path, ec); !file_exists || ec) {
-        PLOG_ERROR << format(FMT_STRING("package management file does not exist {}"), path.string());
+        LOG_WARNING("package management file does not exist {}", path.string());
         return string{};
     }
     auto input = ifstream(path);
     if (!input) {
-        PLOG_ERROR << format(FMT_STRING("unable to open package management file {}"), path.string());
+        LOG_ERROR("unable to open package management file {}", path.string());
         return string{};
     }
     auto lines = vector<string>{};
@@ -48,17 +48,16 @@ string ReadFile(const char *path_str) {
 namespace mmotd::platform::package_management {
 
 string GetUpdateDetails() {
-    PLOG_VERBOSE << "[linux] getting package management update details";
+    LOG_VERBOSE("[linux] getting package management update details");
     auto update_details = ReadFile(UPDATES_AVAILABLE_FILE);
-    PLOG_VERBOSE << format(FMT_STRING("[linux] returning from package management update details: {}"), update_details);
+    LOG_VERBOSE("[linux] returning from package management update details: {}", update_details);
     return update_details;
 }
 
 string GetRebootRequired() {
-    PLOG_VERBOSE << "[linux] getting package management reboot required";
+    LOG_VERBOSE("[linux] getting package management reboot required");
     auto reboot_required = ReadFile(REBOOT_REQUIRED_FILE);
-    PLOG_VERBOSE << format(FMT_STRING("[linux] returning from package management reboot required: {}"),
-                           reboot_required);
+    LOG_VERBOSE("[linux] returning from package management reboot required: {}", reboot_required);
     return reboot_required;
 }
 

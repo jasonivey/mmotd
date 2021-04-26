@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/assertion.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/system_details.h"
 
@@ -9,7 +10,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using namespace fmt;
 using namespace std;

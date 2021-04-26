@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/information_decls.h"
 #include "common/include/information_definitions.h"
+#include "common/include/logging.h"
 
 #include <array>
 #include <string>
@@ -9,7 +10,6 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;

@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/logging.h"
 #include "common/results/include/output_row_number_sentinals.h"
 
 #include <limits>
@@ -6,7 +7,6 @@
 #include <string>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
@@ -16,7 +16,7 @@ static constexpr const int INVALID_ROW = std::numeric_limits<int>::max();
 namespace mmotd::results {
 
 RowNumberSentinals::RowNumberSentinals(value_type begin, value_type end) : begin_value_(begin), end_value_(end) {
-    PLOG_VERBOSE << format(FMT_STRING("row sentinal created: {}"), to_string());
+    LOG_VERBOSE("row sentinal created: {}", to_string());
 }
 
 RowNumberSentinals::iterator RowNumberSentinals::begin() {

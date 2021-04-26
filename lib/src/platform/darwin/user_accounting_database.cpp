@@ -1,15 +1,17 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/user_accounting_database.h"
 
+#include <cctype>
 #include <cstring>
+#include <locale>
 #include <string>
 #include <vector>
 
 #include <boost/asio/ip/address.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 #include <scope_guard.hpp>
 
 #include <errno.h>
@@ -43,26 +45,23 @@ DbEntries GetUserAccountEntriesImpl() {
     auto i = size_t{0};
     for (const utmpx *utmpx_ptr = getutxent(); utmpx_ptr != nullptr; utmpx_ptr = getutxent(), ++i) {
         auto ut_type_str = DbEntry::entry_type_to_string(utmpx_ptr->ut_type);
-        PLOG_VERBOSE << format(FMT_STRING("iteration #{}, type: {}, utmpx *: {}"),
-                               i + 1,
-                               ut_type_str,
-                               fmt::ptr(utmpx_ptr));
+        LOG_VERBOSE("iteration #{}, type: {}, utmpx *: {}", i + 1, ut_type_str, fmt::ptr(utmpx_ptr));
 
         auto entry = DbEntry::from_utmpx(*utmpx_ptr);
         if (!entry.empty()) {
             entries.push_back(entry);
-            PLOG_VERBOSE << format(FMT_STRING("adding user account entry #{}"), entries.size());
+            LOG_VERBOSE("adding user account entry #{}", entries.size());
         }
     }
 
-    PLOG_VERBOSE << format(FMT_STRING("returning {} user account entries"), entries.size());
+    LOG_VERBOSE("returning {} user account entries", entries.size());
     return entries;
 }
 
 UserInformation GetUserInformationImpl() {
     auto bufsize = sysconf(_SC_GETPW_R_SIZE_MAX);
-    if (bufsize == -1) { /* Value was indeterminate */
-        bufsize = 16384; /* Should be more than enough */
+    if (bufsize == -1) {
+        bufsize = 16384;
     }
 
     auto buf = vector<char>(static_cast<size_t>(bufsize));
@@ -71,15 +70,25 @@ UserInformation GetUserInformationImpl() {
     auto user_id = geteuid();
     auto retval = getpwuid_r(user_id, &pwd, buf.data(), buf.size(), &pwd_ptr);
     if (pwd_ptr == nullptr && retval == 0) {
-        PLOG_ERROR << format(FMT_STRING("getpwnam_r for user id {} did not return a pwd structure or an error code"),
-                             user_id);
+        LOG_ERROR("getpwnam_r for user id {} did not return a pwd structure or an error code", user_id);
         return UserInformation{};
     } else if (pwd_ptr == nullptr && retval != 0) {
         auto error_str = pe::to_string(retval);
-        PLOG_ERROR << format(FMT_STRING("getpwnam_r for user id {} failed, {}"), user_id, error_str);
+        LOG_ERROR("getpwnam_r for user id {} failed, {}", user_id, error_str);
         return UserInformation{};
     }
     return UserInformation::from_passwd(pwd);
+}
+
+string GetUtmpxId(const utmpx &db) {
+    auto id = string{};
+    const auto &loc = std::locale();
+    for (auto i = size_t{0}; i < size_t{_UTX_IDSIZE}; ++i) {
+        if (std::isprint(db.ut_id[i], loc)) {
+            id.push_back(db.ut_id[i]);
+        }
+    }
+    return id;
 }
 
 } // namespace
@@ -107,14 +116,14 @@ DbEntry DbEntry::from_utmpx(const utmpx &db) {
     auto username = strlen(db.ut_user) > 0 ? string{db.ut_user} : string{};
     auto hostname = strlen(db.ut_host) > 0 ? string{db.ut_host} : string{};
 
-    PLOG_VERBOSE << format(FMT_STRING("utmpx id: {}"), string(db.ut_id, db.ut_id + 4));
+    LOG_VERBOSE("utmpx id: {}", GetUtmpxId(db));
     auto entry = DbEntry{static_cast<ENTRY_TYPE>(db.ut_type),
                          device_name,
                          username,
                          hostname,
                          db.ut_tv.tv_sec,
                          boost::asio::ip::address{}};
-    PLOG_VERBOSE << format(FMT_STRING("parsed entry: {}"), entry.to_string());
+    LOG_VERBOSE("parsed entry: {}", entry.to_string());
     return entry;
 }
 

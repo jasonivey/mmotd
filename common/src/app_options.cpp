@@ -2,6 +2,7 @@
 #include "common/include/algorithm.h"
 #include "common/include/app_options.h"
 #include "common/include/app_options_creator.h"
+#include "common/include/logging.h"
 
 #include <filesystem>
 #include <string_view>
@@ -9,7 +10,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 #include <unistd.h>
 
@@ -21,7 +21,7 @@ namespace {
 optional<string> GetEnvironmentVariableValue(string variable_name) {
     auto env_value = getenv(variable_name.c_str());
     if (env_value == nullptr) {
-        PLOG_ERROR << format(FMT_STRING("getenv failed when attempting to look up variable {}"), variable_name);
+        LOG_ERROR("getenv failed when attempting to look up variable {}", variable_name);
         return nullopt;
     }
     return make_optional(string{env_value});
@@ -37,10 +37,10 @@ auto GetDefaultTemplatePath() {
     auto ec = error_code{};
     if (fs::exists(template_path, ec) && !ec &&
         ((fs::is_regular_file(template_path, ec) && !ec) || (fs::is_symlink(template_path, ec) && !ec))) {
-        PLOG_VERBOSE << format(FMT_STRING("found the default mmotd template ({})"), template_path.string());
+        LOG_VERBOSE("found the default mmotd template ({})", template_path.string());
         return template_path;
     } else {
-        PLOG_ERROR << format(FMT_STRING("unable to locate the default mmotd template ({})"), template_path.string());
+        LOG_ERROR("unable to locate the default mmotd template ({})", template_path.string());
         return fs::path{};
     }
 }
@@ -55,7 +55,7 @@ void append_option(string &existing_options_str, const string &name, T is_set, U
 
 auto IsStdoutTtyImpl() {
     auto is_stdout_tty = isatty(STDOUT_FILENO) != 0;
-    PLOG_VERBOSE << format(FMT_STRING("stdout is{} a tty"), is_stdout_tty ? "" : " not");
+    LOG_VERBOSE("stdout is{} a tty", is_stdout_tty ? "" : " not");
     return is_stdout_tty;
 }
 
@@ -68,7 +68,10 @@ auto IsStdoutTty() {
 
 std::string Options::to_string() const {
     auto options_str = string{};
-    append_option(options_str, "verbose", bind(&Options::IsVerboseSet, this), bind(&Options::GetVerbosityLevel, this));
+    append_option(options_str,
+                  "log_severity",
+                  bind(&Options::IsLogSeveritySet, this),
+                  bind(&Options::GetLogSeverity, this));
     append_option(options_str, "color", bind(&Options::IsColorWhenSet, this), bind(&Options::GetColorWhen, this));
     append_option(options_str,
                   "template",
@@ -132,27 +135,54 @@ std::string Options::to_string() const {
     return options_str;
 }
 
-void Options::SetVerbose(std::int64_t level) noexcept {
-    using mmotd::algorithms::value_in_range;
-    if (value_in_range(level, static_cast<int64_t>(Verbosity::Off), static_cast<int64_t>(Verbosity::Inavlid))) {
-        verbose = static_cast<Verbosity>(level);
-    } else if (level < 0) {
-        verbose = Verbosity::Off;
-    } else {
-        verbose = Verbosity::Verbose;
+bool Options::SetLogSeverity(const std::vector<std::string> &severities) {
+    auto severity = empty(severities) ? string{} : severities.front();
+    if (boost::iequals(severity, "None")) {
+        log_severity = LogSeverity::None;
+    } else if (boost::iequals(severity, "Fatal")) {
+        log_severity = LogSeverity::Fatal;
+    } else if (boost::iequals(severity, "Error")) {
+        log_severity = LogSeverity::Error;
+    } else if (boost::iequals(severity, "Warning")) {
+        log_severity = LogSeverity::Warning;
+    } else if (boost::iequals(severity, "Info")) {
+        log_severity = LogSeverity::Info;
+    } else if (boost::iequals(severity, "Debug")) {
+        log_severity = LogSeverity::Debug;
+    } else if (boost::iequals(severity, "Verbose")) {
+        log_severity = LogSeverity::Verbose;
     }
+    return true;
 }
 
-bool Options::IsVerboseSet() const noexcept {
-    return verbose != Verbosity::Inavlid;
+bool Options::IsLogSeveritySet() const noexcept {
+    return log_severity != LogSeverity::NotSet;
 }
 
-bool Options::IsVerbosityEnabled() const noexcept {
-    return verbose != Verbosity::Inavlid && verbose != Verbosity::Off;
+Options::LogSeverity Options::GetLogSeverity() const noexcept {
+    return log_severity == LogSeverity::NotSet ? LogSeverity::Error : log_severity;
 }
 
-Options::Verbosity Options::GetVerbosityLevel() const noexcept {
-    return verbose == Verbosity::Inavlid ? Verbosity::Off : verbose;
+mmotd::logging::Severity Options::GetLoggingSeverity() const noexcept {
+    switch (log_severity) {
+        case Options::LogSeverity::None:
+            return mmotd::logging::Severity::none;
+        case Options::LogSeverity::Fatal:
+            return mmotd::logging::Severity::fatal;
+        case Options::LogSeverity::Error:
+            return mmotd::logging::Severity::error;
+        case Options::LogSeverity::Warning:
+            return mmotd::logging::Severity::warning;
+        case Options::LogSeverity::Info:
+            return mmotd::logging::Severity::info;
+        case Options::LogSeverity::Debug:
+            return mmotd::logging::Severity::debug;
+        case Options::LogSeverity::Verbose:
+            return mmotd::logging::Severity::verbose;
+        case Options::LogSeverity::NotSet:
+        default:
+            return mmotd::logging::Severity::error;
+    }
 }
 
 bool Options::SetColorWhen(const std::vector<std::string> &whens) {

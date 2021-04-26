@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/algorithm.h"
+#include "common/include/logging.h"
 
 #include <cstdint>
 #include <iosfwd>
@@ -19,11 +20,11 @@ public:
     std::string to_string() const;
 
     enum class ColorWhen { Always, Auto, Never, NotSet };
-    enum class Verbosity : std::int64_t { Off = 0, Info, Debug, Verbose, Inavlid };
+    enum class LogSeverity { None = 0, Fatal = 1, Error = 2, Warning = 3, Info = 4, Debug = 5, Verbose = 6, NotSet };
 
-    bool IsVerboseSet() const noexcept;
-    bool IsVerbosityEnabled() const noexcept;
-    Verbosity GetVerbosityLevel() const noexcept;
+    bool IsLogSeveritySet() const noexcept;
+    LogSeverity GetLogSeverity() const noexcept;
+    mmotd::logging::Severity GetLoggingSeverity() const noexcept;
     bool IsColorWhenSet() const;
     bool IsColorDisabled() const;
     ColorWhen GetColorWhen() const;
@@ -62,7 +63,7 @@ public:
     bool IsQuoteSet() const { return !indeterminate(quote); }
     bool GetQuoteValue() const { return quote.value; }
 
-    void SetVerbose(std::int64_t count) noexcept;
+    bool SetLogSeverity(const std::vector<std::string> &severities);
     bool SetColorWhen(const std::vector<std::string> &whens);
     bool SetTemplatePath(const std::vector<std::string> &paths);
     void SetLastLogin(int value) { last_login = value == -1 ? false : true; }
@@ -88,7 +89,7 @@ public:
     std::optional<std::string> GetOutputTemplatePath() const;
 
 private:
-    Verbosity verbose = Verbosity::Inavlid;
+    LogSeverity log_severity = LogSeverity::NotSet;
     ColorWhen color_when = ColorWhen::NotSet;
     std::string config_path;
     std::string template_path;

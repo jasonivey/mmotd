@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/logging.h"
 #include "common/results/include/template_substring.h"
 #include "common/results/include/template_substrings.h"
 
@@ -9,7 +10,6 @@
 #include <boost/iterator/indirect_iterator.hpp>
 #include <boost/range/range_fwd.hpp>
 #include <fmt/color.h>
-#include <plog/Log.h>
 
 using namespace std;
 using fmt::format;
@@ -101,7 +101,7 @@ string TemplateSubstrings::to_string(function<fmt::text_style(string)> convert_c
     auto i = size_t{0};
     for (const auto &template_substring : *this) {
         auto substring_output = template_substring.to_string(convert_color);
-        PLOG_VERBOSE << format(FMT_STRING("{}: formatted text=\"{}\""), i, substring_output);
+        LOG_VERBOSE("{}: formatted text=\"{}\"", i, substring_output);
         output += substring_output;
     }
     return output;

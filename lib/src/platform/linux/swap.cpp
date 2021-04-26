@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/human_size.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/swap.h"
 
@@ -9,7 +10,6 @@
 #include <tuple>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 #include <sys/sysinfo.h>
 
@@ -42,7 +42,7 @@ optional<SwapDetails> GetSwapMemoryUsage() {
     struct sysinfo info {};
     if (sysinfo(&info) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format(FMT_STRING("error calling sysinfo, {}"), error_str);
+        LOG_ERROR("error calling sysinfo, {}", error_str);
         return nullopt;
     }
 
@@ -55,14 +55,10 @@ optional<SwapDetails> GetSwapMemoryUsage() {
 
     auto swap_details = SwapDetails{total, free, percent_used, false};
 
-    PLOG_VERBOSE << format(FMT_STRING("swap memory total: {}, {} bytes"),
-                           to_human_size(swap_details.total),
-                           swap_details.total);
-    PLOG_VERBOSE << format(FMT_STRING("swap memory free: {}, {} bytes"),
-                           to_human_size(swap_details.free),
-                           swap_details.free);
-    PLOG_VERBOSE << format(FMT_STRING("swap memory percent used: {:.02f}"), swap_details.percent_used);
-    PLOG_VERBOSE << format(FMT_STRING("swap memory encrypted: {}"), swap_details.encrypted);
+    LOG_VERBOSE("swap memory total: {}, {} bytes", to_human_size(swap_details.total), swap_details.total);
+    LOG_VERBOSE("swap memory free: {}, {} bytes", to_human_size(swap_details.free), swap_details.free);
+    LOG_VERBOSE("swap memory percent used: {:.02f}", swap_details.percent_used);
+    LOG_VERBOSE("swap memory encrypted: {}", swap_details.encrypted);
 
     return make_optional(swap_details);
 }

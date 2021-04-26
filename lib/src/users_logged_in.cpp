@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/platform/user_accounting_database.h"
 #include "lib/include/users_logged_in.h"
@@ -7,7 +8,6 @@
 #include <iterator>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using namespace mmotd::platform;
 using fmt::format;
@@ -38,9 +38,9 @@ string UsersLoggedIn::GetUsersLoggedIn() {
     auto user_information = GetUserInformation();
     auto user_account_enteries = GetDbEntries<ENTRY_TYPE::User>();
     if (user_information.empty() || user_account_enteries.empty()) {
-        PLOG_ERROR << format(FMT_STRING("user information empty: {}, user account entry size: {}"),
-                             user_information.empty(),
-                             user_account_enteries.size());
+        LOG_ERROR("user information empty: {}, user account entry size: {}",
+                  user_information.empty(),
+                  user_account_enteries.size());
         // should never happen
         return string{};
     }
@@ -60,9 +60,7 @@ string UsersLoggedIn::GetUsersLoggedIn() {
                                });
 
     if (user_count == 0 || user_account_entry_ptr == nullptr) {
-        PLOG_ERROR << format(FMT_STRING("user count: {}, user account ptr: {}"),
-                             user_count,
-                             fmt::ptr(user_account_entry_ptr));
+        LOG_ERROR("user count: {}, user account ptr: {}", user_count, fmt::ptr(user_account_entry_ptr));
         // should never happen
         return string{};
     }

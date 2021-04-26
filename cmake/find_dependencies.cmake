@@ -117,19 +117,6 @@ if (NOT fmt_POPULATED)
     unset(MESSAGE_QUIET)
 endif ()
 
-# Component: PLOG.  A simple logging framework that does just enough of what needs doing.
-FetchContent_Declare(plog
-    GIT_REPOSITORY   https://github.com/SergiusTheBest/plog.git
-    GIT_TAG          1.1.5
-    GIT_PROGRESS     TRUE
-)
-FetchContent_GetProperties(plog)
-if (NOT plog_POPULATED)
-    FetchContent_Populate(plog)
-    add_library(plog INTERFACE)
-    target_include_directories(plog INTERFACE ${plog_SOURCE_DIR}/include)
-endif ()
-
 # Component: CLI11.  A simple command line/environment variable/config file parsing component which adds just enough
 #                    complexity needed for a project of this scale.
 FetchContent_Declare(cli11

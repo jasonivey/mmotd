@@ -2,6 +2,7 @@
 #include "common/include/algorithm.h"
 #include "common/include/information_definitions.h"
 #include "common/include/information_objects.h"
+#include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/information_provider.h"
 
@@ -12,7 +13,6 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using namespace std;
 using fmt::format;
@@ -44,7 +44,7 @@ void ComputerInformation::SetInformationProviders() {
     auto &creators = GetInformationProviderCreators();
     information_providers_.resize(creators.size());
     transform(begin(creators), end(creators), begin(information_providers_), [](auto &creator) { return creator(); });
-    PLOG_INFO << format(FMT_STRING("created {} information providers"), information_providers_.size());
+    LOG_INFO("created {} information providers", information_providers_.size());
 }
 
 bool RegisterInformationProvider(InformationProviderCreator creator) {

@@ -1,12 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/human_size.h"
+#include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/file_system.h"
 
 #include <filesystem>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
@@ -23,7 +23,7 @@ bool FileSystem::FindInformation() {
     auto ec = error_code{};
     auto root_fs = std::filesystem::space("/", ec);
     if (ec) {
-        PLOG_ERROR << format(FMT_STRING("getting fs::space on root file system, details: {}"), ec.message());
+        LOG_ERROR("getting fs::space on root file system, details: {}", ec.message());
         return false;
     }
 

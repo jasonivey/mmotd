@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 
 #include <chrono>
@@ -11,7 +12,6 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
@@ -28,7 +28,7 @@ optional<string> GetBootTime() {
     //    if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
     //        error_str += format(FMT_STRING(", details: {}"), errno_str);
     //    }
-    //    PLOG_ERROR << error_str;
+    //    LOG_ERROR << error_str;
     //    return nullopt;
     //}
     //auto boot_time_point = std::chrono::system_clock::from_time_t(result.tv_sec);

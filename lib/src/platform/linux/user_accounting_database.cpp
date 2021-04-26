@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/user_accounting_database.h"
 
@@ -9,7 +10,6 @@
 
 #include <boost/asio/ip/address.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 #include <scope_guard.hpp>
 
 #include <errno.h>
@@ -42,9 +42,7 @@ DbEntries GetUserAccountEntriesImpl() {
     auto retval = getutent_r(&utmp_buf, &utmp_ptr);
     if (retval != 0 || utmp_ptr == nullptr) {
         auto error_str = retval != 0 ? pe::to_string(retval) : pe::to_string();
-        PLOG_ERROR << format(
-            FMT_STRING("attempting to read first value in user accounting database (utmp) and failed, {}"),
-            error_str);
+        LOG_ERROR("attempting to read first value in user accounting database (utmp) and failed, {}", error_str);
         return DbEntries{};
     }
 
@@ -55,15 +53,12 @@ DbEntries GetUserAccountEntriesImpl() {
     size_t i = 0;
     while (utmp_ptr != nullptr) {
         auto ut_type_str = DbEntry::entry_type_to_string(utmp_ptr->ut_type);
-        PLOG_VERBOSE << format(FMT_STRING("iteration #{}, type: {}, utmpx *: {}"),
-                               ++i,
-                               ut_type_str,
-                               fmt::ptr(utmp_ptr));
+        LOG_VERBOSE("iteration #{}, type: {}, utmpx *: {}", ++i, ut_type_str, fmt::ptr(utmp_ptr));
 
         auto entry = DbEntry::from_utmp(*utmp_ptr);
         if (!entry.empty()) {
             user_account_entries.push_back(entry);
-            PLOG_VERBOSE << format(FMT_STRING("adding user account entry #{}"), user_account_entries.size());
+            LOG_VERBOSE("adding user account entry #{}", user_account_entries.size());
         }
 
         // read the next entry from the database
@@ -74,16 +69,15 @@ DbEntries GetUserAccountEntriesImpl() {
             auto error_value = errno;
             auto error_str = pe::to_string(error_value);
             if (error_value == ENOENT) {
-                PLOG_VERBOSE << format(FMT_STRING("found the end of user accounting database (utmp), {}"), error_str);
+                LOG_VERBOSE("found the end of user accounting database (utmp), {}", error_str);
             } else {
-                PLOG_ERROR << format(
-                    FMT_STRING("attempting to read next value in user accounting database (utmp) and failed, {}"),
-                    error_str);
+                LOG_WARNING("attempting to read next value in user accounting database (utmp) and failed, {}",
+                            error_str);
             }
             utmp_ptr = nullptr;
         }
     }
-    PLOG_VERBOSE << format(FMT_STRING("returning {} user account entries"), user_account_entries.size());
+    LOG_VERBOSE("returning {} user account entries", user_account_entries.size());
     return user_account_entries;
 }
 
@@ -99,12 +93,11 @@ UserInformation GetUserInformationImpl() {
     auto user_id = geteuid();
     auto retval = getpwuid_r(user_id, &pwd, buf.data(), buf.size(), &pwd_ptr);
     if (pwd_ptr == nullptr && retval == 0) {
-        PLOG_ERROR << format(FMT_STRING("getpwnam_r for user id {} did not return a pwd structure or an error code"),
-                             user_id);
+        LOG_ERROR("getpwnam_r for user id {} did not return a pwd structure or an error code", user_id);
         return UserInformation{};
     } else if (pwd_ptr == nullptr && retval != 0) {
         auto error_str = pe::to_string(retval);
-        PLOG_ERROR << format(FMT_STRING("getpwnam_r for user id {} failed, {}"), user_id, error_str);
+        LOG_ERROR("getpwnam_r for user id {} failed, {}", user_id, error_str);
         return UserInformation{};
     }
     return UserInformation::from_passwd(pwd);
@@ -143,7 +136,7 @@ DbEntry DbEntry::from_utmp(const utmp &db) {
         ip = ip_address{};
     }
     auto entry = DbEntry{static_cast<ENTRY_TYPE>(db.ut_type), device_name, username, hostname, db.ut_tv.tv_sec, ip};
-    PLOG_VERBOSE << format(FMT_STRING("parsed entry: {}"), entry.to_string());
+    LOG_VERBOSE("parsed entry: {}", entry.to_string());
     return entry;
 }
 

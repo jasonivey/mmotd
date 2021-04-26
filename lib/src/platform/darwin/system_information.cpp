@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/system_information.h"
 #include "lib/include/system_details.h"
@@ -11,7 +12,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 #include <sys/sysctl.h>
 #include <sys/utsname.h>
@@ -69,8 +69,7 @@ optional<tuple<int, int, int>> GetOsVersion() {
     size_t miblen = 512;
     if (sysctlnametomib("kern.osproductversion", mib, &miblen) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format(FMT_STRING("error calling sysctlnametomib with kern.osproductversion, details: {}"),
-                             error_str);
+        LOG_ERROR("error calling sysctlnametomib with kern.osproductversion, details: {}", error_str);
         return nullopt;
     }
     char version[512] = {0};
@@ -78,7 +77,7 @@ optional<tuple<int, int, int>> GetOsVersion() {
     size_t length = sizeof(long long);
     if (sysctl(mib, 2, version, &length, NULL, 0) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format(FMT_STRING("error calling sysctl with kern.osproductversion, details: {}"), error_str);
+        LOG_ERROR("error calling sysctl with kern.osproductversion, details: {}", error_str);
         return nullopt;
     }
     auto versions = vector<string>{};
@@ -99,9 +98,9 @@ optional<tuple<int, int, int>> GetOsVersion() {
 optional<KernelDetails> GetKernelDetails() {
     struct utsname buf = {};
     int retval = uname(&buf);
-    PLOG_DEBUG << format(FMT_STRING("uname returned {} [{}]"), retval, retval == 0 ? "success" : "failed");
+    LOG_DEBUG("uname returned {} [{}]", retval, retval == 0 ? "success" : "failed");
     if (retval != 0) {
-        PLOG_ERROR << format(FMT_STRING("uname failed with return code '{}'"), retval);
+        LOG_ERROR("uname failed with return code '{}'", retval);
         return nullopt;
     }
 
@@ -111,11 +110,11 @@ optional<KernelDetails> GetKernelDetails() {
     auto version = string(buf.version);
     auto machine = string(buf.machine);
 
-    PLOG_DEBUG << "sys name: " << sys_name;
-    PLOG_DEBUG << "node name: " << node_name;
-    PLOG_DEBUG << "release: " << release;
-    PLOG_DEBUG << "version: " << version;
-    PLOG_DEBUG << "machine: " << machine;
+    LOG_DEBUG("sys name: {}", sys_name);
+    LOG_DEBUG("node name: {}", node_name);
+    LOG_DEBUG("release: {}", release);
+    LOG_DEBUG("version: {}", version);
+    LOG_DEBUG("machine: {}", machine);
 
     return KernelDetails::from_string(sys_name, node_name, release, version, machine);
 }

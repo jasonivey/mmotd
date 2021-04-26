@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/app_options.h"
+#include "common/include/logging.h"
 #include "common/results/include/template_substring.h"
 
 #include <iterator>
@@ -10,7 +11,6 @@
 #include <boost/range/iterator.hpp>
 #include <boost/range/iterator_range.hpp>
 #include <fmt/color.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
@@ -41,19 +41,15 @@ void TemplateSubstring::SetValueSubstringRange(const SubstringRange &new_range,
     if (!new_range.match(text)) {
         return;
     } else if (existing_range.empty()) {
-        PLOG_VERBOSE << format(FMT_STRING("{} was empty, now=[{},{}], text=\"{}\""),
-                               name,
-                               new_range.position(),
-                               new_range.size(),
-                               text);
+        LOG_VERBOSE("{} was empty, now=[{},{}], text=\"{}\"", name, new_range.position(), new_range.size(), text);
     } else {
-        PLOG_VERBOSE << format(FMT_STRING("{} was=[{},{}], now=[{},{}], text=\"{}\""),
-                               name,
-                               existing_range.position(),
-                               existing_range.size(),
-                               new_range.position(),
-                               new_range.size(),
-                               text);
+        LOG_VERBOSE("{} was=[{},{}], now=[{},{}], text=\"{}\"",
+                    name,
+                    existing_range.position(),
+                    existing_range.size(),
+                    new_range.position(),
+                    new_range.size(),
+                    text);
     }
     existing_range = new_range;
 }
@@ -87,24 +83,24 @@ ColorDefinitions TemplateSubstring::GetColorDefinitions() const {
 
 void TemplateSubstring::SetPrefix(SubstringRange prefix) {
     SetValueSubstringRange(prefix, prefix_, "prefix", GetRawText());
-    PLOG_VERBOSE << format(FMT_STRING("updated prefix, template substring=\"{}\""), to_string(nullptr));
+    LOG_VERBOSE("updated prefix, template substring=\"{}\"", to_string(nullptr));
 }
 
 void TemplateSubstring::SetSuffix(SubstringRange suffix) {
     SetValueSubstringRange(suffix, suffix_, "suffix", GetRawText());
-    PLOG_VERBOSE << format(FMT_STRING("updated suffix, template substring=\"{}\""), to_string());
+    LOG_VERBOSE("updated suffix, template substring=\"{}\"", to_string());
 }
 
 void TemplateSubstring::SetSubstringText(SubstringRange substring_text) {
     SetValueSubstringRange(substring_text, substring_text_, "substring_text", GetRawText());
-    PLOG_VERBOSE << format(FMT_STRING("updated substring text, template substring=\"{}\""), to_string());
+    LOG_VERBOSE("updated substring text, template substring=\"{}\"", to_string());
 }
 
 void TemplateSubstring::SetColorDefinitions(ColorDefinitions color_definitions) {
     color_definitions_ = color_definitions;
-    PLOG_VERBOSE << format(FMT_STRING("set color definition={} in text=\"{}\""),
-                           color_definitions_to_string(color_definitions_),
-                           GetRawText());
+    LOG_VERBOSE("set color definition={} in text=\"{}\"",
+                color_definitions_to_string(color_definitions_),
+                GetRawText());
 }
 
 string TemplateSubstring::to_string() const {
@@ -124,11 +120,11 @@ string TemplateSubstring::to_string() const {
 }
 
 string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_color) const {
-    PLOG_VERBOSE << format(FMT_STRING("prefix=\"{}\", color=\"{}\", text=\"{}\", suffix=\"{}\""),
-                           GetPrefix(),
-                           color_definitions_to_string(GetColorDefinitions()),
-                           GetSubstring(),
-                           GetSuffix());
+    LOG_VERBOSE("prefix=\"{}\", color=\"{}\", text=\"{}\", suffix=\"{}\"",
+                GetPrefix(),
+                color_definitions_to_string(GetColorDefinitions()),
+                GetSubstring(),
+                GetSuffix());
     auto substring_text = GetSubstring();
     if (auto colors_disabled = AppOptions::Instance().GetOptions().IsColorDisabled(); !colors_disabled) {
         const auto &colors = GetColorDefinitions();

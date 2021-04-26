@@ -36,6 +36,24 @@ public:
     }
 };
 
+class LogSeverityValidator : public CLI::Validator {
+public:
+    LogSeverityValidator() : Validator("SEVERITY") {
+        using namespace boost;
+        func_ = [](std::string &severity) {
+            if (!iequals(severity, "None") && !iequals(severity, "Fatal") && !iequals(severity, "Error") &&
+                !iequals(severity, "Warning") && !iequals(severity, "Info") && !iequals(severity, "Debug") &&
+                !iequals(severity, "Verbose")) {
+                return format(
+                    FMT_STRING(
+                        "--log-severity '{}' is invalid (should be 'none', 'fatal', 'error', 'warning', 'info', 'debug' or 'verbose'"),
+                    severity);
+            }
+            return std::string();
+        };
+    }
+};
+
 CliAppOptionsCreator &CliAppOptionsCreator::GetInstance() {
     static auto cli_app_options_creator = CliAppOptionsCreator{};
     return cli_app_options_creator;
@@ -59,15 +77,15 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         app_finished_ = false;
     } catch (const CLI::CallForHelp &help) {
         const auto &msg = app.help("", CLI::AppFormatMode::All);
-        MMOTD_LOG_INFO(msg);
+        LOG_INFO("{}", msg);
         cout << msg << endl;
     } catch (const CLI::CallForVersion &version) {
         const string msg = format(FMT_STRING("version: {}"), app.version());
-        MMOTD_LOG_INFO(msg);
+        LOG_INFO("{}", msg);
         cout << msg << endl;
     } catch (const CLI::ParseError &err) {
         if (err.get_exit_code() != 0) {
-            MMOTD_LOG_ERROR(format(FMT_STRING("error code {}: {}"), err.get_exit_code(), err.what()));
+            LOG_ERROR("error code {}: {}", err.get_exit_code(), err.what());
         }
         error_exit_ = true;
     }
@@ -83,7 +101,7 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
         CreateDefaultOutputTemplate(*output_template_path);
         app_finished_ = true;
     }
-    MMOTD_LOG_DEBUG(format(FMT_STRING("Options:\n{}"), options_.to_string()));
+    LOG_DEBUG("Options:\n{}", options_.to_string());
 }
 
 void CliAppOptionsCreator::AddOptionsToSubCommand(CLI::App &app) {
@@ -118,12 +136,6 @@ void CliAppOptionsCreator::AddOptionDeclarations(CLI::App &app) {
     // allow_windows_style_options = defaults: { windows=true / non-windows=false }
     app.option_defaults()->configurable(true)->multi_option_policy(CLI::MultiOptionPolicy::Throw);
 
-    app.add_flag("-v,--verbose",
-                 bind(&Options::SetVerbose, ref(options_), _1),
-                 "increase output verbosity (can be specified multiple times, -vvv)")
-        ->multi_option_policy(CLI::MultiOptionPolicy::TakeAll)
-        ->configurable(false);
-
     app.set_version_flag("-V,--version", bind(&Version::to_string, ref(Version::Instance())))->configurable(false);
 
     app.set_config("-c,--config", "", "path to config file for specifying additional options")
@@ -135,6 +147,13 @@ void CliAppOptionsCreator::AddOptionDeclarations(CLI::App &app) {
                    "path to template file for specifying output properties")
         ->check(CLI::ExistingFile)
         ->envname("MMOTD_TEMPLATE_PATH");
+
+    auto log_severity_description = "set the log severity (none, fatal, error, warning, info, debug, verbose)";
+    const LogSeverityValidator log_severity_validator;
+    app.add_option("--log-severity,", bind(&Options::SetLogSeverity, ref(options_), _1), log_severity_description)
+        ->check(log_severity_validator)
+        ->configurable(true)
+        ->group("");
 
     const ColorWhenValidator color_validator;
     app.add_option("--color",

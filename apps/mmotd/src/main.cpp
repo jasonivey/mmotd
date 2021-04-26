@@ -31,7 +31,7 @@ const tuple<bool, const AppOptions *> LoadAppOptions(const int argc, char **argv
 void PrintMmotd(const AppOptions &app_options) {
     auto options = app_options.Instance().GetOptions();
     if (!options.IsTemplatePathSet()) {
-        MMOTD_LOG_ERROR("template file was not specified");
+        LOG_ERROR("template file was not specified");
         return;
     }
     const auto &computer_information = mmotd::information::ComputerInformation::Instance();
@@ -46,14 +46,14 @@ void PrintMmotd(const AppOptions &app_options) {
 int main_impl(int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
 
-    mmotd::logging::DefaultInitializeLogging("mmotd.log");
+    mmotd::logging::InitializeLogging(argv[0]);
 
     auto [error_encountered, app_options] = LoadAppOptions(argc, argv);
     if (app_options == nullptr) {
         return error_encountered ? EXIT_FAILURE : EXIT_SUCCESS;
     }
-    if (app_options->GetOptions().IsVerboseSet()) {
-        mmotd::logging::UpdateSeverityFilter(app_options->GetOptions().GetVerbosityLevel());
+    if (app_options->GetOptions().IsLogSeveritySet()) {
+        mmotd::logging::UpdateSeverity(app_options->GetOptions().GetLoggingSeverity());
     }
 
     PrintMmotd(*app_options);
@@ -68,21 +68,15 @@ int main(int argc, char *argv[]) {
         retval = main_impl(argc, argv);
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("caught boost::exception in main: {}"), diag);
-        PLOG_FATAL << error_str;
-        std::cerr << error_str << std::endl;
+        LOG_FATAL("caught boost::exception in main: {}", diag);
         retval = EXIT_FAILURE;
     } catch (const std::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("caught std::exception in main: {}"), empty(diag) ? ex.what() : data(diag));
-        PLOG_FATAL << error_str;
-        std::cerr << error_str << std::endl;
+        LOG_FATAL("caught std::exception in main: {}", empty(diag) ? ex.what() : data(diag));
         retval = EXIT_FAILURE;
     } catch (...) {
         auto diag = boost::current_exception_diagnostic_information();
-        auto error_str = format(FMT_STRING("caught unknown exception in main: {}"), diag);
-        PLOG_FATAL << error_str;
-        std::cerr << error_str << std::endl;
+        LOG_FATAL("caught unknown exception in main: {}", diag);
         retval = EXIT_FAILURE;
     }
     return retval;

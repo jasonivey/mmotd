@@ -2,10 +2,9 @@
 #include "common/assertion/include/assertion.h"
 #include "common/assertion/include/exception.h"
 #include "common/include/algorithm.h"
+#include "common/include/logging.h"
 
 #include <stdexcept>
-
-#include <plog/Log.h>
 
 using namespace std;
 
@@ -14,13 +13,13 @@ namespace mmotd::assertion {
 InvalidArgument::InvalidArgument(const char *message, bool includes_stack_trace) :
     boost::exception(),
     std::invalid_argument(includes_stack_trace ? message : MakeExceptionMessage("InvalidArgument", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 InvalidArgument::InvalidArgument(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::invalid_argument(includes_stack_trace ? message : MakeExceptionMessage("InvalidArgument", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 InvalidArgument::~InvalidArgument() noexcept {
@@ -29,13 +28,13 @@ InvalidArgument::~InvalidArgument() noexcept {
 DomainError::DomainError(const char *message, bool includes_stack_trace) :
     boost::exception(),
     std::domain_error(includes_stack_trace ? message : MakeExceptionMessage("DomainError", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 DomainError::DomainError(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::domain_error(includes_stack_trace ? message : MakeExceptionMessage("DomainError", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 DomainError::~DomainError() noexcept {
@@ -44,13 +43,13 @@ DomainError::~DomainError() noexcept {
 LengthError::LengthError(const char *message, bool includes_stack_trace) :
     boost::exception(),
     std::length_error(includes_stack_trace ? message : MakeExceptionMessage("LengthError", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 LengthError::LengthError(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::length_error(includes_stack_trace ? message : MakeExceptionMessage("LengthError", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 LengthError::~LengthError() noexcept {
@@ -59,13 +58,13 @@ LengthError::~LengthError() noexcept {
 OutOfRange::OutOfRange(const char *message, bool includes_stack_trace) :
     boost::exception(),
     std::out_of_range(includes_stack_trace ? message : MakeExceptionMessage("OutOfRangeError", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 OutOfRange::OutOfRange(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::out_of_range(includes_stack_trace ? message : MakeExceptionMessage("OutOfRangeError", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 OutOfRange::~OutOfRange() noexcept {
@@ -74,13 +73,13 @@ OutOfRange::~OutOfRange() noexcept {
 RuntimeError::RuntimeError(const char *message, bool includes_stack_trace) :
     boost::exception(),
     std::runtime_error(includes_stack_trace ? message : MakeExceptionMessage("RuntimeError", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 RuntimeError::RuntimeError(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::runtime_error(includes_stack_trace ? message : MakeExceptionMessage("RuntimeError", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 RuntimeError::~RuntimeError() noexcept {
@@ -88,13 +87,13 @@ RuntimeError::~RuntimeError() noexcept {
 
 RangeError::RangeError(const char *message, bool includes_stack_trace) :
     boost::exception(), std::range_error(includes_stack_trace ? message : MakeExceptionMessage("RangeError", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 RangeError::RangeError(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::range_error(includes_stack_trace ? message : MakeExceptionMessage("RangeError", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 RangeError::~RangeError() noexcept {
@@ -103,13 +102,13 @@ RangeError::~RangeError() noexcept {
 OverflowError::OverflowError(const char *message, bool includes_stack_trace) :
     boost::exception(),
     std::overflow_error(includes_stack_trace ? message : MakeExceptionMessage("OverflowError", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 OverflowError::OverflowError(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::overflow_error(includes_stack_trace ? message : MakeExceptionMessage("OverflowError", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 OverflowError::~OverflowError() noexcept {
@@ -118,13 +117,13 @@ OverflowError::~OverflowError() noexcept {
 UnderflowError::UnderflowError(const char *message, bool includes_stack_trace) :
     boost::exception(),
     std::underflow_error(includes_stack_trace ? message : MakeExceptionMessage("UnderflowError", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 UnderflowError::UnderflowError(const std::string &message, bool includes_stack_trace) :
     boost::exception(),
     std::underflow_error(includes_stack_trace ? message : MakeExceptionMessage("UnderflowError", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 UnderflowError::~UnderflowError() noexcept {

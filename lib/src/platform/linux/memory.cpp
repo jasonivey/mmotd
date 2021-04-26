@@ -2,6 +2,7 @@
 #include "common/include/human_size.h"
 #include "common/include/information_definitions.h"
 #include "common/include/information_objects.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/memory.h"
 
@@ -11,7 +12,6 @@
 #include <tuple>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 #include <sys/sysinfo.h>
 
@@ -25,32 +25,32 @@ optional<mmotd::platform::MemoryDetails> GetMemoryUsage() {
     struct sysinfo info {};
     if (sysinfo(&info) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format(FMT_STRING("error calling sysinfo, {}"), error_str);
+        LOG_ERROR("error calling sysinfo, {}", error_str);
         return nullopt;
     }
 
     auto total = uint64_t{info.totalram} * info.mem_unit;
-    PLOG_VERBOSE << format(FMT_STRING("memory total ram: {}, {} bytes"), to_human_size(total), total);
+    LOG_VERBOSE("memory total ram: {}, {} bytes", to_human_size(total), total);
     auto total_high = uint64_t{info.totalhigh} * info.mem_unit;
-    PLOG_VERBOSE << format(FMT_STRING("memory total high ram: {}, {} bytes"), to_human_size(total_high), total_high);
+    LOG_VERBOSE("memory total high ram: {}, {} bytes", to_human_size(total_high), total_high);
     if (total_high != 0) {
         total = (total_high << 32) | total;
     }
 
     auto free = uint64_t{info.freeram} * info.mem_unit;
-    PLOG_VERBOSE << format(FMT_STRING("memory free ram: {}, {} bytes"), to_human_size(free), free);
+    LOG_VERBOSE("memory free ram: {}, {} bytes", to_human_size(free), free);
     auto free_high = uint64_t{info.freehigh} * info.mem_unit;
-    PLOG_VERBOSE << format(FMT_STRING("memory free high ram: {}, {} bytes"), to_human_size(free_high), free_high);
+    LOG_VERBOSE("memory free high ram: {}, {} bytes", to_human_size(free_high), free_high);
     if (free_high != 0) {
         free = (free_high << 32) | free;
     }
 
-    PLOG_VERBOSE << format(FMT_STRING("memory total: {}, {} bytes"), to_human_size(total), total);
-    PLOG_VERBOSE << format(FMT_STRING("memory free: {}, {} bytes"), to_human_size(free), free);
+    LOG_VERBOSE("memory total: {}, {} bytes", to_human_size(total), total);
+    LOG_VERBOSE("memory free: {}, {} bytes", to_human_size(free), free);
     auto percent_used = 0.0;
     if (total != 0) {
         percent_used = (static_cast<double>(total - free) / static_cast<double>(total)) * 100.0;
-        PLOG_VERBOSE << format(FMT_STRING("percent used: {:.01f}"), percent_used);
+        LOG_VERBOSE("percent used: {:.01f}", percent_used);
     }
 
     auto memory_details = mmotd::platform::MemoryDetails{};

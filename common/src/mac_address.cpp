@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/assertion.h"
+#include "common/include/logging.h"
 #include "common/include/mac_address.h"
 
 #include <cstring>
@@ -9,7 +10,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using namespace std;
 using boost::numeric_cast;
