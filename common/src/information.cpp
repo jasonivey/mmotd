@@ -1,12 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
 #include "common/include/information.h"
+#include "common/include/logging.h"
 
 #include <string>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;

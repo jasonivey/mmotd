@@ -37,6 +37,8 @@ add_library (
     src/logging.cpp
     src/mac_address.cpp
     src/network_device.cpp
+    src/source_location.cpp
+    src/source_location_common.cpp
     src/version.cpp
     )
 

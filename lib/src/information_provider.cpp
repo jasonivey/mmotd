@@ -32,13 +32,10 @@ bool InformationProvider::LookupInformation() {
         return FindInformation();
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("caught boost::exception in LookupInformation: {}"), diag);
-        PLOG_ERROR << error_str;
+        LOG_ERROR("caught boost::exception in LookupInformation: {}", diag);
     } catch (const std::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str =
-            format(FMT_STRING("caught std::exception in LookupInformation: {}"), empty(diag) ? ex.what() : data(diag));
-        PLOG_ERROR << error_str;
+        LOG_ERROR("caught std::exception in LookupInformation: {}", empty(diag) ? ex.what() : data(diag));
     }
     return false;
 }

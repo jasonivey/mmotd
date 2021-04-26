@@ -3,36 +3,23 @@
 #include "common/assertion/include/exception.h"
 #include "common/assertion/include/stack_trace.h"
 #include "common/include/algorithm.h"
+#include "common/include/logging.h"
+#include "common/include/source_location_common.h"
 
 #include <string_view>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
+using mmotd::source_location::TrimFileName;
+using mmotd::source_location::TrimFunction;
 
 namespace {
 
-static constexpr const char *UNKNOWN_FILE = "<file>";
-static constexpr const char *UNKNOWN_FUNCTION = "<...>";
 static constexpr const char *NULLPTR_STR = "<nullptr>";
 static constexpr const char *UNKNOWN_EXCEPTION_STR = "<unknownn exception>";
-
-inline constexpr string_view TrimFileName(const char *file) noexcept {
-    auto file_str = file == nullptr ? string_view{UNKNOWN_FILE} : string_view(file);
-    if (auto index = file_str.find_last_of('/'); index != string_view::npos) {
-        file_str = file_str.substr(index + 1);
-    }
-    return file_str;
-}
-
-inline constexpr string_view TrimFunction(const char *function) noexcept {
-    auto function_str = function == nullptr ? string_view{UNKNOWN_FUNCTION} : string_view(function);
-    auto index = function_str.find('(');
-    return function_str.substr(0, index);
-}
 
 inline constexpr string_view GetMessage(const char *msg) noexcept {
     return msg == nullptr ? string_view{NULLPTR_STR} : string_view(msg);
@@ -42,7 +29,7 @@ inline constexpr string_view GetExceptionType(const char *exception_type) noexce
     return exception_type == nullptr ? string_view{UNKNOWN_EXCEPTION_STR} : string_view(exception_type);
 }
 
-inline string GetSourceLocation(string_view file_name, string_view function_name, long line) {
+inline string GetSourceLocation(string file_name, string function_name, long line) {
     auto source_location = empty(file_name) ? string{} : string(data(file_name));
     if (!empty(function_name)) {
         source_location +=
@@ -74,7 +61,7 @@ string MakeFailedExpressionAssertionMessage(const char *expr,
                                             const char *file,
                                             long line,
                                             const char *function) {
-    auto assert_msg = format(FMT_STRING("{} -> Assertion: EXPR FAILED '{}'"),
+    auto assert_msg = format(FMT_STRING("Assertion: {} located {}"),
                              expr,
                              GetSourceLocation(TrimFileName(file), TrimFunction(function), line));
     if (msg != nullptr) {
@@ -91,7 +78,7 @@ string MakeExceptionMessageImpl(const char *exception_type,
                                 const char *file,
                                 long line,
                                 const char *function) {
-    auto exception_msg = format(FMT_STRING("{} -> {}"),
+    auto exception_msg = format(FMT_STRING("{}, {}"),
                                 GetSourceLocation(TrimFileName(file), TrimFunction(function), line),
                                 GetExceptionAndMessage(exception_type, msg));
     if (auto stacktrace = mmotd::assertion::GetStackTrace(); !empty(stacktrace)) {
@@ -149,13 +136,13 @@ string MakeExceptionMessage(const string &exception_type, const string &msg) {
 
 Assertion::Assertion(const char *message, bool includes_stack_trace) :
     boost::exception(), runtime_error(includes_stack_trace ? message : MakeExceptionMessage("Assertion", message)) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 Assertion::Assertion(const string &message, bool includes_stack_trace) :
     boost::exception(),
     runtime_error(includes_stack_trace ? message : MakeExceptionMessage("Assertion", message.c_str())) {
-    PLOG_ERROR << what();
+    LOG_ERROR("{}", what());
 }
 
 Assertion::~Assertion() noexcept {

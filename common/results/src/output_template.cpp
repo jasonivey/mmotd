@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
+#include "common/include/logging.h"
 #include "common/results/include/output_template.h"
 
 #include <filesystem>
@@ -11,7 +12,6 @@
 #include <boost/exception/diagnostic_information.hpp>
 #include <fmt/color.h>
 #include <nlohmann/json.hpp>
-#include <plog/Log.h>
 
 using nlohmann::json;
 namespace fs = std::filesystem;
@@ -47,7 +47,7 @@ string OutputTemplate::GetDefaultTemplate() const {
 bool OutputTemplate::ParseTemplateFile(string template_file_name) {
     auto ec = std::error_code{};
     if (auto file_exists = fs::exists(template_file_name, ec); !file_exists || ec) {
-        PLOG_ERROR << format(FMT_STRING("determining whether template file {} exists"), template_file_name);
+        LOG_ERROR("determining whether template file {} exists", template_file_name);
         return false;
     }
     return ParseJson(template_file_name);

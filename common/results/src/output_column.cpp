@@ -10,9 +10,10 @@
 
 // #include "common/results/include/template_string.h"
 
+#include "common/include/logging.h"
+
 #include <boost/uuid/uuid_io.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using mmotd::information::Informations;
@@ -49,10 +50,7 @@ void Column::AddNamesValues(const Informations &informations, PositionIndex posi
         row.SetNameValue(informations);
     }
     for (const auto &row : rows_) {
-        PLOG_VERBOSE << format(FMT_STRING("row[{}] = [{}] {}"),
-                               row.GetRowNumber(),
-                               fmt::ptr(&row),
-                               row.item_to_string());
+        LOG_VERBOSE("row[{}] = [{}] {}", row.GetRowNumber(), fmt::ptr(&row), row.item_to_string());
     }
 }
 

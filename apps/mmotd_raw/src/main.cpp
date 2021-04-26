@@ -69,7 +69,7 @@ int main_impl(int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
 
     mmotd::algorithms::unused(argc, argv);
-    mmotd::logging::DefaultInitializeLogging("mmotd_raw.log");
+    mmotd::logging::InitializeLogging(argv[0]);
 
     PrintMmotdRaw();
     return EXIT_SUCCESS;
@@ -83,21 +83,15 @@ int main(int argc, char *argv[]) {
         retval = main_impl(argc, argv);
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("caught boost::exception in main: {}"), diag);
-        PLOG_FATAL << error_str;
-        std::cerr << error_str << std::endl;
+        LOG_FATAL("caught boost::exception in main: {}", diag);
         retval = EXIT_FAILURE;
     } catch (const std::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
-        auto error_str = format(FMT_STRING("caught std::exception in main: {}"), empty(diag) ? ex.what() : data(diag));
-        PLOG_FATAL << error_str;
-        std::cerr << error_str << std::endl;
+        LOG_FATAL("caught std::exception in main: {}", empty(diag) ? ex.what() : data(diag));
         retval = EXIT_FAILURE;
     } catch (...) {
         auto diag = boost::current_exception_diagnostic_information();
-        auto error_str = format(FMT_STRING("caught unknown exception in main: {}"), diag);
-        PLOG_FATAL << error_str;
-        std::cerr << error_str << std::endl;
+        LOG_FATAL("caught unknown exception in main: {}", diag);
         retval = EXIT_FAILURE;
     }
     return retval;

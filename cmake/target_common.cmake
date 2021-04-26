@@ -44,7 +44,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         C_STANDARD 11
         C_STANDARD_REQUIRED on
         C_EXTENSIONS off
-        CXX_STANDARD 17
+        CXX_STANDARD 20
         CXX_STANDARD_REQUIRED on
         CXX_EXTENSIONS off
         DISABLE_PRECOMPILE_HEADERS on
@@ -74,11 +74,6 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # This disables the BOOST_ASSERT macro and the "boost::assertion_failed",
         #  "boost::assertion_failed_msg" functions
         #PRIVATE BOOST_DISABLE_ASSERTS
-        # When defined plog will not define generic macro names like:
-        #  LOG, LOG_ERROR, LOGE, LOG_DEBUG, LOGI
-        #  These macro names often conflict with other preprocessor macros
-        #  and cause hard to track down errors.
-        PRIVATE PLOG_OMIT_LOG_DEFINES
         # When defined and compiler language is set to `-std=c++17` or higher,
         #  the lambda passed to scope_guard is required to be specified as `noexcept`.
         PRIVATE SG_REQUIRE_NOEXCEPT_IN_CPP17
@@ -139,6 +134,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # gnu only
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wtrampolines>
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>
+        # disable -- clang
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-gnu-zero-variadic-macro-arguments>
         # msvc only
         PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/EHsc> # /EHsc # Warning fix!
         PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4>   # /W4 increase warning level
@@ -186,7 +183,6 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE ${BACKWARD_INCLUDE_DIRS}
         PRIVATE ${fort_SOURCE_DIR}/lib
         PRIVATE ${certify_SOURCE_DIR}/include
-        PRIVATE ${plog_SOURCE_DIR}/include
         PRIVATE ${fmt_SOURCE_DIR}/include
         PRIVATE ${random_SOURCE_DIR}/include
         PRIVATE ${json_SOURCE_DIR}/include

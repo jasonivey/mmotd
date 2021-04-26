@@ -1,6 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/assertion.h"
+#include "common/assertion/include/precondition.h"
 #include "common/include/algorithm.h"
+#include "common/include/logging.h"
 #include "common/results/include/template_column_items.h"
 #include "common/results/include/template_string.h"
 
@@ -15,8 +17,8 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/color.h>
+#include <fmt/format.h>
 #include <nlohmann/json.hpp>
-#include <plog/Log.h>
 
 using fmt::format;
 using nlohmann::json;
@@ -53,14 +55,13 @@ optional<uint32_t> FromString(string_view str, int base = 10) {
     if (auto [ptr, ec] = from_chars(begin(str), end(str), result, base); ec == std::errc{}) {
         return make_optional(result);
     } else {
-        PLOG_ERROR << format(FMT_STRING("unable to convert {} into an integer, {}"),
-                             str,
-                             make_error_code(ec).message());
+        LOG_ERROR("unable to convert {} into an integer, {}", str, make_error_code(ec).message());
         return nullopt;
     }
 }
 
 optional<fmt::text_style> GetHexColorValue(string value) {
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to hex color");
     const auto pattern = regex(R"(^hex\(\s*([0-9A-Fa-f]{2}|0)\s*([0-9A-Fa-f]{2})?\s*([0-9A-Fa-f]{2})?\s*\)$)",
                                std::regex_constants::ECMAScript | std::regex_constants::icase);
     auto matches = smatch{};
@@ -81,6 +82,7 @@ optional<fmt::text_style> GetHexColorValue(string value) {
 }
 
 optional<fmt::text_style> GetRgbColorValue(string value) {
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to rgb color");
     const auto pattern = regex(R"(^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$)",
                                std::regex_constants::ECMAScript | std::regex_constants::icase);
     auto matches = smatch{};
@@ -89,10 +91,7 @@ optional<fmt::text_style> GetRgbColorValue(string value) {
         auto green = FromString(string_view(matches.str(2)));
         auto blue = FromString(string_view(matches.str(3)));
         if (!red || !green || !blue || *red > 0xFF || *green > 0xFF || *blue > 0xFF) {
-            PLOG_ERROR << format(FMT_STRING("invalid rgb value red={}, blue={}, green={} (all values should be 0-255)"),
-                                 *red,
-                                 *blue,
-                                 *green);
+            LOG_ERROR("invalid rgb value red={}, blue={}, green={} (all values should be 0-255)", *red, *blue, *green);
             return nullopt;
         }
         auto rgb_value = (*red << 16) | (*green << 8) | *blue;
@@ -102,13 +101,12 @@ optional<fmt::text_style> GetRgbColorValue(string value) {
 }
 
 optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to plain color");
     const auto colors = string{"black|red|green|yellow|blue|magenta|cyan|white"};
     const auto color_regex = regex(colors, regex_constants::ECMAScript | regex_constants::icase);
     auto match = smatch{};
     if (!regex_search(value, match, color_regex)) {
-        PLOG_ERROR << format(FMT_STRING("no terminal color was specified within {} (valid colors are: {})"),
-                             value,
-                             colors);
+        LOG_ERROR("no terminal color was specified within {} (valid colors are: {})", value, colors);
         return nullopt;
     }
     auto color_str = match.str();
@@ -117,9 +115,7 @@ optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
     });
     if (i == end(TerminalColors)) {
         auto color_list = format(FMT_STRING("[{}]"), boost::join(ConvertTerminalColors(), string{", "}));
-        PLOG_ERROR << format(FMT_STRING("terminal color regex matched to {} but unable to find color in {}"),
-                             color_str,
-                             color_list);
+        LOG_ERROR("terminal color regex matched to {} but unable to find color in {}", color_str, color_list);
         return nullopt;
     }
     auto offset = distance(begin(TerminalColors), i);
@@ -129,39 +125,41 @@ optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
     } else {
         color = *(TerminalColorIndexes.begin() + offset);
     }
-    PLOG_VERBOSE << format(FMT_STRING("found a terminal color, offset={}, color code={} within value={}"),
-                           offset,
-                           static_cast<uint8_t>(color),
-                           value);
+    LOG_VERBOSE("found a terminal color, offset={}, color code={} within value={}",
+                offset,
+                static_cast<uint8_t>(color),
+                value);
     return make_optional(fmt::fg(color));
 }
 
 optional<tuple<bool, bool, bool, bool, bool>> GetTerminalColorEmphasis(string value) {
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to color emphasis");
     auto bold = false, italic = false, underline = false, strikethrough = false, bright = false;
     if (boost::icontains(value, "bold_") || boost::icontains(value, "_bold")) {
         bold = true;
-        PLOG_VERBOSE << format(FMT_STRING("found bold specified in terminal color {}"), value);
+        LOG_VERBOSE("found bold specified in terminal color {}", value);
     }
     if (boost::icontains(value, "italic_") || boost::icontains(value, "_italic")) {
         italic = true;
-        PLOG_VERBOSE << format(FMT_STRING("found italic specified in terminal color {}"), value);
+        LOG_VERBOSE("found italic specified in terminal color {}", value);
     }
     if (boost::icontains(value, "underline_") || boost::icontains(value, "_underline")) {
         underline = true;
-        PLOG_VERBOSE << format(FMT_STRING("found underline specified in terminal color {}"), value);
+        LOG_VERBOSE("found underline specified in terminal color {}", value);
     }
     if (boost::icontains(value, "strikethrough_") || boost::icontains(value, "_strikethrough")) {
         strikethrough = true;
-        PLOG_VERBOSE << format(FMT_STRING("found strikethrough specified in terminal color {}"), value);
+        LOG_VERBOSE("found strikethrough specified in terminal color {}", value);
     }
     if (boost::icontains(value, "bright_") || boost::icontains(value, "_bright")) {
         bright = true;
-        PLOG_VERBOSE << format(FMT_STRING("found bright specified in terminal color {}"), value);
+        LOG_VERBOSE("found bright specified in terminal color {}", value);
     }
     return make_optional(make_tuple(bold, italic, underline, strikethrough, bright));
 }
 
 optional<fmt::text_style> GetTerminalColorValue(string value) {
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to terminal color");
     auto emphasis_holder = GetTerminalColorEmphasis(value);
     if (!emphasis_holder) {
         return nullopt;
@@ -188,7 +186,10 @@ optional<fmt::text_style> GetTerminalColorValue(string value) {
 }
 
 optional<fmt::text_style> GetColorValue(string value) {
-    if (boost::istarts_with(value, "hex(")) {
+    if (empty(value)) {
+        LOG_DEBUG("unable to convert empty string to color");
+        return nullopt;
+    } else if (boost::istarts_with(value, "hex(")) {
         return GetHexColorValue(value);
     } else if (boost::istarts_with(value, "rgb(")) {
         return GetRgbColorValue(value);
@@ -310,14 +311,14 @@ value_color: [{}])"),
 bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
     auto i = find(begin(default_config.columns), end(default_config.columns), column);
     if (i == end(default_config.columns)) {
-        PLOG_ERROR << format(FMT_STRING("column item at row index={} and column={} but config.columns olny specify {}"),
-                             row_index,
-                             column_to_string(column),
-                             default_config.columns_to_string());
+        LOG_ERROR("column item at row index={} and column={} but config.columns olny specify {}",
+                  row_index,
+                  column_to_string(column),
+                  default_config.columns_to_string());
         return false;
     }
     if (empty(name) && empty(value)) {
-        PLOG_ERROR << format(FMT_STRING("column item at row index={} does not have a name or a value"), row_index);
+        LOG_ERROR("column item at row index={} does not have a name or a value", row_index);
         return false;
     }
     return true;
@@ -350,7 +351,7 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
         root.at("row_index").get_to(row_index);
     } else if (default_settings != nullptr) {
         // default_settings == nullptr is only true when creating default_settings
-        PLOG_WARNING << "item missing row_index property (must have it for ordering purposes)";
+        LOG_WARNING("item missing row_index property (must have it for ordering purposes)");
     }
     if (root.contains("repeatable_index")) {
         root.at("repeatable_index").get_to(repeatable_index);
@@ -387,7 +388,7 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
         root.at("name").get_to(name);
     } else if (default_settings != nullptr) {
         // default_settings == nullptr is only true when creating default_settings
-        PLOG_WARNING << "item missing name property (should leave an empty [] name for completeness)";
+        LOG_WARNING("item missing name property (should leave an empty [] name for completeness)");
     }
     if (root.contains("name_color")) {
         name_color = read_colors(root["name_color"]);
@@ -399,7 +400,7 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
         root.at("value").get_to(value);
     } else if (default_settings != nullptr) {
         // default_settings == nullptr is only true when creating default_settings
-        PLOG_WARNING << "item missing value property (should leave an empty [] value for completeness)";
+        LOG_WARNING("item missing value property (should leave an empty [] value for completeness)");
     }
     if (root.contains("value_color")) {
         value_color = read_colors(root["value_color"]);
@@ -482,9 +483,8 @@ string TemplateConfig::columns_to_string() const {
 void TemplateConfig::columns_from_json(const json &root) {
     columns.clear();
     if (!root.contains("columns")) {
-        auto msg =
-            "No columns were specified in input json.  Defaulting to one column containing one row each (ENTIRE_LINE).";
-        PLOG_WARNING << msg;
+        LOG_WARNING(
+            "No columns were specified in input json.  Defaulting to one column containing one row each (ENTIRE_LINE).");
         columns.push_back(ENTIRE_LINE);
         return;
     }

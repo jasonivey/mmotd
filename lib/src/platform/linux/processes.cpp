@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/logging.h"
 #include "lib/include/platform/processes.h"
 
 #include <algorithm>
@@ -12,7 +13,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -28,31 +28,27 @@ vector<string> GetProcessDirectories() {
     //auto flags = fs::directory_options::skip_permission_denied;
     for (auto &dir_entry : fs::directory_iterator(PROC_DIRECTORY, ec /*, flags*/)) {
         if (ec) {
-            PLOG_ERROR << format(FMT_STRING("error encountered while iterating {} directory, {}"),
-                                 PROC_DIRECTORY,
-                                 ec.message());
+            LOG_ERROR("error encountered while iterating {} directory, {}", PROC_DIRECTORY, ec.message());
             return vector<string>{};
         }
 
         auto path_entry = dir_entry.path();
         if (!dir_entry.is_directory()) {
-            //PLOG_DEBUG << format(FMT_STRING("ignoring {} since it is not a directory"), path_entry.string());
+            //LOG_DEBUG("ignoring {} since it is not a directory", path_entry.string());
             continue;
         }
 
         const auto &name = path_entry.stem().string();
         if (!all_of(begin(name), end(name), boost::is_digit())) {
-            //PLOG_DEBUG << format(FMT_STRING("ignoring {} since it is not all digits"), path_entry.string());
+            //LOG_DEBUG("ignoring {} since it is not all digits", path_entry.string());
             continue;
         }
-        //PLOG_DEBUG << format(FMT_STRING("adding process directory {}"), path_entry.string());
+        //LOG_DEBUG("adding process directory {}", path_entry.string());
         process_subdirs.push_back(path_entry.string());
     }
 
     if (ec) {
-        PLOG_ERROR << format(FMT_STRING("error encountered while iterating {} directory, {}"),
-                             PROC_DIRECTORY,
-                             ec.message());
+        LOG_ERROR("error encountered while iterating {} directory, {}", PROC_DIRECTORY, ec.message());
         return vector<string>{};
     }
 

@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
 #include "common/include/iostream_error.h"
+#include "common/include/logging.h"
 
 #include <chrono>
 #include <fstream>
@@ -8,7 +9,6 @@
 #include <string>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using namespace std;
 using fmt::format;
@@ -25,9 +25,9 @@ optional<std::chrono::system_clock::time_point> GetBootTime() {
     uptime_file.open(UPTIME_FILENAME, ios_base::in);
 
     if (!uptime_file.is_open() || uptime_file.fail() || uptime_file.bad()) {
-        PLOG_ERROR << format(FMT_STRING("unable to open {} for reading, {}"),
-                             UPTIME_FILENAME,
-                             mmotd::error::ios_flags::to_string(uptime_file));
+        LOG_ERROR("unable to open {} for reading, {}",
+                  UPTIME_FILENAME,
+                  mmotd::error::ios_flags::to_string(uptime_file));
         return make_optional(std::chrono::system_clock::now());
     }
     auto uptime = double{};

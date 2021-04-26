@@ -2,6 +2,7 @@
 #include "common/assertion/include/assertion.h"
 #include "common/assertion/include/exception.h"
 #include "common/include/information_definitions.h"
+#include "common/include/logging.h"
 
 #include <algorithm>
 #include <cstdlib>
@@ -10,7 +11,6 @@
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;

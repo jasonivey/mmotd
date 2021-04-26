@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
+#include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/http_request.h"
 #include "lib/include/weather_info.h"
@@ -10,7 +11,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
@@ -92,32 +92,29 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
         location_str = boost::trim_copy(weather_str.substr(0, i));
         weather_str = boost::trim_copy(weather_str.substr(i + 1));
     } else {
-        PLOG_ERROR << "weather response appears to be malformed";
+        LOG_ERROR("weather response appears to be malformed");
         return make_tuple(location_str, weather_str, string{}, string{});
     }
 
     const auto sunrise_sunset_regex = regex(R"((\d{2}:\d{2}:\d{2}) (\d{2}:\d{2}:\d{2}))", std::regex::ECMAScript);
     auto match = smatch{};
     if (!regex_search(weather_str, match, sunrise_sunset_regex)) {
-        PLOG_ERROR << "weather information does not seem to include sunrise and sunset";
+        LOG_ERROR("weather information does not seem to include sunrise and sunset");
         return make_tuple(location_str, weather_str, string{}, string{});
     }
 
     auto weather = trim_copy(weather_str.substr(0, match.position(0)));
-    PLOG_INFO << format(FMT_STRING("weather: '{}'"), weather);
+    LOG_INFO("weather: '{}'", weather);
     auto sunrise_str = weather_str.substr(match.position(1), match.length(1));
-    PLOG_INFO << format(FMT_STRING("sunrise: '{}'"), sunrise_str);
+    LOG_INFO("sunrise: '{}'", sunrise_str);
     auto sunset_str = weather_str.substr(match.position(2), match.length(2));
-    PLOG_INFO << format(FMT_STRING("sunset: '{}'"), sunset_str);
+    LOG_INFO("sunset: '{}'", sunset_str);
 
     auto [sunrise_parsed, sunset_parsed] = ParseSunriseSunset(sunrise_str, sunset_str);
     sunrise_parsed = empty(sunrise_parsed) ? sunrise_str : sunrise_parsed;
     sunset_parsed = empty(sunset_parsed) ? sunset_str : sunset_parsed;
 
-    PLOG_INFO << format(FMT_STRING("weather: '{}, Sunrise (parsed): {}, Sunset (parsed): {}'"),
-                        weather,
-                        sunrise_parsed,
-                        sunset_parsed);
+    LOG_INFO("weather: '{}, Sunrise (parsed): {}, Sunset (parsed): {}'", weather, sunrise_parsed, sunset_parsed);
     return make_tuple(location_str, weather, sunrise_parsed, sunset_parsed);
 }
 

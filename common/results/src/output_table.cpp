@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/assertion.h"
 #include "common/include/app_options.h"
+#include "common/include/logging.h"
 #include "common/results/include/output_common.h"
 #include "common/results/include/output_row.h"
 #include "common/results/include/output_table.h"
@@ -10,7 +11,6 @@
 #include <boost/algorithm/string.hpp>
 #include <fmt/color.h>
 #include <fort.hpp>
-#include <plog/Log.h>
 
 using fmt::format;
 using mmotd::results::common::RemoveAsciiEscapeCodes;
@@ -58,23 +58,19 @@ decltype(auto) GetTableStyle(string style_str) {
 
 bool IsRawStringValid(const char *beg, const char *end) {
     if (beg == nullptr || end == nullptr) {
-        PLOG_ERROR << format(FMT_STRING("string width error, begin or end is null (b:{}, e:{})"),
-                             fmt::ptr(beg),
-                             fmt::ptr(end));
+        LOG_ERROR("string width error, begin or end is null (b:{}, e:{})", fmt::ptr(beg), fmt::ptr(end));
         return false;
     } else if (end < beg) {
-        PLOG_ERROR << format(FMT_STRING("string width error, end comes before begin (b:{}, e:{})"),
-                             fmt::ptr(beg),
-                             fmt::ptr(end));
+        LOG_ERROR("string width error, end comes before begin (b:{}, e:{})", fmt::ptr(beg), fmt::ptr(end));
         return false;
     } else {
         auto raw_length = end - beg;
         static constexpr const auto MAX_RAW_STRING_LENGTH = ptrdiff_t{8 * 1024};
         if (raw_length > MAX_RAW_STRING_LENGTH) {
-            PLOG_ERROR << format(FMT_STRING("string width error, end - begin > 8K (b:{}, e:{}, length: {})"),
-                                 fmt::ptr(beg),
-                                 fmt::ptr(end),
-                                 raw_length);
+            LOG_ERROR("string width error, end - begin > 8K (b:{}, e:{}, length: {})",
+                      fmt::ptr(beg),
+                      fmt::ptr(end),
+                      raw_length);
             return false;
         }
         return true;
@@ -96,13 +92,13 @@ int GetStringWidth(const void *vbeg, const void *vend, size_t *width) {
         const auto &[_, cached_width] = *i;
         input_width = cached_width;
     } else {
-        // PLOG_VERBOSE << format(FMT_STRING("calculating string width: '{}'"), input);
+        // LOG_VERBOSE("calculating string width: '{}'", input);
         auto stripped_str = RemoveAsciiEscapeCodes(input);
         const char *buffer_ptr = data(stripped_str);
         auto state = mbstate_t{};
         input_width = mbsrtowcs(nullptr, &buffer_ptr, 0, &state);
         if (input_width == SIZE_MAX) {
-            PLOG_ERROR << "invalid multibyte character was encountered";
+            LOG_ERROR("invalid multibyte character was encountered");
             return 1;
         }
         MMOTD_CHECKS(input_width <= size(input),
@@ -112,11 +108,11 @@ int GetStringWidth(const void *vbeg, const void *vend, size_t *width) {
         width_cache.push_back(make_pair(input, input_width));
     }
     if (width != nullptr) {
-        // PLOG_VERBOSE << format(FMT_STRING("width: {}, string: '{}'"), input_width, input);
+        // LOG_VERBOSE("width: {}, string: '{}'", input_width, input);
         *width = input_width;
         return 0;
     } else {
-        PLOG_ERROR << "output width parameter is null";
+        LOG_ERROR("output width parameter is null");
         return 1;
     }
 }
@@ -175,10 +171,10 @@ void Table::TableImpl::WriteRow(const Row &row) {
     auto already_written_name = false;
     auto row_line_count = row.GetHeight();
     for (auto i = size_t{0}; i != row_line_count; ++i) {
-        PLOG_VERBOSE << format(FMT_STRING("writing [{}][{}] {} column"),
-                               row.GetRowNumber(),
-                               row.GetColumnNumberStr(),
-                               row.GetColumnPosition().to_string());
+        LOG_VERBOSE("writing [{}][{}] {} column",
+                    row.GetRowNumber(),
+                    row.GetColumnNumberStr(),
+                    row.GetColumnPosition().to_string());
         if (row.HasName(i) && row.HasValue(i)) {
             WriteNameValue(row, i);
             already_written_name = true;
@@ -234,11 +230,11 @@ void Table::TableImpl::WriteCell(string text,
                                  size_t cell_span,
                                  bool use_cell_span) {
     auto cell_span_str = use_cell_span ? ::to_string(cell_span) : string{"none"};
-    PLOG_VERBOSE << format(FMT_STRING("writing cell, row: {}, column: {}, cell span: {}, text: '{}'"),
-                           row_number,
-                           col_number,
-                           cell_span_str,
-                           text);
+    LOG_VERBOSE("writing cell, row: {}, column: {}, cell span: {}, text: '{}'",
+                row_number,
+                col_number,
+                cell_span_str,
+                text);
     GetTable().set_cur_cell(row_number, col_number);
     SetCellDefaults();
     if (use_cell_span) {

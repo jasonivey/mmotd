@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/iostream_error.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/system_information.h"
 #include "lib/include/system_details.h"
@@ -14,7 +15,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 #include <sys/utsname.h>
 
@@ -29,7 +29,7 @@ optional<mmotd::system::KernelDetails> GetKernelDetails() {
     auto retval = uname(&buf);
     if (retval != 0) {
         auto error_str = mmotd::error::posix_error::to_string();
-        PLOG_ERROR << format(FMT_STRING("error calling uname, {}"), error_str);
+        LOG_ERROR("error calling uname, {}", error_str);
         return nullopt;
     }
 
@@ -40,20 +40,20 @@ optional<mmotd::system::KernelDetails> GetKernelDetails() {
     auto machine = string(buf.machine);
     auto domain_name = string(buf.domainname);
 
-    PLOG_DEBUG << "sys name      (kernel) : " << sys_name;
-    PLOG_DEBUG << "node name       (host) : " << node_name;
-    PLOG_DEBUG << "release      (release) : " << release;
-    PLOG_DEBUG << "version      (version) : " << version;
-    PLOG_DEBUG << "machine (architecture) : " << machine;
-    PLOG_DEBUG << "domain name            : " << domain_name;
+    LOG_DEBUG("sys name      (kernel) : {}", sys_name);
+    LOG_DEBUG("node name       (host) : {}", node_name);
+    LOG_DEBUG("release      (release) : {}", release);
+    LOG_DEBUG("version      (version) : {}", version);
+    LOG_DEBUG("machine (architecture) : {}", machine);
+    LOG_DEBUG("domain name            : {}", domain_name);
 
     auto kernel_details = mmotd::system::KernelDetails::from_string(sys_name, node_name, release, version, machine);
-    PLOG_DEBUG << "host name              : " << kernel_details.host_name;
-    PLOG_DEBUG << "kernel version         : " << kernel_details.kernel_version.version;
-    PLOG_DEBUG << "kernel release:        : " << kernel_details.kernel_version.release.to_string();
-    PLOG_DEBUG << "kernel type            : " << mmotd::system::to_string(kernel_details.kernel);
-    PLOG_DEBUG << "architecture           : " << mmotd::system::to_string(kernel_details.architecture);
-    PLOG_DEBUG << "endian type            : " << mmotd::system::to_string(kernel_details.endian);
+    LOG_DEBUG("host name              : {}", kernel_details.host_name);
+    LOG_DEBUG("kernel version         : {}", kernel_details.kernel_version.version);
+    LOG_DEBUG("kernel release:        : {}", kernel_details.kernel_version.release.to_string());
+    LOG_DEBUG("kernel type            : {}", mmotd::system::to_string(kernel_details.kernel));
+    LOG_DEBUG("architecture           : {}", mmotd::system::to_string(kernel_details.architecture));
+    LOG_DEBUG("endian type            : {}", mmotd::system::to_string(kernel_details.endian));
 
     return make_optional(kernel_details);
 }
@@ -63,7 +63,7 @@ constexpr static const char *OS_RELEASE = "/etc/os-release";
 vector<string> GetOsVersionFile() {
     auto os_release_path = fs::path(OS_RELEASE);
     if (!fs::is_regular_file(os_release_path) || !fs::is_symlink(os_release_path)) {
-        PLOG_ERROR << format(FMT_STRING("{} release file does not exist"), OS_RELEASE);
+        LOG_ERROR("{} release file does not exist", OS_RELEASE);
         return vector<string>{};
     }
 
@@ -72,7 +72,7 @@ vector<string> GetOsVersionFile() {
     ifs.open(os_release_path, ios_base::in);
     if (!ifs.is_open() || ifs.fail() || ifs.bad()) {
         auto ifs_err = mmotd::error::ios_flags::to_string(ifs);
-        PLOG_ERROR << format(FMT_STRING("unable to open {}, {}"), OS_RELEASE, ifs_err);
+        LOG_ERROR("unable to open {}, {}", OS_RELEASE, ifs_err);
         return vector<string>{};
     }
 
@@ -80,7 +80,7 @@ vector<string> GetOsVersionFile() {
     for (string version_line; getline(ifs, version_line);) {
         if (ifs.fail() || ifs.bad()) {
             auto ifs_err = mmotd::error::ios_flags::to_string(ifs);
-            PLOG_ERROR << format(FMT_STRING("error reading {}, {}"), OS_RELEASE, ifs_err);
+            LOG_ERROR("error reading {}, {}", OS_RELEASE, ifs_err);
             return vector<string>{};
         }
         version_lines.push_back(version_line);
@@ -99,11 +99,11 @@ optional<int> ParseIndividualOsVersion(const string &version_str) {
 
     if (i != end(updated_version_str)) {
         auto offset = std::distance(begin(updated_version_str), i);
-        PLOG_DEBUG << format(FMT_STRING("found integer offset for {} to be {}"), updated_version_str, offset);
+        LOG_DEBUG("found integer offset for {} to be {}", updated_version_str, offset);
         updated_version_str = updated_version_str.substr(offset);
     }
     if (updated_version_str.empty()) {
-        PLOG_DEBUG << format(FMT_STRING("stripped front of version string {} and now it's empty"), version_str);
+        LOG_DEBUG("stripped front of version string {} and now it's empty", version_str);
         return nullopt;
     }
 
@@ -113,15 +113,15 @@ optional<int> ParseIndividualOsVersion(const string &version_str) {
 
     if (j != end(updated_version_str)) {
         auto offset = std::distance(begin(updated_version_str), j);
-        PLOG_DEBUG << format(FMT_STRING("found integer offset for {} to be {}"), updated_version_str, offset);
+        LOG_DEBUG("found integer offset for {} to be {}", updated_version_str, offset);
         updated_version_str = updated_version_str.substr(0, offset);
     }
     if (updated_version_str.empty()) {
-        PLOG_DEBUG << format(FMT_STRING("stripped back of version string {} and now it's empty"), version_str);
+        LOG_DEBUG("stripped back of version string {} and now it's empty", version_str);
         return nullopt;
     }
 
-    PLOG_DEBUG << format(FMT_STRING("stripped version string is {}"), updated_version_str);
+    LOG_DEBUG("stripped version string is {}", updated_version_str);
 
     return make_optional(std::stoi(updated_version_str));
 }
@@ -130,7 +130,7 @@ optional<tuple<int, int, int>> ParseOsVersion(const string &version_str) {
     auto version_numbers = vector<string>{};
     boost::split(version_numbers, version_str, boost::is_any_of("."), boost::token_compress_on);
     if (version_numbers.size() < 2) {
-        PLOG_ERROR << format(FMT_STRING("unable to split '{}' into a version string"), version_str);
+        LOG_ERROR("unable to split '{}' into a version string", version_str);
         return nullopt;
     }
     int major, minor, patch = 0;

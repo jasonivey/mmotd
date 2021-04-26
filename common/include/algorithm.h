@@ -219,4 +219,10 @@ constexpr bool value_in_range(U value, T min, T max_plus_one) noexcept {
     return cmp_greater_equal(value, min) && cmp_less(value, max_plus_one);
 }
 
+template<typename T, class U>
+constexpr bool value_outside_range(U value, T min, T max_plus_one) noexcept {
+    using namespace std;
+    return cmp_less(value, min) || cmp_greater_equal(value, max_plus_one);
+}
+
 } // namespace mmotd::algorithms

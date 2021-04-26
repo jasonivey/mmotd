@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/logging.h"
 #include "lib/include/http_request.h"
 
 #include <boost/asio/connect.hpp>
@@ -12,7 +13,6 @@
 #include <boost/certify/https_verification.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 namespace beast = boost::beast;
 namespace asio = boost::asio;
@@ -163,7 +163,7 @@ optional<string> HttpClient::MakeRequestImpl() {
     auto response = Request(*stream);
 
     auto response_str = response.body();
-    PLOG_INFO << format(FMT_STRING("response from {}:{}{}\n{}"), host_, port_, path_, response_str);
+    LOG_INFO("response from {}:{}{}\n{}", host_, port_, path_, response_str);
     CloseStream(*stream);
 
     return make_optional(response_str);

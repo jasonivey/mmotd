@@ -5,6 +5,7 @@
 #include "common/include/information.h"
 #include "common/include/information_decls.h"
 #include "common/include/informations.h"
+#include "common/include/logging.h"
 #include "common/results/include/output_column.h"
 #include "common/results/include/output_frame.h"
 #include "common/results/include/output_row.h"
@@ -20,7 +21,6 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <fmt/color.h>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using mmotd::information::InformationId;
@@ -176,7 +176,7 @@ void Frame::RemoveEmptyRows() {
     auto row_numbers = GetFirstLastRowNumbers();
     for (auto i = begin(row_numbers); i != end(row_numbers); ++i) {
         auto row_number = *i;
-        PLOG_VERBOSE << format(FMT_STRING("inspecting row: {}, empty rows: {}"), row_number, empty_row_count);
+        LOG_VERBOSE("inspecting row: {}, empty rows: {}", row_number, empty_row_count);
         auto row_ids = GetRowIds(row_number);
         if (empty(row_ids)) {
             ++empty_row_count;
@@ -297,7 +297,7 @@ size_t Frame::GetColumnCount(bool include_name_value) const {
             }
         }
     }
-    PLOG_VERBOSE << format(FMT_STRING("column count: {}, include name value: {}"), total_count, include_name_value);
+    LOG_VERBOSE("column count: {}, include name value: {}", total_count, include_name_value);
     return total_count;
 }
 

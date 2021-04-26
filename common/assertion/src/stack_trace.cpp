@@ -1,6 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/stack_trace.h"
 #include "common/include/algorithm.h"
+#include "common/include/logging.h"
+#include "common/include/source_location_common.h"
 
 #include <algorithm>
 #include <regex>
@@ -12,10 +14,10 @@
 #include <backward.hpp>
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using namespace mmotd::algorithms;
 using fmt::format;
+using mmotd::source_location::StripFunctionArgs;
 using namespace std;
 
 namespace {
@@ -66,22 +68,6 @@ string GenerateStackTrace() {
     return ostrm.str();
 }
 
-pair<size_t, size_t> FindParens(string backtrace_detail) {
-    auto open_paren = backtrace_detail.rfind('(');
-    auto close_paren = backtrace_detail.find(')', open_paren);
-    return {open_paren, close_paren};
-}
-
-string StripFunctionArgs(string backtrace_detail) {
-    auto [open_paren, close_paren] = FindParens(backtrace_detail);
-    if (open_paren != string::npos && close_paren != string::npos && open_paren + 1 != close_paren) {
-        backtrace_detail = format(FMT_STRING("{}(...){}"),
-                                  string{begin(backtrace_detail), begin(backtrace_detail) + open_paren},
-                                  string{begin(backtrace_detail) + close_paren + 1, end(backtrace_detail)});
-    }
-    return backtrace_detail;
-}
-
 vector<string> SplitStackTrace(string stack_trace_str) {
     auto backtrace_details = vector<string>{};
     boost::split(backtrace_details, stack_trace_str, boost::is_any_of("\n"), boost::token_compress_on);
@@ -103,7 +89,7 @@ void RemovePreMainStackDetails(vector<vector<string>> &details) {
         return j != end(sub_details);
     });
     if (i == end(details)) {
-        PLOG_VERBOSE << "main was not found within the stack trace";
+        LOG_VERBOSE("main was not found within the stack trace");
         return;
     }
     const auto end_index = static_cast<size_t>(distance(begin(details), i));

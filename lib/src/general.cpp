@@ -3,6 +3,7 @@
 #include "common/include/algorithm.h"
 #include "common/include/chrono_io.h"
 #include "common/include/iostream_error.h"
+#include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/general.h"
 #include "lib/include/platform/user_accounting_database.h"
@@ -15,10 +16,9 @@
 #include <vector>
 
 #include <effolkronium/random.hpp>
-#include <plog/Log.h>
 
 using effing_random = effolkronium::random_static;
-using mmotd::algorithms::value_in_range;
+using mmotd::algorithms::value_in_range, mmotd::algorithms::value_outside_range;
 using namespace std;
 
 bool gLinkGeneralGenerator = false;
@@ -76,20 +76,19 @@ private:
     // Evening from 6pm - 11pm
     const Greeting EVENING_GREETING = Greeting{"Evening"sv, HourType{18}, HourType{23}, EVENING_EMOJIS};
     // Night from 11pm - 4am
-    const Greeting NIGHT_GREETING = Greeting{"Night"sv, HourType{23}, HourType{5}, NIGHT_EMOJIS};
+    const Greeting NIGHT_GREETING = Greeting{"Night"sv, HourType{5}, HourType{23}, NIGHT_EMOJIS};
 
     optional<Greeting> FindGreeting() const;
 };
 
 optional<Greeting> Greetings::FindGreeting() const {
     auto hour_holder = mmotd::chrono::io::get_current_hour();
-    auto hour = HourType{};
+    auto hour = HourType{5};
     if (!hour_holder) {
-        hour = HourType{5};
-        PLOG_ERROR << "unable to query for the current hour, defaulting to 5am";
+        LOG_ERROR("unable to query for the current hour, defaulting to 5am");
     } else {
         hour = *hour_holder;
-        PLOG_VERBOSE << fmt::format(FMT_STRING("the current hour is {}"), hour);
+        LOG_VERBOSE("the current hour is {}", hour);
     }
     if (value_in_range(hour, MORNING_GREETING.begin(), MORNING_GREETING.end())) {
         return MORNING_GREETING;
@@ -98,7 +97,7 @@ optional<Greeting> Greetings::FindGreeting() const {
     } else if (value_in_range(hour, EVENING_GREETING.begin(), EVENING_GREETING.end())) {
         return EVENING_GREETING;
     } else {
-        MMOTD_CHECKS(value_in_range(hour, NIGHT_GREETING.end(), NIGHT_GREETING.begin()),
+        MMOTD_CHECKS(value_outside_range(hour, NIGHT_GREETING.begin(), NIGHT_GREETING.end()),
                      fmt::format(FMT_STRING("hour value={} did not find it's way into any block of time"), hour));
         return NIGHT_GREETING;
     }

@@ -2,6 +2,7 @@
 #include "common/include/chrono_io.h"
 #include "common/include/information.h"
 #include "common/include/information_definitions.h"
+#include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/boot_time.h"
 #include "lib/include/computer_information.h"
@@ -16,7 +17,6 @@
 #include <vector>
 
 #include <fmt/format.h>
-#include <plog/Log.h>
 
 using fmt::format;
 using namespace std;
