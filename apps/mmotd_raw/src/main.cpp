@@ -10,6 +10,7 @@
 #include <iostream>
 #include <regex>
 
+#include <backward.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/exception_ptr.hpp>
@@ -17,6 +18,7 @@
 #include <fmt/color.h>
 #include <fmt/format.h>
 
+using mmotd::algorithms::unused;
 using namespace fmt;
 using namespace std;
 
@@ -49,7 +51,6 @@ void PrintMmotdRaw() {
     auto &computer_information = mmotd::information::ComputerInformation::Instance();
     const auto &informations = computer_information.GetAllInformation();
     const auto width = GetColumnWidth(informations);
-    mmotd::algorithms::unused(width);
     for (const auto &information : informations) {
         auto name = GetInformationNameString(information);
         auto value = GetInformationValueString(information);
@@ -67,8 +68,10 @@ void PrintMmotdRaw() {
 
 int main_impl(int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
+    auto signal_handling = backward::SignalHandling{};
+    unused(signal_handling);
 
-    mmotd::algorithms::unused(argc, argv);
+    unused(argc);
     mmotd::logging::InitializeLogging(argv[0]);
 
     PrintMmotdRaw();

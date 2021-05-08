@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/big_five_macros.h"
+#include "common/include/informations.h"
 
 #include <iterator>
 #include <vector>

@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "apps/mmotd/include/cli_app_options_creator.h"
 #include "apps/mmotd/include/main.h"
+#include "common/include/algorithm.h"
 #include "common/include/app_options.h"
 #include "common/include/logging.h"
 #include "common/results/include/output_template.h"
@@ -11,9 +12,11 @@
 #include <cstdlib>
 #include <iostream>
 
+#include <backward.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <fmt/format.h>
 
+using mmotd::algorithms::unused;
 using namespace fmt;
 using namespace std;
 
@@ -45,6 +48,8 @@ void PrintMmotd(const AppOptions &app_options) {
 
 int main_impl(int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
+    auto signal_handling = backward::SignalHandling{};
+    unused(signal_handling);
 
     mmotd::logging::InitializeLogging(argv[0]);
 

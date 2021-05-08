@@ -128,10 +128,10 @@ DbEntry DbEntry::from_utmp(const utmp &db) {
     auto username = strlen(db.ut_user) > 0 ? string{db.ut_user} : string{};
     auto hostname = strlen(db.ut_host) > 0 ? string{db.ut_host} : string{};
 
-    auto buffer = vector<char>{sizeof(int32_t) * 4, 0};
-    memcpy(buffer.data(), db.ut_addr_v6, buffer.size());
+    auto buffer = vector<char>(sizeof(db.ut_addr_v6), 0);
+    memcpy(data(buffer), db.ut_addr_v6, size(buffer));
     auto ec = boost::system::error_code{};
-    auto ip = make_address(buffer.data(), ec);
+    auto ip = make_address(data(buffer), ec);
     if (ec) {
         ip = ip_address{};
     }

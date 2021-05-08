@@ -41,7 +41,7 @@ public:
     void Open(const fs::path &file_path);
     void Close();
 
-    void WriteLog(mmotd::logging::Severity severity, const fmt::memory_buffer &input, bool only_file_output = false);
+    void WriteLog(const fmt::memory_buffer &input, bool append_to_stderr = false);
 
 private:
     std::FILE *file_ = nullptr;
@@ -68,13 +68,13 @@ void FileLogger::Close() {
     }
 }
 
-void FileLogger::WriteLog(mmotd::logging::Severity severity, const fmt::memory_buffer &input, bool only_file_output) {
+void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr) {
     using namespace mmotd::logging;
     auto lock = lock_guard<mutex>(mutex_);
     if (file_ != nullptr) {
         fmt::print(file_, FMT_STRING("{}"), string_view(data(input), size(input)));
     }
-    if (!only_file_output && severity <= Severity::fatal) {
+    if (append_to_stderr) {
         fmt::print(stderr, FMT_STRING("{}"), string_view(data(input), size(input)));
     }
 }
@@ -100,13 +100,13 @@ fs::path GetLoggingPath(const string &binary_name) {
     return fs::current_path() / "app.log";
 }
 
-inline constexpr bool HasHexPrefix(string_view num_value) {
+inline bool HasHexPrefix(string num_value) {
     return size(num_value) >= 2 && num_value[0] == '0' && (num_value[1] == 'X' || num_value[1] == 'x');
 }
 
 string to_string(std::thread::id thread_id) {
     string thread_id_str = format(FMT_STRING("{}"), thread_id);
-    if (HasHexPrefix(string_view(data(thread_id_str), size(thread_id_str)))) {
+    if (HasHexPrefix(thread_id_str)) {
         thread_id_str = thread_id_str.substr(2);
     }
     if (size(thread_id_str) < 16) {
@@ -220,7 +220,7 @@ void WriteLogHeader(const fs::path &binary_path) {
                    "",
                    header,
                    size(header) + 2);
-    GetFileLogger()->WriteLog(mmotd::logging::Severity::fatal, data, true);
+    GetFileLogger()->WriteLog(data);
 }
 
 } // namespace
@@ -240,7 +240,7 @@ void LogInternal(const mmotd::source_location::SourceLocation &source_location,
     auto data = fmt::memory_buffer{};
     GetSourceLocationFormattedOutput(data, severity, source_location);
     GetFormattedOutput(data, severity, format, args);
-    GetFileLogger()->WriteLog(severity, data);
+    GetFileLogger()->WriteLog(data, severity == Severity::fatal);
 }
 
 } // namespace mmotd::logging
