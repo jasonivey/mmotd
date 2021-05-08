@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/information_decls.h"
 CATEGORY_INFO_DEF(GENERAL, general, 110)
 CATEGORY_INFO_DEF(NETWORK_INFO, network info, 111)
 CATEGORY_INFO_DEF(BOOT_TIME, boot time, 112)

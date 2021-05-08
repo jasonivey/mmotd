@@ -30,16 +30,17 @@ inline constexpr string_view GetExceptionType(const char *exception_type) noexce
 }
 
 inline string GetSourceLocation(string file_name, string function_name, long line) {
-    auto source_location = empty(file_name) ? string{} : string(data(file_name));
+    auto source_location = string{};
+    if (!empty(file_name)) {
+        source_location = file_name;
+    }
     if (!empty(function_name)) {
-        source_location +=
-            empty(source_location) ? string(data(function_name)) : format(FMT_STRING(":{}"), function_name);
+        source_location += format(FMT_STRING("{}{}"), (empty(source_location) ? "" : ":"), function_name);
     }
-    if (empty(source_location) && line == 0) {
-        return string{};
-    } else {
-        return format(FMT_STRING("{}@{}"), source_location, line);
+    if (line != 0) {
+        source_location = format(FMT_STRING("{}@{}"), source_location, line);
     }
+    return source_location;
 }
 
 inline string GetExceptionAndMessage(const char *exception_type_str, const char *msg_str) {

@@ -45,8 +45,8 @@ unset(MESSAGE_QUIET)
 # Component: Backward.  Stack trace library
 FetchContent_Declare(Backward
     GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git
-    GIT_TAG          v1.5
-    GIT_PROGRESS     TRUE
+    #GIT_TAG          v1.5
+    #GIT_PROGRESS     TRUE
 )
 set(MESSAGE_QUIET ON)
 FetchContent_MakeAvailable(Backward)

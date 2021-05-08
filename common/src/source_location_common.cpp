@@ -53,6 +53,8 @@ string TrimFileName(const char *file) noexcept {
 // static optional<std::__1::string> mmotd::results::TemplateString::GetInformationValue(...)
 // static optional<mmotd::information::Information> mmotd::results::TemplateString::FindInformation(...)
 // static optional<std::__1::string> mmotd::results::TemplateString::GetInformationValue(...)
+// 'std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >' => 'string'
+// boost::iterator_range<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > boost::algorithm::detail::first_finderF<char const*, boost::algorithm::is_iequal>::operator()<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >(__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, __gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >) const (finder.hpp:76)
 
 string
 TrimFunction(const char *function, FunctionArgStrategy arg_strategy, FunctionReturnStrategy return_strategy) noexcept {
