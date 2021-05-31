@@ -121,10 +121,10 @@ string Greetings::GetLocalDateTime() const {
 
 namespace mmotd::information {
 
-bool General::FindInformation() {
+void General::FindInformation() {
     auto user_info = mmotd::platform::user::GetUserInformation();
     if (user_info.empty()) {
-        return false;
+        return;
     }
 
     auto username = GetInfoTemplate(InformationId::ID_GENERAL_USER_NAME);
@@ -142,8 +142,6 @@ bool General::FindInformation() {
     auto emoji_info = GetInfoTemplate(InformationId::ID_GENERAL_LOCAL_TIME_EMOJI);
     emoji_info.SetValue(Greetings{}.GetTimeOfDayEmoji());
     AddInformation(emoji_info);
-
-    return true;
 }
 
 } // namespace mmotd::information

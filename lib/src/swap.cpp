@@ -14,7 +14,7 @@ namespace mmotd::information {
 static const bool swap_usage_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::Swap>(); });
 
-bool Swap::FindInformation() {
+void Swap::FindInformation() {
     auto details = mmotd::platform::GetSwapDetails();
 
     auto total = GetInfoTemplate(InformationId::ID_SWAP_USAGE_TOTAL);
@@ -28,8 +28,6 @@ bool Swap::FindInformation() {
     auto percent_used = GetInfoTemplate(InformationId::ID_SWAP_USAGE_PERCENT_USED);
     percent_used.SetValueArgs(details.percent_used, to_human_size(details.total));
     AddInformation(percent_used);
-
-    return true;
 }
 
 } // namespace mmotd::information

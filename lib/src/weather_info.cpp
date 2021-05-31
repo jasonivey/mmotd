@@ -24,10 +24,10 @@ static constexpr const char *LOCATION = "Lehi UT US";
 static const bool users_logged_in_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::WeatherInfo>(); });
 
-bool WeatherInfo::FindInformation() {
+void WeatherInfo::FindInformation() {
     auto [location_str, weather_str, sunrise_str, sunset_str] = GetWeatherInfo();
     if (empty(weather_str)) {
-        return false;
+        return;
     }
 
     auto weather = GetInfoTemplate(InformationId::ID_WEATHER_WEATHER);
@@ -47,14 +47,12 @@ bool WeatherInfo::FindInformation() {
     }
 
     if (empty(location_str)) {
-        return true;
+        return;
     }
 
     auto location = GetInfoTemplate(InformationId::ID_WEATHER_LOCATION);
     location.SetValueArgs(location_str);
     AddInformation(location);
-
-    return true;
 }
 
 pair<string, string> ParseSunriseSunset(string sunrise_str, string sunset_str) {

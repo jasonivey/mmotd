@@ -14,7 +14,7 @@ public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(WeatherInfo);
 
 protected:
-    bool FindInformation() override;
+    void FindInformation() override;
 
 private:
     std::tuple<std::string, std::string, std::string, std::string> GetWeatherInfo();

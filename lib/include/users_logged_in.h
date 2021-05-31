@@ -15,7 +15,7 @@ public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(UsersLoggedIn);
 
 protected:
-    bool FindInformation() override;
+    void FindInformation() override;
 
     using Detail = std::tuple<std::string, std::string>;
     using Details = std::vector<Detail>;

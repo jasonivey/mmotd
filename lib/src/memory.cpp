@@ -20,7 +20,7 @@ namespace mmotd::information {
 static const bool memory_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::Memory>(); });
 
-bool Memory::FindInformation() {
+void Memory::FindInformation() {
     auto details = mmotd::platform::GetMemoryDetails();
 
     auto total = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_TOTAL);
@@ -34,8 +34,6 @@ bool Memory::FindInformation() {
     auto percent_used = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_PERCENT_USED);
     percent_used.SetValueArgs(details.percent_used, to_human_size(details.total));
     AddInformation(percent_used);
-
-    return true;
 }
 
 } // namespace mmotd::information

@@ -4,6 +4,9 @@
 #include "common/include/posix_error.h"
 #include "lib/include/platform/user_accounting_database.h"
 
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <string>
 #include <vector>
@@ -12,10 +15,7 @@
 #include <fmt/format.h>
 #include <scope_guard.hpp>
 
-#include <errno.h>
 #include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <utmpx.h>
 

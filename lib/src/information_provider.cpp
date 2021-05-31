@@ -17,19 +17,17 @@ using namespace std;
 
 namespace mmotd::information {
 
-InformationProvider::InformationProvider() {
-}
+InformationProvider::InformationProvider() = default;
 
-InformationProvider::~InformationProvider() {
-}
+InformationProvider::~InformationProvider() = default;
 
 const std::vector<Information> &InformationProvider::GetInformations() const {
     return informations_;
 }
 
-bool InformationProvider::LookupInformation() {
+void InformationProvider::LookupInformation() {
     try {
-        return FindInformation();
+        FindInformation();
     } catch (boost::exception &ex) {
         auto diag = boost::diagnostic_information(ex);
         LOG_ERROR("caught boost::exception in LookupInformation: {}", diag);
@@ -37,7 +35,6 @@ bool InformationProvider::LookupInformation() {
         auto diag = boost::diagnostic_information(ex);
         LOG_ERROR("caught std::exception in LookupInformation: {}", empty(diag) ? ex.what() : data(diag));
     }
-    return false;
 }
 
 void InformationProvider::AddInformation(Information information) {

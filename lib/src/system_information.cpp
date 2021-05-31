@@ -16,13 +16,11 @@ namespace mmotd::information {
 static const bool system_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::SystemInformation>(); });
 
-bool SystemInformation::FindInformation() {
+void SystemInformation::FindInformation() {
     auto details = mmotd::platform::GetSystemInformationDetails();
     if (!details.empty()) {
         CreateInformationObjects(details);
-        return true;
     }
-    return false;
 }
 
 void SystemInformation::CreateInformationObjects(const mmotd::platform::SystemDetails &details) {

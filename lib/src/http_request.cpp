@@ -2,6 +2,8 @@
 #include "common/include/logging.h"
 #include "lib/include/http_request.h"
 
+#include <utility>
+
 #include <boost/asio/connect.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/ssl/stream.hpp>
@@ -31,7 +33,7 @@ namespace {
 class HttpClient {
 public:
     HttpClient() = default;
-    explicit HttpClient(HttpProtocol protocol, const string &host, const string &port, const string &path);
+    explicit HttpClient(HttpProtocol protocol, string host, string port, string path);
 
     optional<string> MakeRequest();
 
@@ -62,8 +64,8 @@ private:
     string path_;
 };
 
-HttpClient::HttpClient(HttpProtocol protocol, const string &host, const string &port, const string &path) :
-    protocol_(protocol), host_(host), port_(port), path_(path) {
+HttpClient::HttpClient(HttpProtocol protocol, string host, string port, string path) :
+    protocol_(protocol), host_(std::move(host)), port_(std::move(port)), path_(std::move(path)) {
 }
 
 tcp::resolver::results_type HttpClient::Resolve(asio::io_context &ctx) {
@@ -182,7 +184,9 @@ optional<string> HttpClient::MakeRequest() {
 namespace mmotd::networking {
 
 HttpRequest::HttpRequest(HttpProtocol protocol, string host, string port) :
-    protocol_(protocol), host_(host), port_(port.empty() ? (protocol_ == HttpProtocol::HTTPS ? "443" : "80") : port) {
+    protocol_(protocol),
+    host_(std::move(host)),
+    port_(port.empty() ? (protocol_ == HttpProtocol::HTTPS ? "443" : "80") : port) {
 }
 
 optional<string> HttpRequest::MakeRequest(string path) {

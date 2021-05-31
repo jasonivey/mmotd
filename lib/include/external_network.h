@@ -15,10 +15,10 @@ public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(ExternalNetwork);
 
 protected:
-    bool FindInformation() override;
+    void FindInformation() override;
 
 private:
-    bool ParseJsonResponse(const std::string &response);
+    void ParseJsonResponse(const std::string &response);
 };
 
 } // namespace mmotd::information
