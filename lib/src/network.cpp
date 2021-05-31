@@ -19,7 +19,7 @@ namespace mmotd::information {
 static const bool network_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::NetworkInfo>(); });
 
-bool NetworkInfo::FindInformation() {
+void NetworkInfo::FindInformation() {
     auto network_devices = mmotd::platform::GetNetworkDevices();
     for (const auto &network_device : network_devices) {
         auto interface_name_info = GetInfoTemplate(InformationId::ID_NETWORK_INFO_INTERFACE_NAME);
@@ -36,7 +36,6 @@ bool NetworkInfo::FindInformation() {
             AddInformation(ip_info);
         }
     }
-    return true;
 }
 
 } // namespace mmotd::information

@@ -22,8 +22,7 @@ InvalidArgument::InvalidArgument(const std::string &message, bool includes_stack
     LOG_ERROR("{}", what());
 }
 
-InvalidArgument::~InvalidArgument() noexcept {
-}
+InvalidArgument::~InvalidArgument() noexcept = default;
 
 DomainError::DomainError(const char *message, bool includes_stack_trace) :
     boost::exception(),
@@ -37,8 +36,7 @@ DomainError::DomainError(const std::string &message, bool includes_stack_trace) 
     LOG_ERROR("{}", what());
 }
 
-DomainError::~DomainError() noexcept {
-}
+DomainError::~DomainError() noexcept = default;
 
 LengthError::LengthError(const char *message, bool includes_stack_trace) :
     boost::exception(),
@@ -52,8 +50,7 @@ LengthError::LengthError(const std::string &message, bool includes_stack_trace) 
     LOG_ERROR("{}", what());
 }
 
-LengthError::~LengthError() noexcept {
-}
+LengthError::~LengthError() noexcept = default;
 
 OutOfRange::OutOfRange(const char *message, bool includes_stack_trace) :
     boost::exception(),
@@ -67,8 +64,7 @@ OutOfRange::OutOfRange(const std::string &message, bool includes_stack_trace) :
     LOG_ERROR("{}", what());
 }
 
-OutOfRange::~OutOfRange() noexcept {
-}
+OutOfRange::~OutOfRange() noexcept = default;
 
 RuntimeError::RuntimeError(const char *message, bool includes_stack_trace) :
     boost::exception(),
@@ -82,8 +78,7 @@ RuntimeError::RuntimeError(const std::string &message, bool includes_stack_trace
     LOG_ERROR("{}", what());
 }
 
-RuntimeError::~RuntimeError() noexcept {
-}
+RuntimeError::~RuntimeError() noexcept = default;
 
 RangeError::RangeError(const char *message, bool includes_stack_trace) :
     boost::exception(), std::range_error(includes_stack_trace ? message : MakeExceptionMessage("RangeError", message)) {
@@ -96,8 +91,7 @@ RangeError::RangeError(const std::string &message, bool includes_stack_trace) :
     LOG_ERROR("{}", what());
 }
 
-RangeError::~RangeError() noexcept {
-}
+RangeError::~RangeError() noexcept = default;
 
 OverflowError::OverflowError(const char *message, bool includes_stack_trace) :
     boost::exception(),
@@ -111,8 +105,7 @@ OverflowError::OverflowError(const std::string &message, bool includes_stack_tra
     LOG_ERROR("{}", what());
 }
 
-OverflowError::~OverflowError() noexcept {
-}
+OverflowError::~OverflowError() noexcept = default;
 
 UnderflowError::UnderflowError(const char *message, bool includes_stack_trace) :
     boost::exception(),
@@ -126,7 +119,6 @@ UnderflowError::UnderflowError(const std::string &message, bool includes_stack_t
     LOG_ERROR("{}", what());
 }
 
-UnderflowError::~UnderflowError() noexcept {
-}
+UnderflowError::~UnderflowError() noexcept = default;
 
 } // namespace mmotd::assertion

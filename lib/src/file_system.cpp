@@ -19,12 +19,12 @@ namespace mmotd::information {
 static const bool file_system_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::FileSystem>(); });
 
-bool FileSystem::FindInformation() {
+void FileSystem::FindInformation() {
     auto ec = error_code{};
     auto root_fs = std::filesystem::space("/", ec);
     if (ec) {
         LOG_ERROR("getting fs::space on root file system, details: {}", ec.message());
-        return false;
+        return;
     }
 
     auto usage = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_USAGE);
@@ -44,8 +44,6 @@ bool FileSystem::FindInformation() {
     auto available = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_AVAILABLE);
     available.SetValueArgs(root_fs.available);
     AddInformation(available);
-
-    return true;
 }
 
 } // namespace mmotd::information

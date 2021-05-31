@@ -21,7 +21,7 @@ public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(SystemInformation);
 
 protected:
-    bool FindInformation() override;
+    void FindInformation() override;
 
 private:
     void CreateInformationObjects(const mmotd::platform::SystemDetails &details);

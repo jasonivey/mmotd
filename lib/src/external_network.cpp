@@ -36,18 +36,17 @@ static void walk_ptree(const pt::ptree &tree, size_t indent) {
 #endif
 
 // const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
-bool ExternalNetwork::FindInformation() {
+void ExternalNetwork::FindInformation() {
     using mmotd::networking::HttpRequest, mmotd::networking::HttpProtocol;
 
     if (const auto response = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"}.MakeRequest("/json"); response) {
-        return ParseJsonResponse(*response);
+        ParseJsonResponse(*response);
     } else {
         LOG_ERROR("querying 'http://ipinfo.io/json' failed");
-        return false;
     }
 }
 
-bool ExternalNetwork::ParseJsonResponse(const string &response) {
+void ExternalNetwork::ParseJsonResponse(const string &response) {
     namespace pt = boost::property_tree;
     auto input_str_stream = istringstream{response};
     auto input_stream = istream{input_str_stream.rdbuf()};
@@ -57,17 +56,14 @@ bool ExternalNetwork::ParseJsonResponse(const string &response) {
     // walk_ptree(tree, 2);
     if (tree.empty()) {
         LOG_ERROR("http response is empty after converting to json");
-        return false;
     }
 
-    auto retval = false;
     if (auto ip_address_value = tree.get_optional<string>("ip"); ip_address_value) {
         LOG_DEBUG("found ip address: {} in json response body", *ip_address_value);
         auto ip_address = make_address(*ip_address_value);
         auto ip = GetInfoTemplate(InformationId::ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP);
         ip.SetValueArgs(ip_address.to_string());
         AddInformation(ip);
-        retval = true;
     }
     if (auto city_value = tree.get_optional<string>("city"); city_value) {
         LOG_DEBUG("found city: {} in json response body", *city_value);
@@ -105,7 +101,6 @@ bool ExternalNetwork::ParseJsonResponse(const string &response) {
         tz.SetValueArgs(*timezone_value);
         AddInformation(tz);
     }
-    return retval;
 }
 
 } // namespace mmotd::information

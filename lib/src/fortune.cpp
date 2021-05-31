@@ -87,16 +87,16 @@ struct StrFileHeader {
     string flags_to_string() const {
         auto flags_str = vector<string>{};
         if (flags == Flags::None) {
-            flags_str.push_back("none");
+            flags_str.emplace_back("none");
         }
         if ((flags & Flags::Random) != Flags::None) {
-            flags_str.push_back("random");
+            flags_str.emplace_back("random");
         }
         if ((flags & Flags::Ordered) != Flags::None) {
-            flags_str.push_back("ordered");
+            flags_str.emplace_back("ordered");
         }
         if ((flags & Flags::Rotated) != Flags::None) {
-            flags_str.push_back("rotated");
+            flags_str.emplace_back("rotated");
         }
         return format(FMT_STRING("[{}]"), boost::join(flags_str, ", "));
     }
@@ -351,14 +351,12 @@ optional<string> GetRandomFortune(const string &fortune_name) {
 
 namespace mmotd::information {
 
-bool Fortune::FindInformation() {
+void Fortune::FindInformation() {
     if (auto fortune_holder = GetRandomFortune("softwareengineering"); fortune_holder) {
         auto fortune = GetInfoTemplate(InformationId::ID_FORTUNE_FORTUNE);
         fortune.SetValueArgs(*fortune_holder);
         AddInformation(fortune);
-        return true;
     }
-    return false;
 }
 
 } // namespace mmotd::information

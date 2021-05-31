@@ -16,7 +16,7 @@ namespace mmotd::information {
 static const bool last_log_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::LastLog>(); });
 
-bool LastLog::FindInformation() {
+void LastLog::FindInformation() {
     auto lastlog_details = mmotd::platform::GetLastLogDetails();
 
     auto last_log = GetInfoTemplate(InformationId::ID_LAST_LOGIN_LOGIN_SUMMARY);
@@ -34,8 +34,6 @@ bool LastLog::FindInformation() {
         log_out.SetValue(chrono::io::to_string(lastlog_details.log_out, "%a, %d-%h-%Y %I:%M%p %Z"));
     }
     AddInformation(log_out);
-
-    return true;
 }
 
 } // namespace mmotd::information

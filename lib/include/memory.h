@@ -14,7 +14,7 @@ public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_VIRTUAL_DESTRUCTOR(Memory);
 
 protected:
-    bool FindInformation() override;
+    void FindInformation() override;
 };
 
 } // namespace mmotd::information

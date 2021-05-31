@@ -19,7 +19,7 @@ namespace mmotd::information {
 static const bool package_management_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::PackageManagement>(); });
 
-bool PackageManagement::FindInformation() {
+void PackageManagement::FindInformation() {
     auto update_details = platform::package_management::GetUpdateDetails();
     if (!empty(update_details)) {
         auto update_details_info = GetInfoTemplate(InformationId::ID_PACKAGE_MANAGEMENT_UPDATE_DETAILS);
@@ -34,7 +34,6 @@ bool PackageManagement::FindInformation() {
         LOG_VERBOSE("set the value of package management reboot required: {}", reboot_required);
         AddInformation(reboot_required_info);
     }
-    return true;
 }
 
 } // namespace mmotd::information

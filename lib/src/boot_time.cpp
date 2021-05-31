@@ -28,15 +28,13 @@ namespace mmotd::information {
 static const bool boot_time_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::BootTime>(); });
 
-bool BootTime::FindInformation() {
+void BootTime::FindInformation() {
     auto boot_time_holder = mmotd::platform::GetBootTime();
     auto boot_time = boot_time_holder ? *boot_time_holder : std::chrono::system_clock::now();
 
     auto info = GetInfoTemplate(InformationId::ID_BOOT_TIME_BOOT_TIME);
     info.SetValue(chrono::io::to_string(boot_time, "%a, %d-%h-%Y %I:%M%p %Z"));
     AddInformation(info);
-
-    return true;
 }
 
 } // namespace mmotd::information

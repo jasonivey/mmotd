@@ -24,10 +24,10 @@ public:
 
     const std::vector<Information> &GetInformations() const;
 
-    bool LookupInformation();
+    void LookupInformation();
 
 protected:
-    virtual bool FindInformation() = 0;
+    virtual void FindInformation() = 0;
 
     void AddInformation(Information information);
 

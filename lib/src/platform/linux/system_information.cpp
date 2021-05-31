@@ -133,7 +133,7 @@ optional<tuple<int, int, int>> ParseOsVersion(const string &version_str) {
         LOG_ERROR("unable to split '{}' into a version string", version_str);
         return nullopt;
     }
-    int major, minor, patch = 0;
+    int major = 0, minor = 0, patch = 0;
     auto major_holder = ParseIndividualOsVersion(version_numbers[0]);
     if (major_holder) {
         major = *major_holder;

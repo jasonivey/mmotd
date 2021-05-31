@@ -12,7 +12,7 @@ namespace mmotd::information {
 static const bool load_average_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::LoadAverage>(); });
 
-bool LoadAverage::FindInformation() {
+void LoadAverage::FindInformation() {
     auto details = mmotd::platform::GetLoadAverageDetails();
     auto [processor_cnt, ld_average] = details;
 
@@ -23,8 +23,6 @@ bool LoadAverage::FindInformation() {
     auto load_average = GetInfoTemplate(InformationId::ID_LOAD_AVERAGE_LOAD_AVERAGE);
     load_average.SetValueArgs(ld_average);
     AddInformation(load_average);
-
-    return true;
 }
 
 } // namespace mmotd::information
