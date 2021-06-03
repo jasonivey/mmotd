@@ -1,8 +1,4 @@
 ---
 Index:
   Background: Skip     # Disable slow background indexing of these files.
-Diagnostics:
-  ClangTidy:
-    # Add: modernize*
-    Remove: '*,else-after-return'
 ...

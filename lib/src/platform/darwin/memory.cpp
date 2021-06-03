@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__APPLE__)
 #include "common/include/human_size.h"
 #include "common/include/information_definitions.h"
 #include "common/include/information_objects.h"
@@ -46,7 +47,7 @@ optional<uint64_t> GetTotalMemory() {
     int mib[2] = {CTL_HW, HW_MEMSIZE};
     auto total = uint64_t{0};
     auto len = sizeof(uint64_t);
-    if (sysctl(mib, 2, &total, &len, NULL, 0) == -1) {
+    if (sysctl(mib, 2, &total, &len, nullptr, 0) == -1) {
         auto error_str = string{};
         if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
             error_str = format(FMT_STRING(", details: {}"), errno_str);
@@ -121,3 +122,4 @@ MemoryDetails GetMemoryDetails() {
 }
 
 } // namespace mmotd::platform
+#endif

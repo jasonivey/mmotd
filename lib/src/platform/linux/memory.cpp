@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__linux__)
 #include "common/include/human_size.h"
 #include "common/include/information_definitions.h"
 #include "common/include/information_objects.h"
@@ -74,3 +75,4 @@ MemoryDetails GetMemoryDetails() {
 }
 
 } // namespace mmotd::platform
+#endif

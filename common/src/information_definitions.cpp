@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <iterator>
 #include <string>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -18,7 +19,7 @@ using namespace std;
 namespace mmotd::information {
 
 InformationDefinitions::InformationDefinitions(CategoryIds categories, Informations informations) :
-    categories_(categories), informations_(informations) {
+    categories_(std::move(categories)), informations_(std::move(informations)) {
 }
 
 const InformationDefinitions &InformationDefinitions::Instance() {

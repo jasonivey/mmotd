@@ -31,26 +31,107 @@ static constexpr const size_t GENERIC_RELEASE_LEVELS_TO_SKIP = size_t{0};
 
 inline constexpr size_t GetLevelsToSkip() noexcept {
 #if defined(__clang__)
-#    if defined(NDEBUG)
+#if defined(NDEBUG)
     return CLANG_RELEASE_LEVELS_TO_SKIP;
-#    else
-    return CLANG_DEBUG_LEVELS_TO_SKIP;
-#    endif
-#elif defined(__GNUG__)
-#    if defined(NDEBUG)
-    return GCC_RELEASE_LEVELS_TO_SKIP;
-#    else
-    return GCC_DEBUG_LEVELS_TO_SKIP;
-#    endif
 #else
-#    if defined(NDEBUG)
+    return CLANG_DEBUG_LEVELS_TO_SKIP;
+#endif
+#elif defined(__GNUG__)
+#if defined(NDEBUG)
+    return GCC_RELEASE_LEVELS_TO_SKIP;
+#else
+    return GCC_DEBUG_LEVELS_TO_SKIP;
+#endif
+#else
+#if defined(NDEBUG)
     return GENERIC_RELEASE_LEVELS_TO_SKIP;
-#    else
+#else
     return GENERIC_DEBUG_LEVELS_TO_SKIP;
-#    endif
+#endif
 #endif
 }
+#if 0
+string FormatSnippet(const char *indent, const backward::ResolvedTrace::SourceLoc &source_loc, unsigned context_size) {
+    auto snippets = backward::SnippetFactory{};
+    auto lines = snippets.get_snippet(source_loc.filename, source_loc.line, context_size);
+    auto output = string{};
+    for (auto i = begin(lines); i != end(lines); ++i) {
+        if (i->first == source_loc.line) {
+            output += format(FMT_STRING("{}>"), indent);
+        } else {
+            output += format(FMT_STRING("{} "), indent);
+        }
+        auto [line_number, line_content] = *i;
+        output += format(FMT_STRING("{:4}: {}\n"), line_number, line_content);
+    }
+    return output;
+}
 
+string FormatSourceLoc(const char *indent, const backward::ResolvedTrace::SourceLoc &source_loc, void *addr = nullptr) {
+    auto output = format(FMT_STRING("{}Source \"{}\", line {}, in {}"),
+                         indent,
+                         source_loc.filename,
+                         source_loc.line,
+                         source_loc.function);
+    if (addr != nullptr) {
+        output += format(FMT_STRING("[{}]"), fmt::ptr(addr));
+    }
+    return output + "\n";
+}
+
+string FormatTrace(const backward::ResolvedTrace &trace, int index, bool include_snippet) {
+    static constexpr unsigned inliner_context_size = 5;
+    static constexpr unsigned trace_context_size = 7;
+    auto output = format(FMT_STRING("#{:2}"), index);
+    bool already_indented = true;
+    if (empty(trace.source.filename)) {
+        output += format(FMT_STRING("   Object \"{}\", at {}, in {}\n"),
+                         trace.object_filename,
+                         trace.addr,
+                         trace.object_function);
+        already_indented = false;
+    }
+    for (size_t i = trace.inliners.size(); i > 0; --i) {
+        if (!already_indented) {
+            output += "   ";
+        }
+        const auto &source_loc = trace.inliners[i - 1];
+        output += FormatSourceLoc(" | ", source_loc);
+        if (include_snippet) {
+            output += FormatSnippet("    | ", source_loc, inliner_context_size);
+        }
+        already_indented = false;
+    }
+    if (!empty(trace.source.filename)) {
+        if (!already_indented) {
+            output += "   ";
+        }
+        output += FormatSourceLoc("   ", trace.source, trace.addr);
+        if (include_snippet) {
+            output += FormatSnippet("      ", trace.source, trace_context_size);
+        }
+    }
+    return output;
+}
+
+string GenerateStackTrace() {
+    unused(GENERIC_DEBUG_LEVELS_TO_SKIP, CLANG_DEBUG_LEVELS_TO_SKIP, GCC_DEBUG_LEVELS_TO_SKIP);
+    unused(GENERIC_RELEASE_LEVELS_TO_SKIP, CLANG_RELEASE_LEVELS_TO_SKIP, GCC_RELEASE_LEVELS_TO_SKIP);
+
+    auto stack_trace = backward::StackTrace{};
+    stack_trace.load_here();
+    stack_trace.skip_n_firsts(GetLevelsToSkip());
+
+    auto backtrace = string{};
+    auto trace_resolver = backward::TraceResolver{};
+    trace_resolver.load_stacktrace(stack_trace);
+    for (auto i = size_t{0}; i != stack_trace.size(); ++i) {
+        auto trace = trace_resolver.resolve(stack_trace[i]);
+        backtrace += FormatTrace(trace, static_cast<int>(i), true);
+    }
+    return backtrace;
+}
+#else
 string GenerateStackTrace() {
     unused(GENERIC_DEBUG_LEVELS_TO_SKIP, CLANG_DEBUG_LEVELS_TO_SKIP, GCC_DEBUG_LEVELS_TO_SKIP);
     unused(GENERIC_RELEASE_LEVELS_TO_SKIP, CLANG_RELEASE_LEVELS_TO_SKIP, GCC_RELEASE_LEVELS_TO_SKIP);
@@ -67,82 +148,13 @@ string GenerateStackTrace() {
     printer.print(stack_trace, ostrm);
     return ostrm.str();
 }
-
-vector<string> SplitStackTrace(string stack_trace_str) {
-    auto backtrace_details = vector<string>{};
-    boost::split(backtrace_details, stack_trace_str, boost::is_any_of("\n"), boost::token_compress_on);
-    backtrace_details.erase(remove(begin(backtrace_details), end(backtrace_details), string{}), end(backtrace_details));
-    return backtrace_details;
-}
-
-bool IsFirstOfStackDetails(string detail) {
-    const auto number_prefix = regex(R"(^#\d+\s+)", regex_constants::ECMAScript);
-    return regex_search(detail, number_prefix, regex_constants::match_continuous);
-}
-
-void RemovePreMainStackDetails(vector<vector<string>> &details) {
-    using namespace mmotd::algorithms;
-    auto i = find_last_if(begin(details), end(details), [](const auto &sub_details) {
-        auto j = find_if(begin(sub_details), end(sub_details), [](const auto &detail) {
-            return !boost::ifind_first(detail, ", in main [").empty();
-        });
-        return j != end(sub_details);
-    });
-    if (i == end(details)) {
-        LOG_VERBOSE("main was not found within the stack trace");
-        return;
-    }
-    const auto end_index = static_cast<size_t>(distance(begin(details), i));
-    auto index = size_t{0};
-    auto j = remove_if(begin(details), end(details), [end_index, &index](const auto &) { return end_index > index++; });
-    details.erase(j, end(details));
-    details.shrink_to_fit();
-}
-
-string ReverseStackTraceImpl(vector<string> backtrace_details) {
-    if (empty(backtrace_details)) {
-        return string{};
-    }
-    auto header = boost::replace_all_copy(backtrace_details.front(), "most recent call last", "most recent call first");
-    auto seperated_details = vector<vector<string>>{};
-    for (auto i = begin(backtrace_details) + 1; i != end(backtrace_details); ++i) {
-        const auto &detail = *i;
-        if (IsFirstOfStackDetails(detail)) {
-            seperated_details.push_back(vector<string>{detail});
-        } else {
-            MMOTD_CHECKS(!empty(seperated_details), "unable to seperate stack trace details w/out line with #{num}");
-            seperated_details.back().push_back(detail);
-        }
-    }
-    RemovePreMainStackDetails(seperated_details);
-    // reverse the backtrace details and re-index the numeric prefixes to be increasing
-    auto count = size_t{1}; // human readable lists start with #1 and increase from there
-    auto new_backtrace = vector<string>{1, header};
-    for (auto i = rbegin(seperated_details); i != rend(seperated_details); ++i) {
-        auto details = *i;
-        for (auto j = begin(details); j != end(details); ++j) {
-            auto &sub_detail = *j;
-            if (j == begin(details)) {
-                auto index_str = format(FMT_STRING("#{:<5}"), count++);
-                copy(begin(index_str), end(index_str), begin(sub_detail));
-            }
-            new_backtrace.push_back(StripFunctionArgs(sub_detail));
-        }
-    }
-    return boost::join(new_backtrace, "\n");
-}
-
-string ReverseStackTrace(string stack_trace_str) {
-    return ReverseStackTraceImpl(SplitStackTrace(stack_trace_str));
-}
-
+#endif
 } // namespace
 
 namespace mmotd::assertion {
 
-string GetStackTrace() {
-    return ReverseStackTrace(GenerateStackTrace());
-    // return GenerateStackTrace();
+[[nodiscard]] string GetStackTrace() {
+    return GenerateStackTrace();
 }
 
 } // namespace mmotd::assertion

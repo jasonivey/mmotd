@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__APPLE__)
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/system_information.h"
@@ -75,7 +76,7 @@ optional<tuple<int, int, int>> GetOsVersion() {
     char version[512] = {0};
     memset(version, 0, 512);
     size_t length = sizeof(long long);
-    if (sysctl(mib, 2, version, &length, NULL, 0) == -1) {
+    if (sysctl(mib, 2, version, &length, nullptr, 0) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
         LOG_ERROR("error calling sysctl with kern.osproductversion, details: {}", error_str);
         return nullopt;
@@ -152,3 +153,4 @@ SystemDetails GetSystemInformationDetails() {
 }
 
 } // namespace mmotd::platform
+#endif

@@ -10,7 +10,7 @@ class App;
 
 class CliAppOptionsCreator : public AppOptionsCreator {
 public:
-    virtual ~CliAppOptionsCreator();
+    ~CliAppOptionsCreator() override;
 
     static CliAppOptionsCreator *ParseCommandLine(const int argc, char **argv);
 

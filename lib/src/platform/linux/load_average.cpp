@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__linux__)
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
 #include "lib/include/platform/load_average.h"
@@ -15,6 +16,7 @@
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 
+#include <math.h>
 #include <sys/sysinfo.h>
 
 using namespace std;
@@ -77,12 +79,16 @@ namespace mmotd::platform {
 
 LoadAverageDetails GetLoadAverageDetails() {
     auto cpu_count_holder = GetCpuCount();
-    int32_t cpu_count = cpu_count_holder ? *cpu_count_holder : int32_t{0};
+    int32_t cpu_count = cpu_count_holder.has_value() ? cpu_count_holder.value() : int32_t{0};
 
     auto load_average_holder = GetSystemLoadAverage();
-    double load_average = load_average_holder ? *load_average_holder : double{0.0};
+    double load_average = 0.0;
+    if (load_average_holder.has_value() && !isnan(load_average_holder.value())) {
+        load_average = load_average_holder.value();
+    }
 
     return make_tuple(cpu_count, load_average);
 }
 
 } // namespace mmotd::platform
+#endif

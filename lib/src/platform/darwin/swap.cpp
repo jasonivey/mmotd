@@ -1,9 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__APPLE__)
 #include "common/include/human_size.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/swap.h"
 
+#include <optional>
 #include <unordered_map>
 
 #include <fmt/format.h>
@@ -23,7 +25,7 @@ optional<SwapDetails> GetSwapMemoryUsage() {
     auto swap_usage = xsw_usage{};
     auto size = sizeof(xsw_usage);
 
-    if (sysctl(mib, 2, &swap_usage, &size, NULL, 0) == -1) {
+    if (sysctl(mib, 2, &swap_usage, &size, nullptr, 0) == -1) {
         auto error_str = string{};
         if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
             error_str = format(FMT_STRING(", details: {}"), errno_str);
@@ -63,3 +65,4 @@ SwapDetails GetSwapDetails() {
 }
 
 } // namespace mmotd::platform
+#endif

@@ -105,7 +105,7 @@ int GetStringWidth(const void *vbeg, const void *vend, size_t *width) {
                      format(FMT_STRING("the visible width ({}) should never be more than the input string size ({})"),
                             input_width,
                             size(input)));
-        width_cache.push_back(make_pair(input, input_width));
+        width_cache.emplace_back(input, input_width);
     }
     if (width != nullptr) {
         // LOG_VERBOSE("width: {}, string: '{}'", input_width, input);
@@ -284,8 +284,7 @@ Table::Table(string table_style_str, size_t column_count) :
     table_(make_unique<TableImpl>(table_style_str, column_count)) {
 }
 
-Table::~Table() {
-}
+Table::~Table() = default;
 
 void Table::WriteRow(const Row &row) {
     table_->WriteRow(row);

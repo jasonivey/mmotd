@@ -4,6 +4,7 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/fortune.h"
 
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -62,12 +63,18 @@ string GetPlatformFortunesPath() {
 #endif
 
 struct StrFileHeader {
+    explicit StrFileHeader() : version(0), count(0), longest_str(0), shortest_str(0), flags(Flags::None) {
+        DelimPadding.delim = 0;
+        DelimPadding.padding.fill(0);
+    }
+
     enum class Flags : strfile_type {
         None = 0x00,
         Random = 0x01,  // randomized pointers
         Ordered = 0x02, // ordered pointers
         Rotated = 0x04  // rot-13'd text
     };
+
     friend constexpr Flags operator&(Flags a, Flags b) {
         return static_cast<Flags>(static_cast<strfile_type>(a) & static_cast<strfile_type>(b));
     }
@@ -78,11 +85,11 @@ struct StrFileHeader {
     strfile_type shortest_str = 0; // length of shortest shortest fortune
     Flags flags = Flags::None;     // flags
     union {
-        char delim;                        // delimeter between fortunes
-        uint8_t padding[4] = {0, 0, 0, 0}; // padding
-    };
+        char delim;                // delimeter between fortunes
+        array<uint8_t, 4> padding; // padding
+    } DelimPadding;
 
-    char get_delim() const { return delim; }
+    char get_delim() const { return DelimPadding.delim; }
 
     string flags_to_string() const {
         auto flags_str = vector<string>{};

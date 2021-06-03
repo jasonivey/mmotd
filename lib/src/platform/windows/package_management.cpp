@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(_WIN32)
 #include "common/include/logging.h"
 #include "lib/include/platform/package_management.h"
 
@@ -19,3 +20,4 @@ string GetRebootRequired() {
 }
 
 } // namespace mmotd::platform::package_management
+#endif

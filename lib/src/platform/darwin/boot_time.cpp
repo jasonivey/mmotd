@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__APPLE__)
 #include "common/include/chrono_io.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
@@ -26,7 +27,7 @@ optional<std::chrono::system_clock::time_point> GetBootTime() {
     auto result = timeval{};
     size_t result_len = sizeof(timeval);
 
-    if (sysctl(mib, 2, &result, &result_len, NULL, 0) == -1) {
+    if (sysctl(mib, 2, &result, &result_len, nullptr, 0) == -1) {
         auto error_str = string{};
         if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
             error_str = format(FMT_STRING(", details: {}"), errno_str);
@@ -41,3 +42,4 @@ optional<std::chrono::system_clock::time_point> GetBootTime() {
 }
 
 } // namespace mmotd::platform
+#endif

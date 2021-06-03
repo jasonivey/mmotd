@@ -16,6 +16,7 @@
 #include <optional>
 #include <regex>
 #include <tuple>
+#include <utility>
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/color.h>
@@ -30,7 +31,8 @@ using mmotd::results::data::TemplateColumnItem;
 
 namespace mmotd::results {
 
-TemplateString::TemplateString(std::string text, fmt::text_style color_style) : text_(text), color_style_(color_style) {
+TemplateString::TemplateString(std::string text, fmt::text_style color_style) :
+    text_(std::move(text)), color_style_(color_style) {
 }
 
 optional<Information> TemplateString::FindInformation(const string &information_id,
@@ -133,7 +135,7 @@ vector<string> TemplateString::SplitColorCodeDefinitions(const string &color_str
         if (index != string::npos) {
             auto str_begin = cbegin(color_str) + previous;
             auto str_end = cbegin(color_str) + static_cast<ptrdiff_t>(index);
-            color_definitions.push_back(string{str_begin, str_end});
+            color_definitions.emplace_back(str_begin, str_end);
             index += std::size(string(size_t{2}, delimeter));
             LOG_VERBOSE("found {}, index={}, in=\"{}\", created color def=\"{}\"",
                         string(size_t{2}, delimeter),
@@ -143,7 +145,7 @@ vector<string> TemplateString::SplitColorCodeDefinitions(const string &color_str
         } else {
             auto str_begin = cbegin(color_str) + previous;
             auto str_end = cend(color_str) - 1;
-            color_definitions.push_back(string{str_begin, str_end});
+            color_definitions.emplace_back(str_begin, str_end);
             LOG_VERBOSE("unable to find {}, index={}, in=\"{}\", created color def=\"{}\"",
                         string(size_t{2}, delimeter),
                         previous,

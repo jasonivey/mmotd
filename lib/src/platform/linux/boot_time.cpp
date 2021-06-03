@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__linux__)
 #include "common/include/chrono_io.h"
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
@@ -38,3 +39,4 @@ optional<std::chrono::system_clock::time_point> GetBootTime() {
 }
 
 } // namespace mmotd::platform
+#endif

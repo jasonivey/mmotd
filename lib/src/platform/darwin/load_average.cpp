@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__APPLE__)
 #include "common/include/logging.h"
 #include "lib/include/platform/load_average.h"
 
@@ -8,7 +9,6 @@
 #include <fmt/format.h>
 
 #include <sys/sysctl.h>
-#include <time.h>
 #include <unistd.h>
 
 using fmt::format;
@@ -30,7 +30,7 @@ optional<int32_t> GetCpuCount() {
 optional<double> GetSystemLoadAverage() {
     auto load = loadavg{};
     auto load_size = sizeof(load);
-    if (sysctlbyname("vm.loadavg", &load, &load_size, NULL, 0) == -1) {
+    if (sysctlbyname("vm.loadavg", &load, &load_size, nullptr, 0) == -1) {
         LOG_ERROR("sysctlbyname returned -1 calling vm.loadavg");
         return nullopt;
     } else {
@@ -57,3 +57,4 @@ LoadAverageDetails GetLoadAverageDetails() {
 }
 
 } // namespace mmotd::platform
+#endif

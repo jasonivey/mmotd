@@ -84,7 +84,7 @@ NetworkDevice &NetworkDevices::CreateOrFindInterface(const string &interface_nam
         return interface_name == device.interface_name;
     });
     if (i == std::end(devices_)) {
-        devices_.push_back(NetworkDevice{interface_name});
+        devices_.emplace_back(interface_name);
         return devices_.back();
     } else {
         auto &device = *i;

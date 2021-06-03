@@ -4,6 +4,7 @@
 #include "common/include/logging.h"
 
 #include <string>
+#include <utility>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -20,9 +21,9 @@ Information::Information(CategoryId category,
                          string format_str) :
     category_(category),
     information_id_(information_id),
-    id_str_(id_str),
-    name_(name),
-    format_str_(format_str),
+    id_str_(std::move(id_str)),
+    name_(std::move(name)),
+    format_str_(std::move(format_str)),
     value_() {
     mmotd::algorithms::unused(category_);
 }

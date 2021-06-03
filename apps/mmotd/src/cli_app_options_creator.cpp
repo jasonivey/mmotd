@@ -65,8 +65,7 @@ CliAppOptionsCreator *CliAppOptionsCreator::ParseCommandLine(const int argc, cha
     return &creator;
 }
 
-CliAppOptionsCreator::~CliAppOptionsCreator() {
-}
+CliAppOptionsCreator::~CliAppOptionsCreator() = default;
 
 void CliAppOptionsCreator::Parse(const int argc, char **argv) {
     app_finished_ = true;
@@ -110,9 +109,10 @@ void CliAppOptionsCreator::AddOptionsToSubCommand(CLI::App &app) {
     auto *create_config = app.add_subcommand("create_config");
     create_config->option_defaults()->configurable(false);
     create_config
-        ->add_option("-p,--path",
-                     bind(&Options::SetOutputConfigPath, ref(options_), _1),
-                     "path where a new default config file can be saved")
+        ->add_option(
+            "-p,--path",
+            [this](auto &&paths) { return options_.SetOutputConfigPath(forward<decltype(paths)>(paths)); },
+            "path where a new default config file can be saved")
         ->check(CLI::NonexistentPath)
         ->multi_option_policy(CLI::MultiOptionPolicy::Throw)
         ->configurable(false);
@@ -120,9 +120,10 @@ void CliAppOptionsCreator::AddOptionsToSubCommand(CLI::App &app) {
     auto *create_template = app.add_subcommand("create_template");
     create_template->option_defaults()->configurable(false);
     create_template
-        ->add_option("-p,--path",
-                     bind(&Options::SetOutputTemplatePath, ref(options_), _1),
-                     "path where a new default template file can be saved")
+        ->add_option(
+            "-p,--path",
+            [this](auto &&paths) { return options_.SetOutputTemplatePath(forward<decltype(paths)>(paths)); },
+            "path where a new default template file can be saved")
         ->check(CLI::NonexistentPath)
         ->multi_option_policy(CLI::MultiOptionPolicy::Throw)
         ->configurable(false);
@@ -136,77 +137,130 @@ void CliAppOptionsCreator::AddOptionDeclarations(CLI::App &app) {
     // allow_windows_style_options = defaults: { windows=true / non-windows=false }
     app.option_defaults()->configurable(true)->multi_option_policy(CLI::MultiOptionPolicy::Throw);
 
-    app.set_version_flag("-V,--version", bind(&Version::to_string, ref(Version::Instance())))->configurable(false);
+    app.set_version_flag("-V,--version", []() { return Version::Instance().to_string(); })->configurable(false);
 
     app.set_config("-c,--config", "", "path to config file for specifying additional options")
         ->check(CLI::ExistingFile)
         ->envname("MMOTD_CONFIG_PATH");
 
-    app.add_option("-t,--template",
-                   bind(&Options::SetTemplatePath, ref(options_), _1),
-                   "path to template file for specifying output properties")
+    app.add_option(
+           "-t,--template",
+           [this](auto &&paths) { return options_.SetTemplatePath(forward<decltype(paths)>(paths)); },
+           "path to template file for specifying output properties")
         ->check(CLI::ExistingFile)
         ->envname("MMOTD_TEMPLATE_PATH");
 
     auto log_severity_description = "set the log severity (none, fatal, error, warning, info, debug, verbose)";
     const LogSeverityValidator log_severity_validator;
-    app.add_option("--log-severity,", bind(&Options::SetLogSeverity, ref(options_), _1), log_severity_description)
+    app.add_option(
+           "--log-severity,",
+           [this](auto &&severities) { return options_.SetLogSeverity(forward<decltype(severities)>(severities)); },
+           log_severity_description)
         ->check(log_severity_validator)
         ->configurable(true)
         ->group("");
 
     const ColorWhenValidator color_validator;
-    app.add_option("--color",
-                   bind(&Options::SetColorWhen, ref(options_), _1),
-                   "when to use terminal colors (always, auto, never)")
+    app.add_option(
+           "--color",
+           [this](auto &&whens) { return options_.SetColorWhen(forward<decltype(whens)>(whens)); },
+           "when to use terminal colors (always, auto, never)")
         ->check(color_validator)
         ->configurable(true);
 
-    app.add_flag("--last-login,", bind(&Options::SetLastLogin, ref(options_), _1), "display last login")->group("");
-
-    app.add_flag("--computer-name,", bind(&Options::SetComputerName, ref(options_), _1), "display computer name")
+    app.add_flag(
+           "--last-login,",
+           [this](auto &&value) { return options_.SetLastLogin(forward<decltype(value)>(value)); },
+           "display last login")
         ->group("");
 
-    app.add_flag("--host-name", bind(&Options::SetHostName, ref(options_), _1), "display host name")->group("");
-
-    app.add_flag("--public-ip", bind(&Options::SetPublicIp, ref(options_), _1), "display public ip address")->group("");
-
-    app.add_flag("--unread-mail", bind(&Options::SetUnreadMail, ref(options_), _1), "display unread mail")->group("");
-
-    app.add_flag("--system-load", bind(&Options::SetSystemLoad, ref(options_), _1), "display system load")->group("");
-
-    app.add_flag("--processor-count", bind(&Options::SetProcessorCount, ref(options_), _1), "display processor count")
+    app.add_flag(
+           "--computer-name,",
+           [this](auto &&value) { return options_.SetComputerName(forward<decltype(value)>(value)); },
+           "display computer name")
         ->group("");
 
-    app.add_flag("--disk-usage", bind(&Options::SetDiskUsage, ref(options_), _1), "display disk usage")->group("");
-
-    app.add_flag("--users-count", bind(&Options::SetUsersCount, ref(options_), _1), "display users logged in count")
+    app.add_flag(
+           "--host-name",
+           [this](auto &&value) { return options_.SetHostName(forward<decltype(value)>(value)); },
+           "display host name")
         ->group("");
 
-    app.add_flag("--memory-usage", bind(&Options::SetMemoryUsage, ref(options_), _1), "display memory usage")
+    app.add_flag(
+           "--public-ip",
+           [this](auto &&value) { return options_.SetPublicIp(forward<decltype(value)>(value)); },
+           "display public ip address")
         ->group("");
 
-    app.add_flag("--swap-usage", bind(&Options::SetSwapUsage, ref(options_), _1), "display swap usage")->group("");
-
-    app.add_flag("--active-network-interfaces",
-                 bind(&Options::SetActiveNetworkInterfaces, ref(options_), _1),
-                 "display active network interfaces (ip and mac address)")
+    app.add_flag(
+           "--unread-mail",
+           [this](auto &&value) { return options_.SetUnreadMail(forward<decltype(value)>(value)); },
+           "display unread mail")
         ->group("");
 
-    app.add_flag("--greeting",
-                 bind(&Options::SetGreeting, ref(options_), _1),
-                 "display greeting using user name, OS name, release and kernel")
+    app.add_flag(
+           "--system-load",
+           [this](auto &&value) { return options_.SetSystemLoad(forward<decltype(value)>(value)); },
+           "display system load")
         ->group("");
 
-    app.add_flag("--header",
-                 bind(&Options::SetHeader, ref(options_), _1),
-                 "display the system information header with date and time")
+    app.add_flag(
+           "--processor-count",
+           [this](auto &&value) { return options_.SetProcessorCount(forward<decltype(value)>(value)); },
+           "display processor count")
         ->group("");
 
-    app.add_flag("--sub-header",
-                 bind(&Options::SetSubHeader, ref(options_), _1),
-                 "display the system information sub-header with location, weather, sunrise and sunset")
+    app.add_flag(
+           "--disk-usage",
+           [this](auto &&value) { return options_.SetDiskUsage(forward<decltype(value)>(value)); },
+           "display disk usage")
         ->group("");
 
-    app.add_flag("--random-quote", bind(&Options::SetQuote, ref(options_), _1), "display a random quote")->group("");
+    app.add_flag(
+           "--users-count",
+           [this](auto &&value) { return options_.SetUsersCount(forward<decltype(value)>(value)); },
+           "display users logged in count")
+        ->group("");
+
+    app.add_flag(
+           "--memory-usage",
+           [this](auto &&value) { return options_.SetMemoryUsage(forward<decltype(value)>(value)); },
+           "display memory usage")
+        ->group("");
+
+    app.add_flag(
+           "--swap-usage",
+           [this](auto &&value) { return options_.SetSwapUsage(forward<decltype(value)>(value)); },
+           "display swap usage")
+        ->group("");
+
+    app.add_flag(
+           "--active-network-interfaces",
+           [this](auto &&value) { return options_.SetActiveNetworkInterfaces(forward<decltype(value)>(value)); },
+           "display active network interfaces (ip and mac address)")
+        ->group("");
+
+    app.add_flag(
+           "--greeting",
+           [this](auto &&value) { return options_.SetGreeting(forward<decltype(value)>(value)); },
+           "display greeting using user name, OS name, release and kernel")
+        ->group("");
+
+    app.add_flag(
+           "--header",
+           [this](auto &&value) { return options_.SetHeader(forward<decltype(value)>(value)); },
+           "display the system information header with date and time")
+        ->group("");
+
+    app.add_flag(
+           "--sub-header",
+           [this](auto &&value) { return options_.SetSubHeader(forward<decltype(value)>(value)); },
+           "display the system information sub-header with location, weather, sunrise and sunset")
+        ->group("");
+
+    app.add_flag(
+           "--random-quote",
+           [this](auto &&value) { return options_.SetQuote(forward<decltype(value)>(value)); },
+           "display a random quote")
+        ->group("");
 }

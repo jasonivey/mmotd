@@ -24,7 +24,9 @@ public:
     size_t size() const noexcept { return position_ + count_; }
 
     bool match(const std::string &txt) const { return IsValidSubstr(txt); }
-    bool empty() const noexcept { return position_ == 0ull && (count_ == 0ull || count_ == INVALID_VALUE); }
+    bool empty() const noexcept {
+        return position_ == 0ull && (count_ == 0ull || count_ == INVALID_VALUE);
+    }
 
     void clear() noexcept { position_ = count_ = 0ull; }
 

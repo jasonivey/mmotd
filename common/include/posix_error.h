@@ -1,9 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include <cerrno>
 #include <string>
 #include <system_error>
-
-#include <errno.h>
 
 namespace mmotd::error::posix_error {
 

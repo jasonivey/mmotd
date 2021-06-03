@@ -70,7 +70,7 @@ public:
     private:
         iterator(RowNumberSentinals *ref);
 
-        RowNumberSentinals *ref_;
+        RowNumberSentinals *ref_ = nullptr;
         iterator_state state;
     };
 
@@ -105,7 +105,7 @@ public:
     private:
         const_iterator(const RowNumberSentinals *ref);
 
-        const RowNumberSentinals *ref_;
+        const RowNumberSentinals *ref_ = nullptr;
         iterator_state state;
     };
 

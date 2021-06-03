@@ -1,10 +1,14 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__APPLE__)
 #include "common/include/chrono_io.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/user_accounting_database.h"
 
 #include <cctype>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <locale>
 #include <string>
@@ -14,10 +18,7 @@
 #include <fmt/format.h>
 #include <scope_guard.hpp>
 
-#include <errno.h>
 #include <pwd.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <utmpx.h>
 
@@ -180,3 +181,4 @@ UserInformation UserInformation::from_passwd(const passwd &pw) {
 }
 
 } // namespace mmotd::platform::user
+#endif

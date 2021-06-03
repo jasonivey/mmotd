@@ -11,8 +11,7 @@ namespace mmotd::test {
 MmotdExceptionMatcher::MmotdExceptionMatcher(char const *text) : text_(text) {
 }
 
-MmotdExceptionMatcher::~MmotdExceptionMatcher() {
-}
+MmotdExceptionMatcher::~MmotdExceptionMatcher() = default;
 
 bool MmotdExceptionMatcher::match(exception const &arg) const {
     return string{arg.what()}.find(text_) != string::npos;

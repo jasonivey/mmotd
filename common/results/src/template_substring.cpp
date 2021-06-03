@@ -6,6 +6,7 @@
 #include <iterator>
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/range/iterator.hpp>
@@ -25,7 +26,11 @@ TemplateSubstring::TemplateSubstring(string text,
                                      SubstringRange prefix,
                                      SubstringRange substring_text,
                                      ColorDefinitions color_definitions) :
-    text_(text), prefix_(prefix), substring_text_(substring_text), color_definitions_(color_definitions), suffix_() {
+    text_(text),
+    prefix_(prefix),
+    substring_text_(substring_text),
+    color_definitions_(std::move(color_definitions)),
+    suffix_() {
     if (!substring_text_.match(text)) {
         substring_text_.clear();
     }

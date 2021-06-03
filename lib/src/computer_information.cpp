@@ -11,7 +11,6 @@
 #include <thread>
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <fmt/format.h>
 
 using namespace std;
@@ -77,7 +76,7 @@ bool ComputerInformation::IsInformationCached() const {
 void ComputerInformation::CacheAllInformationAsync() const {
     auto thread_pool = boost::asio::thread_pool{std::thread::hardware_concurrency()};
     for (auto &&provider : information_providers_) {
-        boost::asio::post(thread_pool, boost::bind(&InformationProvider::LookupInformation, provider.get()));
+        boost::asio::post(thread_pool, [&provider]() { provider->LookupInformation(); });
     }
     thread_pool.join();
 }

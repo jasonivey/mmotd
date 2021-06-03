@@ -43,63 +43,63 @@ void Log(const char *file, long line, const char *function, Severity severity, c
 
 } // namespace mmotd::logging
 
-#define LOG_FATAL(format, ...)                                                  \
-    do {                                                                        \
-        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::fatal) { \
-            mmotd::logging::Log(__FILE__,                                       \
-                                __LINE__,                                       \
-                                BOOST_CURRENT_FUNCTION,                         \
-                                mmotd::logging::Severity::fatal,                \
-                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__); \
-        }                                                                       \
+#define LOG_FATAL(format, ...)                                                     \
+    do {                                                                           \
+        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::fatal) {    \
+            mmotd::logging::Log(__FILE__,                                          \
+                                __LINE__,                                          \
+                                static_cast<const char *>(BOOST_CURRENT_FUNCTION), \
+                                mmotd::logging::Severity::fatal,                   \
+                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);    \
+        }                                                                          \
     } while (false)
-#define LOG_ERROR(format, ...)                                                  \
-    do {                                                                        \
-        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::error) { \
-            mmotd::logging::Log(__FILE__,                                       \
-                                __LINE__,                                       \
-                                BOOST_CURRENT_FUNCTION,                         \
-                                mmotd::logging::Severity::error,                \
-                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__); \
-        }                                                                       \
+#define LOG_ERROR(format, ...)                                                     \
+    do {                                                                           \
+        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::error) {    \
+            mmotd::logging::Log(__FILE__,                                          \
+                                __LINE__,                                          \
+                                static_cast<const char *>(BOOST_CURRENT_FUNCTION), \
+                                mmotd::logging::Severity::error,                   \
+                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);    \
+        }                                                                          \
     } while (false)
-#define LOG_WARNING(format, ...)                                                  \
-    do {                                                                          \
-        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::warning) { \
-            mmotd::logging::Log(__FILE__,                                         \
-                                __LINE__,                                         \
-                                BOOST_CURRENT_FUNCTION,                           \
-                                mmotd::logging::Severity::warning,                \
-                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);   \
-        }                                                                         \
+#define LOG_WARNING(format, ...)                                                   \
+    do {                                                                           \
+        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::warning) {  \
+            mmotd::logging::Log(__FILE__,                                          \
+                                __LINE__,                                          \
+                                static_cast<const char *>(BOOST_CURRENT_FUNCTION), \
+                                mmotd::logging::Severity::warning,                 \
+                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);    \
+        }                                                                          \
     } while (false)
-#define LOG_INFO(format, ...)                                                   \
-    do {                                                                        \
-        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::info) {  \
-            mmotd::logging::Log(__FILE__,                                       \
-                                __LINE__,                                       \
-                                BOOST_CURRENT_FUNCTION,                         \
-                                mmotd::logging::Severity::info,                 \
-                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__); \
-        }                                                                       \
+#define LOG_INFO(format, ...)                                                      \
+    do {                                                                           \
+        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::info) {     \
+            mmotd::logging::Log(__FILE__,                                          \
+                                __LINE__,                                          \
+                                static_cast<const char *>(BOOST_CURRENT_FUNCTION), \
+                                mmotd::logging::Severity::info,                    \
+                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);    \
+        }                                                                          \
     } while (false)
-#define LOG_DEBUG(format, ...)                                                  \
-    do {                                                                        \
-        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::debug) { \
-            mmotd::logging::Log(__FILE__,                                       \
-                                __LINE__,                                       \
-                                BOOST_CURRENT_FUNCTION,                         \
-                                mmotd::logging::Severity::debug,                \
-                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__); \
-        }                                                                       \
+#define LOG_DEBUG(format, ...)                                                     \
+    do {                                                                           \
+        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::debug) {    \
+            mmotd::logging::Log(__FILE__,                                          \
+                                __LINE__,                                          \
+                                static_cast<const char *>(BOOST_CURRENT_FUNCTION), \
+                                mmotd::logging::Severity::debug,                   \
+                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);    \
+        }                                                                          \
     } while (false)
-#define LOG_VERBOSE(format, ...)                                                  \
-    do {                                                                          \
-        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::verbose) { \
-            mmotd::logging::Log(__FILE__,                                         \
-                                __LINE__,                                         \
-                                BOOST_CURRENT_FUNCTION,                           \
-                                mmotd::logging::Severity::verbose,                \
-                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);   \
-        }                                                                         \
+#define LOG_VERBOSE(format, ...)                                                   \
+    do {                                                                           \
+        if (mmotd::logging::GetSeverity() >= mmotd::logging::Severity::verbose) {  \
+            mmotd::logging::Log(__FILE__,                                          \
+                                __LINE__,                                          \
+                                static_cast<const char *>(BOOST_CURRENT_FUNCTION), \
+                                mmotd::logging::Severity::verbose,                 \
+                                FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__);    \
+        }                                                                          \
     } while (false)

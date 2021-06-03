@@ -68,70 +68,101 @@ auto IsStdoutTty() {
 
 std::string Options::to_string() const {
     auto options_str = string{};
-    append_option(options_str,
-                  "log_severity",
-                  bind(&Options::IsLogSeveritySet, this),
-                  bind(&Options::GetLogSeverity, this));
-    append_option(options_str, "color", bind(&Options::IsColorWhenSet, this), bind(&Options::GetColorWhen, this));
-    append_option(options_str,
-                  "template",
-                  bind(&Options::IsTemplatePathSet, this),
-                  bind(&Options::GetTemplatePath, this));
-    append_option(options_str,
-                  "last_login",
-                  bind(&Options::IsLastLoginSet, this),
-                  bind(&Options::GetLastLoginValue, this));
-    append_option(options_str,
-                  "computer_name",
-                  bind(&Options::IsComputerNameSet, this),
-                  bind(&Options::GetComputerNameValue, this));
-    append_option(options_str,
-                  "host_name",
-                  bind(&Options::IsHostNameSet, this),
-                  bind(&Options::GetHostNameValue, this));
-    append_option(options_str,
-                  "public_ip",
-                  bind(&Options::IsPublicIpSet, this),
-                  bind(&Options::GetPublicIpValue, this));
-    append_option(options_str,
-                  "unread_mail",
-                  bind(&Options::IsUnreadMailSet, this),
-                  bind(&Options::GetUnreadMailValue, this));
-    append_option(options_str,
-                  "system_load",
-                  bind(&Options::IsSystemLoadSet, this),
-                  bind(&Options::GetSystemLoadValue, this));
-    append_option(options_str,
-                  "processor_count",
-                  bind(&Options::IsProcessorCountSet, this),
-                  bind(&Options::GetProcessorCountValue, this));
-    append_option(options_str,
-                  "disk_usage",
-                  bind(&Options::IsDiskUsageSet, this),
-                  bind(&Options::GetDiskUsageValue, this));
-    append_option(options_str,
-                  "users_count",
-                  bind(&Options::IsUsersCountSet, this),
-                  bind(&Options::GetUsersCountValue, this));
-    append_option(options_str,
-                  "memory_usage",
-                  bind(&Options::IsMemoryUsageSet, this),
-                  bind(&Options::GetMemoryUsageValue, this));
-    append_option(options_str,
-                  "swap_usage",
-                  bind(&Options::IsSwapUsageSet, this),
-                  bind(&Options::GetSwapUsageValue, this));
-    append_option(options_str,
-                  "active_network_interfaces",
-                  bind(&Options::IsActiveNetworkInterfacesSet, this),
-                  bind(&Options::GetActiveNetworkInterfacesValue, this));
-    append_option(options_str, "greeting", bind(&Options::IsGreetingSet, this), bind(&Options::GetGreetingValue, this));
-    append_option(options_str, "header", bind(&Options::IsHeaderSet, this), bind(&Options::GetHeaderValue, this));
-    append_option(options_str,
-                  "sub_header",
-                  bind(&Options::IsSubHeaderSet, this),
-                  bind(&Options::GetSubHeaderValue, this));
-    append_option(options_str, "quote", bind(&Options::IsQuoteSet, this), bind(&Options::GetQuoteValue, this));
+    append_option(
+        options_str,
+        "log_severity",
+        [this]() { return IsLogSeveritySet(); },
+        [this]() { return GetLogSeverity(); });
+    append_option(
+        options_str,
+        "color",
+        [this]() { return IsColorWhenSet(); },
+        [this]() { return GetColorWhen(); });
+    append_option(
+        options_str,
+        "template",
+        [this]() { return IsTemplatePathSet(); },
+        [this]() { return GetTemplatePath(); });
+    append_option(
+        options_str,
+        "last_login",
+        [this]() { return IsLastLoginSet(); },
+        [this]() { return GetLastLoginValue(); });
+    append_option(
+        options_str,
+        "computer_name",
+        [this]() { return IsComputerNameSet(); },
+        [this]() { return GetComputerNameValue(); });
+    append_option(
+        options_str,
+        "host_name",
+        [this]() { return IsHostNameSet(); },
+        [this]() { return GetHostNameValue(); });
+    append_option(
+        options_str,
+        "public_ip",
+        [this]() { return IsPublicIpSet(); },
+        [this]() { return GetPublicIpValue(); });
+    append_option(
+        options_str,
+        "unread_mail",
+        [this]() { return IsUnreadMailSet(); },
+        [this]() { return GetUnreadMailValue(); });
+    append_option(
+        options_str,
+        "system_load",
+        [this]() { return IsSystemLoadSet(); },
+        [this]() { return GetSystemLoadValue(); });
+    append_option(
+        options_str,
+        "processor_count",
+        [this]() { return IsProcessorCountSet(); },
+        [this]() { return GetProcessorCountValue(); });
+    append_option(
+        options_str,
+        "disk_usage",
+        [this]() { return IsDiskUsageSet(); },
+        [this]() { return GetDiskUsageValue(); });
+    append_option(
+        options_str,
+        "users_count",
+        [this]() { return IsUsersCountSet(); },
+        [this]() { return GetUsersCountValue(); });
+    append_option(
+        options_str,
+        "memory_usage",
+        [this]() { return IsMemoryUsageSet(); },
+        [this]() { return GetMemoryUsageValue(); });
+    append_option(
+        options_str,
+        "swap_usage",
+        [this]() { return IsSwapUsageSet(); },
+        [this]() { return GetSwapUsageValue(); });
+    append_option(
+        options_str,
+        "active_network_interfaces",
+        [this]() { return IsActiveNetworkInterfacesSet(); },
+        [this]() { return GetActiveNetworkInterfacesValue(); });
+    append_option(
+        options_str,
+        "greeting",
+        [this]() { return IsGreetingSet(); },
+        [this]() { return GetGreetingValue(); });
+    append_option(
+        options_str,
+        "header",
+        [this]() { return IsHeaderSet(); },
+        [this]() { return GetHeaderValue(); });
+    append_option(
+        options_str,
+        "sub_header",
+        [this]() { return IsSubHeaderSet(); },
+        [this]() { return GetSubHeaderValue(); });
+    append_option(
+        options_str,
+        "quote",
+        [this]() { return IsQuoteSet(); },
+        [this]() { return GetQuoteValue(); });
     return options_str;
 }
 

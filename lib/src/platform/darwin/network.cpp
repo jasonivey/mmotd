@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__APPLE__)
 #include "common/include/logging.h"
 #include "common/include/network_device.h"
 #include "common/include/posix_error.h"
@@ -6,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <cstdio>
+#include <cstdlib>
 #include <iterator>
 #include <string>
 #include <vector>
@@ -21,7 +23,6 @@
 #include <net/if_media.h>
 #include <netinet/in.h>
 #include <netinet6/in6_var.h>
-#include <stdlib.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -64,7 +65,7 @@ bool IsInterfaceActive(const string &name, sa_family_t family) {
     }
 
     int *media_list = static_cast<int *>(malloc(static_cast<size_t>(ifmr.ifm_count) * sizeof(int)));
-    if (media_list == NULL) {
+    if (media_list == nullptr) {
         LOG_ERROR("malloc failed to allocate {} bytes", static_cast<size_t>(ifmr.ifm_count) * sizeof(int));
         return false;
     }
@@ -172,3 +173,4 @@ NetworkDevices GetNetworkDevices() {
 }
 
 } // namespace mmotd::platform
+#endif

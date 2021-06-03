@@ -1,9 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#if defined(__linux__)
 #include "common/include/logging.h"
 #include "common/include/mac_address.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/network.h"
 
+#include <cstring>
 #include <optional>
 #include <regex>
 #include <string>
@@ -16,7 +18,6 @@
 #include <ifaddrs.h>
 #include <net/if.h>
 #include <netinet/in.h>
-#include <string.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
 
@@ -130,3 +131,4 @@ NetworkDevices GetNetworkDevices() {
 }
 
 } // namespace mmotd::platform
+#endif

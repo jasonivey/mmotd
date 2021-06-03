@@ -146,7 +146,6 @@ Assertion::Assertion(const string &message, bool includes_stack_trace) :
     LOG_ERROR("{}", what());
 }
 
-Assertion::~Assertion() noexcept {
-}
+Assertion::~Assertion() noexcept = default;
 
 } // namespace mmotd::assertion

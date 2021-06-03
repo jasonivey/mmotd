@@ -9,6 +9,7 @@
 #include "common/results/include/template_string.h"
 
 #include <limits>
+#include <utility>
 
 #include <boost/uuid/random_generator.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -25,7 +26,7 @@ using namespace std;
 
 namespace mmotd::results {
 
-Row::Row(TemplateColumnItem item) : item_(item) {
+Row::Row(TemplateColumnItem item) : item_(std::move(item)) {
 }
 
 int Row::GetRowNumber() const noexcept {
