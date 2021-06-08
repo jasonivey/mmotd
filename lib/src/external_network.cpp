@@ -8,6 +8,7 @@
 #include <tuple>
 
 #include <boost/asio/ip/address.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <fmt/format.h>
@@ -51,7 +52,19 @@ void ExternalNetwork::ParseJsonResponse(const string &response) {
     auto input_str_stream = istringstream{response};
     auto input_stream = istream{input_str_stream.rdbuf()};
     auto tree = pt::ptree{};
-    pt::read_json(input_stream, tree);
+
+    try {
+        pt::read_json(input_stream, tree);
+    } catch (boost::exception &ex) {
+        auto diag = boost::diagnostic_information(ex);
+        LOG_ERROR("boost::exception thrown while parsing external network response: {}", diag);
+        return;
+    } catch (const std::exception &ex) {
+        auto diag = boost::diagnostic_information(ex);
+        LOG_ERROR("std::exception thrown while parsing external network response: {}",
+                  empty(diag) ? ex.what() : data(diag));
+        return;
+    }
 
     // walk_ptree(tree, 2);
     if (tree.empty()) {
@@ -60,7 +73,15 @@ void ExternalNetwork::ParseJsonResponse(const string &response) {
 
     if (auto ip_address_value = tree.get_optional<string>("ip"); ip_address_value) {
         LOG_DEBUG("found ip address: {} in json response body", *ip_address_value);
-        auto ip_address = make_address(*ip_address_value);
+        auto ec = boost::system::error_code{};
+        auto ip_address = make_address(*ip_address_value, ec);
+        if (ec) {
+            LOG_ERROR("unable to convert '{}' to ip address, {}: {}",
+                      *ip_address_value,
+                      ec.category().name(),
+                      ec.value());
+            return;
+        }
         auto ip = GetInfoTemplate(InformationId::ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP);
         ip.SetValueArgs(ip_address.to_string());
         AddInformation(ip);

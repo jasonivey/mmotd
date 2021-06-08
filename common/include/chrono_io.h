@@ -66,7 +66,7 @@ inline std::optional<std::size_t> get_current_hour() {
     auto hour_str = date::format("%H", now_time_point);
     const auto &loc = std::locale();
     if (size(hour_str) != std::size_t{2}) {
-        LOG_ERROR("hour is not two characters wide: '{}', current time: '{}'", hour_str, now_time_point);
+        LOG_ERROR("hour is not two digit characters: '{}', current time: '{}'", hour_str, now_time_point);
         return std::nullopt;
     } else if (!std::isdigit(hour_str.front(), loc) || !std::isdigit(hour_str.back(), loc)) {
         LOG_ERROR("hour is not digit characters: '{}', current time: '{}'", hour_str, now_time_point);
@@ -78,7 +78,7 @@ inline std::optional<std::size_t> get_current_hour() {
         auto hour = stoull(hour_str, nullptr, 10);
         LOG_VERBOSE("current hour: '{}', current time: '{}'", hour, now_time_point);
         if (hour > 23) {
-            LOG_VERBOSE("current hour is outside normal range {{0-24]: '{}', new hour: {}, current time: '{}'",
+            LOG_VERBOSE("current hour: {}, is larger than valid max: 23, clamping to max: {}, current time: '{}'",
                         hour,
                         std::size_t{23},
                         now_time_point);

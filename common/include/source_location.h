@@ -1,26 +1,37 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
-#include "common/include/big_five_macros.h"
-
 #include <cstdint>
 #include <string>
 
 namespace mmotd::source_location {
 
-class SourceLocation {
-    friend std::string to_string(const SourceLocation &source_location);
+struct SourceLocation {
+    static constexpr SourceLocation current(const char *file_name = __builtin_FILE(),
+                                            const char *function_name = __builtin_FUNCTION(),
+                                            int line = __builtin_LINE(),
+                                            int column = 0) noexcept {
+        return SourceLocation{file_name, function_name, line, column};
+    }
 
-public:
-    SourceLocation(const char *file, long line, const char *function);
-    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(SourceLocation);
+    constexpr SourceLocation() noexcept = default;
+    constexpr SourceLocation(const char *file_name, const char *function_name, long line, long column) noexcept :
+        file_name_(file_name),
+        function_name_(function_name),
+        line_(static_cast<std::uint32_t>(line)),
+        column_(static_cast<std::uint32_t>(column)) {}
+
+    constexpr const char *file_name() const noexcept { return file_name_; }
+    constexpr const char *function_name() const noexcept { return function_name_; }
+    constexpr std::uint32_t line() const noexcept { return line_; }
+    constexpr std::uint32_t column() const noexcept { return column_; }
 
 private:
-    std::string to_string() const;
-
+    const char *file_name_ = "unknown";
+    const char *function_name_ = "unknown";
     std::uint32_t line_ = 0;
-    // std::uint32_t column_ = 0;
-    std::string file_name_;
-    std::string function_name_;
+    std::uint32_t column_ = 0;
 };
+
+std::string to_string(const SourceLocation &location);
 
 } // namespace mmotd::source_location

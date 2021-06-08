@@ -12,6 +12,7 @@
 #include <fstream>
 #include <ios>
 #include <iterator>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -23,20 +24,21 @@
 #include <fmt/ostream.h>
 
 namespace fs = std::filesystem;
+using namespace mmotd::source_location;
 using namespace std;
 
-namespace mmotd::logging::logging_detail {
+namespace {
 
 mmotd::logging::Severity LOGGING_SEVERITY = mmotd::logging::Severity::verbose;
-
-}
-
-namespace {
 
 class FileLogger {
 public:
     FileLogger() = default;
     ~FileLogger() { Close(); }
+    FileLogger(const FileLogger &) = delete;
+    FileLogger(const FileLogger &&) = delete;
+    const FileLogger &operator=(const FileLogger &) = delete;
+    const FileLogger &operator=(const FileLogger &&) = delete;
 
     void Open(const fs::path &file_path);
     void Close();
@@ -44,15 +46,15 @@ public:
     void WriteLog(const fmt::memory_buffer &input, bool append_to_stderr = false);
 
 private:
-    std::FILE *file_ = nullptr;
+    std::ofstream file_stream_;
     std::mutex mutex_;
 };
 
 void FileLogger::Open(const fs::path &file_path) {
     Close();
     auto lock = lock_guard<mutex>(mutex_);
-    file_ = std::fopen(file_path.c_str(), "w");
-    if (file_ == nullptr) {
+    file_stream_.open(file_path);
+    if (!file_stream_.is_open()) {
         auto data = fmt::memory_buffer{};
         format_system_error(data, errno, fmt::format(FMT_STRING("cannot open file '{}'"), file_path.string()));
         auto style = fmt::text_style(fmt::emphasis::bold) | fmt::fg(fmt::terminal_color::red);
@@ -62,17 +64,18 @@ void FileLogger::Open(const fs::path &file_path) {
 
 void FileLogger::Close() {
     auto lock = lock_guard<mutex>(mutex_);
-    if (file_ != nullptr) {
-        std::fclose(file_);
-        file_ = nullptr;
+    if (file_stream_.is_open()) {
+        file_stream_.flush();
+        file_stream_.close();
     }
+    file_stream_ = std::ofstream{};
 }
 
 void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr) {
     using namespace mmotd::logging;
     auto lock = lock_guard<mutex>(mutex_);
-    if (file_ != nullptr) {
-        fmt::print(file_, FMT_STRING("{}"), string_view(data(input), size(input)));
+    if (file_stream_ && file_stream_.is_open()) {
+        fmt::print(file_stream_, FMT_STRING("{}"), string_view(data(input), size(input)));
     }
     if (append_to_stderr) {
         fmt::print(stderr, FMT_STRING("{}"), string_view(data(input), size(input)));
@@ -81,12 +84,10 @@ void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr
 
 // This is a short lived app -- intentionally create a leaked object so it is created on first demand
 //  and lives beyond the scope of all global/function static variable destruction
-FileLogger *g_hidden_file_logger = nullptr;
-FileLogger *GetFileLogger() {
-    if (g_hidden_file_logger == nullptr) {
-        g_hidden_file_logger = new FileLogger();
-    }
-    return g_hidden_file_logger;
+FileLogger &GetFileLogger() {
+    static auto file_logger = std::make_unique<FileLogger>();
+    MMOTD_CHECKS(file_logger, "file logger is not allocated");
+    return *file_logger;
 }
 
 fs::path GetLoggingPath(const string &binary_name) {
@@ -183,16 +184,19 @@ fmt::text_style GetSeverityStyle(mmotd::logging::Severity severity) noexcept {
 
 void GetSourceLocationFormattedOutput(fmt::memory_buffer &out,
                                       mmotd::logging::Severity severity,
-                                      const mmotd::source_location::SourceLocation &source_location) {
+                                      const SourceLocation &source_location) {
     using namespace mmotd::logging;
     string thread_id_str = to_string(std::this_thread::get_id());
     auto now_time_point = date::make_zoned(date::locate_zone("America/Denver"), std::chrono::system_clock::now());
-    string now_str = date::format("%F %H:%M:%S", now_time_point).substr(0, 23);
+    static constexpr size_t DATE_TIME_MILLISECOND_OFFSET = 23;
+    static constexpr size_t SEVERITY_FIELD_WIDTH = 7;
+    string now_str = date::format("%F %H:%M:%S", now_time_point).substr(0, DATE_TIME_MILLISECOND_OFFSET);
     fmt::format_to(std::back_inserter(out),
                    GetSeverityStyle(severity),
-                   FMT_STRING("{} [{:^7}] [{}] [{}] "),
+                   FMT_STRING("{} [{:^{}}] [{}] [{}] "),
                    now_str,
                    to_string(severity),
+                   SEVERITY_FIELD_WIDTH,
                    thread_id_str,
                    to_string(source_location));
 }
@@ -202,7 +206,7 @@ void GetFormattedOutput(fmt::memory_buffer &out,
                         fmt::string_view format,
                         fmt::format_args args) {
     fmt::vformat_to(std::back_inserter(out), GetSeverityStyle(severity), format, args);
-    if (out.size() != 0 && out.data()[out.size() - 1] != '\n') {
+    if (out.size() != 0 && out[out.size() - 1] != '\n') {
         out.push_back('\n');
     }
 }
@@ -220,27 +224,35 @@ void WriteLogHeader(const fs::path &binary_path) {
                    "",
                    header,
                    size(header) + 2);
-    GetFileLogger()->WriteLog(data);
+    GetFileLogger().WriteLog(data);
 }
 
 } // namespace
 
 namespace mmotd::logging {
 
+Severity GetSeverity() noexcept {
+    return LOGGING_SEVERITY;
+}
+
+void UpdateSeverity(Severity severity) noexcept {
+    LOGGING_SEVERITY = severity;
+}
+
 void InitializeLogging(const string &binary_name) {
     auto logging_path = GetLoggingPath(binary_name);
-    GetFileLogger()->Open(logging_path);
+    GetFileLogger().Open(logging_path);
     WriteLogHeader(binary_name);
 }
 
-void LogInternal(const mmotd::source_location::SourceLocation &source_location,
+void LogInternal(const SourceLocation &source_location,
                  Severity severity,
                  fmt::string_view format,
                  fmt::format_args args) {
     auto data = fmt::memory_buffer{};
     GetSourceLocationFormattedOutput(data, severity, source_location);
     GetFormattedOutput(data, severity, format, args);
-    GetFileLogger()->WriteLog(data, severity == Severity::fatal);
+    GetFileLogger().WriteLog(data, severity == Severity::fatal);
 }
 
 } // namespace mmotd::logging
