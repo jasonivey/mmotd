@@ -1,13 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/big_five_macros.h"
-#include "common/include/chrono_io.h"
+#include "common/include/information_decls.h"
 
-#include <chrono>
 #include <cstdlib>
 #include <string>
 #include <string_view>
-#include <type_traits>
 
 #include <fmt/format.h>
 
@@ -49,8 +47,8 @@ public:
 private:
     void SetValueImpl(fmt::string_view format, fmt::format_args args) { value_ = fmt::vformat(format, args); }
 
-    CategoryId category_;
-    InformationId information_id_;
+    CategoryId category_ = CategoryId::ID_INVALID;
+    InformationId information_id_ = InformationId::ID_INVALID_INVALID_INFORMATION;
     std::string id_str_;
     std::string name_;
     std::string format_str_;

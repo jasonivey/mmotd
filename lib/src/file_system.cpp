@@ -27,23 +27,19 @@ void FileSystem::FindInformation() {
         return;
     }
 
-    auto usage = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_USAGE);
+    auto usage = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_PERCENT_USED);
     usage.SetName("Usage of /");
     auto percent_used = ((root_fs.capacity - root_fs.available) * 100) / static_cast<double>(root_fs.capacity);
-    usage.SetValueArgs(percent_used, to_human_size(root_fs.capacity));
+    usage.SetValueArgs(percent_used);
     AddInformation(usage);
 
-    auto capacity = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_CAPACITY);
-    capacity.SetValueArgs(root_fs.capacity);
+    auto capacity = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_TOTAL);
+    capacity.SetValueArgs(to_human_size(root_fs.capacity));
     AddInformation(capacity);
 
     auto free = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_FREE);
     free.SetValueArgs(root_fs.free);
     AddInformation(free);
-
-    auto available = GetInfoTemplate(InformationId::ID_FILE_SYSTEM_AVAILABLE);
-    available.SetValueArgs(root_fs.available);
-    AddInformation(available);
 }
 
 } // namespace mmotd::information

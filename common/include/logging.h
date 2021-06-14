@@ -18,8 +18,12 @@ void InitializeLogging(const std::string &binary_name);
 
 void LogInternal(const mmotd::source_location::SourceLocation &source_location,
                  Severity severity,
-                 fmt::string_view format,
+                 const fmt::string_view &format,
                  fmt::format_args args);
+
+void LogInternal(const mmotd::source_location::SourceLocation &source_location,
+                 Severity severity,
+                 const fmt::string_view &format);
 
 template<typename S, typename... Args>
 void Log(const mmotd::source_location::SourceLocation &source_location,
@@ -27,6 +31,11 @@ void Log(const mmotd::source_location::SourceLocation &source_location,
          const S &format,
          Args &&...args) {
     LogInternal(source_location, severity, format, fmt::make_args_checked<Args...>(format, args...));
+}
+
+template<typename S>
+void Log(const mmotd::source_location::SourceLocation &source_location, Severity severity, const S &format) {
+    LogInternal(source_location, severity, format);
 }
 
 } // namespace mmotd::logging

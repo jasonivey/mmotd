@@ -311,7 +311,7 @@ value_color: [{}])"),
 bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
     auto i = find(begin(default_config.columns), end(default_config.columns), column);
     if (i == end(default_config.columns)) {
-        LOG_ERROR("column item at row index={} and column={} but config.columns olny specify {}",
+        LOG_ERROR("item at row index={} has an invalid column={}, valid columns are {}",
                   row_index,
                   column_to_string(column),
                   default_config.columns_to_string());
@@ -332,12 +332,12 @@ vector<fmt::text_style> TemplateItemSettings::read_colors(const json &color_list
     return color_defs;
 }
 
-json TemplateItemSettings::write_colors(const vector<fmt::text_style> &color_defs) const {
+vector<string> TemplateItemSettings::write_colors(const vector<fmt::text_style> &color_defs) const {
     auto color_strs = vector<string>{};
     for (auto color_def : color_defs) {
         color_strs.push_back(color::to_string(color_def));
     }
-    return json{color_strs};
+    return color_strs;
 }
 
 void TemplateItemSettings::from_json(const json &root, const TemplateItemSettings *default_settings) {
@@ -409,23 +409,58 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
     }
 }
 
-void TemplateItemSettings::to_json(json &root) const {
+void TemplateItemSettings::to_json(json &root, const TemplateItemSettings &default_settings) const {
+    if (this == &default_settings) {
+        default_to_json(root);
+    } else {
+        not_default_to_json(root, default_settings);
+    }
+}
+
+void TemplateItemSettings::default_to_json(nlohmann::json &root) const {
     root = json{{"indent_size", indent_size},
-                // {"row_index", row_index},
-                // {"repeatable_index", repeatable_index},
                 {"column", column_to_string(column)},
                 {"prepend_newlines", prepend_newlines},
                 {"append_newlines", append_newlines},
                 {"is_repeatable", is_repeatable},
                 {"is_optional", is_optional},
-                {"name", name},
                 {"name_color", write_colors(name_color)},
-                {"value", value},
                 {"value_color", write_colors(value_color)}};
 }
 
-void to_json(json &root, const TemplateItemSettings &settings) {
-    settings.to_json(root);
+void TemplateItemSettings::not_default_to_json(nlohmann::json &root,
+                                               const TemplateItemSettings &default_settings) const {
+    if (indent_size != default_settings.indent_size) {
+        root["indent_size"] = indent_size;
+    }
+    root["row_index"] = row_index;
+    if (column != default_settings.column) {
+        root["column"] = column_to_string(column);
+    }
+    if (prepend_newlines != default_settings.prepend_newlines) {
+        root["prepend_newlines"] = prepend_newlines;
+    }
+    if (append_newlines != default_settings.append_newlines) {
+        root["append_newlines"] = append_newlines;
+    }
+    if (is_repeatable != default_settings.is_repeatable) {
+        root["is_repeatable"] = is_repeatable;
+    }
+    if (is_optional != default_settings.is_optional) {
+        root["is_optional"] = is_optional;
+    }
+    if (!name.empty()) {
+        root["name"] = name;
+    }
+    if (!name_color.empty() && write_colors(name_color) != write_colors(default_settings.name_color)) {
+        root["name_color"] = write_colors(name_color);
+    }
+    if (!value.empty()) {
+        root["value"] = value;
+    }
+    if (!value_color.empty() && write_colors(value_color) != write_colors(default_settings.value_color)) {
+        root["value_color"] = write_colors(value_color);
+    }
 }
 
 void from_json(const json &root, TemplateItemSettings &settings) {
@@ -520,8 +555,13 @@ void TemplateConfig::to_json(json &root) const {
     for_each(begin(columns), end(columns), [&columns_strs](int value) {
         columns_strs.push_back(column_to_string(value));
     });
-    root =
-        json{{"columns", columns_strs}, {"default_settings", default_settings}, {"output_settings", output_settings}};
+
+    auto json_default_settings = json();
+    default_settings.to_json(json_default_settings, default_settings);
+
+    root = json{{"columns", columns_strs},
+                {"default_settings", json_default_settings},
+                {"output_settings", output_settings}};
 }
 
 void to_json(json &root, const TemplateConfig &template_config) {

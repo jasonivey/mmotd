@@ -2,6 +2,7 @@
 #include "common/include/information.h"
 #include "common/include/information_decls.h"
 #include "common/include/information_definitions.h"
+#include "common/include/logging.h"
 #include "lib/include/information_provider.h"
 
 #include <algorithm>

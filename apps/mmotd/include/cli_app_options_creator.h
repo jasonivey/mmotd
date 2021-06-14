@@ -4,6 +4,8 @@
 #include "common/include/app_options.h"
 #include "common/include/app_options_creator.h"
 
+#include <string>
+
 namespace CLI {
 class App;
 }
@@ -28,6 +30,9 @@ private:
     void AddOptionDeclarations(CLI::App &app);
 
     CliAppOptionsCreator() = default;
+
+    static void WriteDefaultConfiguration(std::string file_name, std::string app_config);
+    static void WriteDefaultOutputTemplate(std::string file_name);
 
     Options options_;
     bool app_finished_ = false;
