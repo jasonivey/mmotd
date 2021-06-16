@@ -17,6 +17,7 @@
 
 #include <CLI/CLI.hpp>
 #include <boost/algorithm/string.hpp>
+#include <fmt/color.h>
 #include <fmt/format.h>
 
 using mmotd::version::Version;
@@ -90,14 +91,12 @@ void CliAppOptionsCreator::Parse(const int argc, char **argv) {
     }
     auto output_config_path = options_.GetOutputConfigPath();
     if (output_config_path) {
-        auto new_config = ofstream(*output_config_path);
-        new_config << app.config_to_str(true, true);
+        WriteDefaultConfiguration(*output_config_path, app.config_to_str(true, true));
         app_finished_ = true;
     }
     auto output_template_path = options_.GetOutputTemplatePath();
     if (output_template_path) {
-        using mmotd::results::CreateDefaultOutputTemplate;
-        CreateDefaultOutputTemplate(*output_template_path);
+        WriteDefaultOutputTemplate(*output_template_path);
         app_finished_ = true;
     }
     LOG_DEBUG("Options:\n{}", options_.to_string());
@@ -263,4 +262,25 @@ void CliAppOptionsCreator::AddOptionDeclarations(CLI::App &app) {
            [this](auto &&value) { return options_.SetQuote(forward<decltype(value)>(value)); },
            "display a random quote")
         ->group("");
+}
+
+static void PrintStatus(string_view msg) {
+    constexpr auto header_ts = fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green);
+    constexpr auto main_ts = fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white);
+    fmt::print(header_ts, FMT_STRING("[{:^7}]"), "INFO");
+    fmt::print(main_ts, FMT_STRING(": {}\n"), msg);
+}
+
+void CliAppOptionsCreator::WriteDefaultConfiguration(string file_name, string app_config) {
+    auto new_config = ofstream(file_name);
+    PrintStatus(format(FMT_STRING("start:  writing default configuration to '{}'"), file_name));
+    new_config << app_config << endl;
+    new_config.close();
+    PrintStatus(format(FMT_STRING("finish: writing default configuration to '{}'"), file_name));
+}
+
+void CliAppOptionsCreator::WriteDefaultOutputTemplate(string file_name) {
+    PrintStatus(format(FMT_STRING("start:  writing output template to '{}'"), file_name));
+    mmotd::results::WriteDefaultOutputTemplate(file_name);
+    PrintStatus(format(FMT_STRING("finish: writing output template to '{}'"), file_name));
 }

@@ -82,14 +82,12 @@ TEST_CASE("information ids are correct", "[InformationId]") {
     CHECK(InformationId::ID_LOCATION_INFO_TIMEZONE ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_LOCATION_INFO, 4006)));
 
-    CHECK(InformationId::ID_FILE_SYSTEM_USAGE ==
+    CHECK(InformationId::ID_FILE_SYSTEM_PERCENT_USED ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_FILE_SYSTEM, 5001)));
-    CHECK(InformationId::ID_FILE_SYSTEM_CAPACITY ==
+    CHECK(InformationId::ID_FILE_SYSTEM_TOTAL ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_FILE_SYSTEM, 5002)));
     CHECK(InformationId::ID_FILE_SYSTEM_FREE ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_FILE_SYSTEM, 5003)));
-    CHECK(InformationId::ID_FILE_SYSTEM_AVAILABLE ==
-          static_cast<InformationId>(MakeInformationId(CategoryId::ID_FILE_SYSTEM, 5004)));
 
     CHECK(InformationId::ID_FORTUNE_FORTUNE ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_FORTUNE, 6001)));

@@ -13,6 +13,7 @@
 
 #include <unistd.h>
 
+namespace fs = std::filesystem;
 using fmt::format;
 using namespace std;
 
@@ -27,8 +28,7 @@ optional<string> GetEnvironmentVariableValue(string variable_name) {
     return make_optional(string{env_value});
 }
 
-auto GetDefaultTemplatePath() {
-    namespace fs = std::filesystem;
+auto GetDefaultTemplatePath() -> fs::path {
     auto home_dir_holder = GetEnvironmentVariableValue("HOME");
     if (!home_dir_holder) {
         return fs::path{};
@@ -53,13 +53,13 @@ void append_option(string &existing_options_str, const string &name, T is_set, U
     existing_options_str += format(FMT_STRING("  {} [{}]: {}"), name, is_set() ? "SET" : "UNSET", get_value());
 }
 
-auto IsStdoutTtyImpl() {
+auto IsStdoutTtyImpl() -> bool {
     auto is_stdout_tty = isatty(STDOUT_FILENO) != 0;
     LOG_VERBOSE("stdout is{} a tty", is_stdout_tty ? "" : " not");
     return is_stdout_tty;
 }
 
-auto IsStdoutTty() {
+auto IsStdoutTty() -> bool {
     static const auto is_stdout_tty = IsStdoutTtyImpl();
     return is_stdout_tty;
 }

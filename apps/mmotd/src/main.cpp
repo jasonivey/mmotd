@@ -34,16 +34,28 @@ const tuple<bool, const AppOptions *> LoadAppOptions(const int argc, char **argv
 void PrintMmotd(const AppOptions &app_options) {
     auto options = app_options.Instance().GetOptions();
     if (!options.IsTemplatePathSet()) {
-        LOG_ERROR("template file was not specified");
+        LOG_INFO("template file was not specified");
+    }
+    const auto template_filename = options.GetTemplatePath();
+
+    using namespace mmotd::results;
+    auto output_template = unique_ptr<OutputTemplate>{};
+    if (!empty(template_filename)) {
+        output_template = MakeOutputTemplate(template_filename);
+    } else {
+        output_template = MakeOutputTemplateFromDefault();
+    }
+
+    if (!output_template) {
+        LOG_FATAL("unable to create output template from '{}'",
+                  !empty(template_filename) ? template_filename : "<internal output template>");
         return;
     }
+
     const auto &computer_information = mmotd::information::ComputerInformation::Instance();
     const auto &informations = computer_information.GetAllInformation();
 
-    const auto template_filename = options.GetTemplatePath();
-    if (auto output_template = mmotd::results::MakeOutputTemplate(template_filename); output_template) {
-        mmotd::results::PrintOutputTemplate(*output_template, informations);
-    }
+    PrintOutputTemplate(*output_template, informations);
 }
 
 int main_impl(int argc, char **argv) {

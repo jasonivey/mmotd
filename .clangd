@@ -1,4 +1,12 @@
 ---
 Index:
   Background: Skip     # Disable slow background indexing of these files.
+Diagnostics:
+  ClangTidy:
+    Remove:
+    - cppcoreguidelines-avoid-magic-numbers
+    - cppcoreguidelines-pro-bounds-array-to-pointer-decay
+    - cppcoreguidelines-pro-type-union-access
+    - cppcoreguidelines-macro-usage
+    # Remove: 'cppcoreguidelines-macro-usage,cppcoreguidelines-avoid-magic-numbers,cppcoreguidelines-pro-bounds-array-to-pointer-decay,cppcoreguidelines-pro-type-union-access'
 ...

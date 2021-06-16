@@ -38,10 +38,9 @@ INFO_DEF(LOCATION_INFO, ZIP_CODE, "zip code", "{}", 4004)
 INFO_DEF(LOCATION_INFO, STATE, "state", "{}", 4005)
 INFO_DEF(LOCATION_INFO, TIMEZONE, "timezone", "{}", 4006)
 
-INFO_DEF(FILE_SYSTEM, USAGE, "usage", "{:.01f}% of {}", 5001)
-INFO_DEF(FILE_SYSTEM, CAPACITY, "capacity", "{}", 5002)
+INFO_DEF(FILE_SYSTEM, PERCENT_USED, "percent used", "{:.01f}%", 5001)
+INFO_DEF(FILE_SYSTEM, TOTAL, "total", "{}", 5002)
 INFO_DEF(FILE_SYSTEM, FREE, "free", "{}", 5003)
-INFO_DEF(FILE_SYSTEM, AVAILABLE, "available", "{}", 5004)
 
 INFO_DEF(FORTUNE, FORTUNE, "", "{}", 6001)
 
@@ -54,13 +53,13 @@ INFO_DEF(PROCESSOR_COUNT, PROCESSOR_CORE_COUNT, "processor count", "{}", 8001)
 INFO_DEF(LOAD_AVERAGE, LOAD_AVERAGE, "load average", "{:.02f}", 9001)
 
 INFO_DEF(MEMORY_USAGE, TOTAL, "total", "{}", 10001)
-INFO_DEF(MEMORY_USAGE, PERCENT_USED, "percent used", "{:.02f}% of {}", 10002)
+INFO_DEF(MEMORY_USAGE, PERCENT_USED, "percent used", "{:.01f}%", 10002)
 INFO_DEF(MEMORY_USAGE, FREE, "free", "{}", 10003)
 
 INFO_DEF(PROCESSES, PROCESS_COUNT, "process count", "{}", 11001)
 
 INFO_DEF(SWAP_USAGE, TOTAL, "total", "{}", 12001)
-INFO_DEF(SWAP_USAGE, PERCENT_USED, "precent used", "{:.01f}% of {}", 12002)
+INFO_DEF(SWAP_USAGE, PERCENT_USED, "precent used", "{:.01f}%", 12002)
 INFO_DEF(SWAP_USAGE, FREE, "free", "{}", 12003)
 INFO_DEF(SWAP_USAGE, ENCRYPTED, "encrypted", "{}", 12004)
 
