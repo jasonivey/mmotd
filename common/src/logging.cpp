@@ -74,10 +74,9 @@ void FileLogger::Open(const fs::path &file_path) {
     auto lock = lock_guard<mutex>(mutex_);
     file_stream_.open(file_path);
     if (!file_stream_.is_open()) {
-        auto data = fmt::memory_buffer{};
-        format_system_error(data, errno, fmt::format(FMT_STRING("cannot open file '{}'"), file_path.string()));
+        auto sys_error = fmt::system_error(errno, FMT_STRING("cannot open file '{}'"), file_path.string());
         auto style = fmt::text_style(fmt::emphasis::bold) | fmt::fg(fmt::terminal_color::red);
-        fmt::print(stderr, style, FMT_STRING("{}"), string_view(data.data(), data.size()));
+        fmt::print(stderr, style, FMT_STRING("{}: {}"), sys_error.code(), sys_error.what());
     }
 }
 

@@ -115,7 +115,6 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wshadow>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wcast-align>
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wstrict-aliasing>
-        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wstrict-overflow>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wfloat-equal>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wwrite-strings>
         # todo: fix_jasoni - these are great warnings but they need a seperate task to enable them
@@ -136,6 +135,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>
         # disable -- clang
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-gnu-zero-variadic-macro-arguments>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-unused-local-typedef>
         # msvc only
         PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/EHsc> # /EHsc # Warning fix!
         PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4>   # /W4 increase warning level
