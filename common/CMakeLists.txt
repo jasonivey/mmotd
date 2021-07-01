@@ -39,6 +39,7 @@ add_library (
     src/network_device.cpp
     src/source_location.cpp
     src/source_location_common.cpp
+    src/system_command.cpp
     src/version.cpp
     )
 

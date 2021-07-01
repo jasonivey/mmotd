@@ -17,21 +17,21 @@ static const bool swap_usage_factory_registered =
 void Swap::FindInformation() {
     auto details = mmotd::platform::GetSwapDetails();
 
-    auto total = GetInfoTemplate(InformationId::ID_SWAP_USAGE_TOTAL);
-    total.SetValueArgs(to_human_size(details.total));
-    AddInformation(total);
+    if (!details.encrypted) {
+        auto total = GetInfoTemplate(InformationId::ID_SWAP_USAGE_TOTAL);
+        total.SetValueArgs(to_human_size(details.total));
+        AddInformation(total);
 
-    auto free = GetInfoTemplate(InformationId::ID_SWAP_USAGE_FREE);
-    free.SetValueArgs(details.free);
-    AddInformation(free);
+        auto free = GetInfoTemplate(InformationId::ID_SWAP_USAGE_FREE);
+        free.SetValueArgs(details.free);
+        AddInformation(free);
 
-    auto percent_used = GetInfoTemplate(InformationId::ID_SWAP_USAGE_PERCENT_USED);
-    percent_used.SetValueArgs(details.percent_used);
-    AddInformation(percent_used);
-
-    if (details.encrypted) {
+        auto percent_used = GetInfoTemplate(InformationId::ID_SWAP_USAGE_PERCENT_USED);
+        percent_used.SetValueArgs(details.percent_used);
+        AddInformation(percent_used);
+    } else {
         auto encrypted = GetInfoTemplate(InformationId::ID_SWAP_USAGE_ENCRYPTED);
-        encrypted.SetValueArgs(" [encrypted]");
+        encrypted.SetValueArgs("[encrypted]");
         AddInformation(encrypted);
     }
 }

@@ -58,14 +58,105 @@
       ]
     },
     {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "Up Time:"
+      ],
+      "row_index": 5,
+      "value": [
+        "%ID_BOOT_TIME_UP_TIME%"
+      ]
+    },
+    {
       "append_newlines": 2,
       "column": "ENTIRE_LINE",
       "name": [
         "Boot Time:"
       ],
-      "row_index": 5,
+      "row_index": 6,
       "value": [
         "%ID_BOOT_TIME_BOOT_TIME%"
+      ]
+    },
+    {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "Type:"
+      ],
+      "row_index": 7,
+      "value": [
+        "%ID_HARDWARE_MACHINE_TYPE%"
+      ]
+    },
+    {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "Model:"
+      ],
+      "row_index": 8,
+      "value": [
+        "%ID_HARDWARE_MACHINE_MODEL%"
+      ]
+    },
+    {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "CPU:"
+      ],
+      "row_index": 9,
+      "value": [
+        "%ID_HARDWARE_CPU_NAME%"
+      ]
+    },
+    {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "CPU Cores:"
+      ],
+      "row_index": 10,
+      "value": [
+        "%ID_HARDWARE_CPU_CORE_COUNT%"
+      ]
+    },
+    {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "CPU Byte Order:"
+      ],
+      "row_index": 11,
+      "value": [
+        "%ID_HARDWARE_CPU_BYTE_ORDER%"
+      ]
+    },
+    {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "GPU:"
+      ],
+      "row_index": 12,
+      "value": [
+        "%ID_HARDWARE_GPU_MODEL_NAME%"
+      ]
+    },
+    {
+      "column": "ENTIRE_LINE",
+      "name": [
+        "Monitor:"
+      ],
+      "row_index": 13,
+      "value": [
+        "%ID_HARDWARE_MONITOR_NAME%"
+      ]
+    },
+    {
+      "append_newlines": 2,
+      "column": "ENTIRE_LINE",
+      "name": [
+        "Resolution:"
+      ],
+      "row_index": 14,
+      "value": [
+        "%ID_HARDWARE_MONITOR_RESOLUTION%"
       ]
     },
     {
@@ -73,7 +164,7 @@
       "name": [
         "Computer Name:"
       ],
-      "row_index": 6,
+      "row_index": 15,
       "value": [
         "%ID_SYSTEM_INFORMATION_COMPUTER_NAME%"
       ]
@@ -83,7 +174,7 @@
       "name": [
         "Hostname:"
       ],
-      "row_index": 6,
+      "row_index": 15,
       "value": [
         "%ID_SYSTEM_INFORMATION_HOST_NAME%"
       ]
@@ -93,7 +184,7 @@
       "name": [
         "Public IP:"
       ],
-      "row_index": 7,
+      "row_index": 16,
       "value": [
         "%ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP%"
       ]
@@ -103,7 +194,7 @@
       "name": [
         "Processes:"
       ],
-      "row_index": 7,
+      "row_index": 16,
       "value": [
         "%ID_PROCESSES_PROCESS_COUNT%"
       ]
@@ -113,7 +204,7 @@
       "name": [
         "System Load:"
       ],
-      "row_index": 8,
+      "row_index": 17,
       "value": [
         "%ID_LOAD_AVERAGE_LOAD_AVERAGE%"
       ]
@@ -123,7 +214,7 @@
       "name": [
         "Users Logged In:"
       ],
-      "row_index": 8,
+      "row_index": 17,
       "value": [
         "%ID_LOGGED_IN_USER_LOGGED_IN%"
       ]
@@ -133,7 +224,7 @@
       "name": [
         "Usage of /:"
       ],
-      "row_index": 9,
+      "row_index": 18,
       "value": [
         "%ID_FILE_SYSTEM_PERCENT_USED% of %ID_FILE_SYSTEM_TOTAL%"
       ]
@@ -146,7 +237,7 @@
         "IP %ID_NETWORK_INFO_INTERFACE_NAME%:",
         "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"
       ],
-      "row_index": 9,
+      "row_index": 18,
       "value": [
         "%ID_NETWORK_INFO_IP%",
         "%ID_NETWORK_INFO_MAC%"
@@ -154,7 +245,7 @@
     },
     {
       "column": "1",
-      "row_index": 10,
+      "row_index": 19,
       "name": [
         "Memory Usage:"
       ],
@@ -167,7 +258,7 @@
       "name": [
         "Swap Usage:"
       ],
-      "row_index": 11,
+      "row_index": 20,
       "value": [
         "%ID_SWAP_USAGE_PERCENT_USED% of %ID_SWAP_USAGE_TOTAL%%ID_SWAP_USAGE_ENCRYPTED%"
       ]
@@ -176,7 +267,7 @@
       "column": "ENTIRE_LINE",
       "indent_size": 0,
       "prepend_newlines": 1,
-      "row_index": 12,
+      "row_index": 21,
       "value": [
         "%ID_PACKAGE_MANAGEMENT_UPDATE_DETAILS%"
       ],
@@ -188,7 +279,7 @@
       "column": "ENTIRE_LINE",
       "indent_size": 0,
       "prepend_newlines": 1,
-      "row_index": 13,
+      "row_index": 22,
       "value": [
         "%ID_FORTUNE_FORTUNE%"
       ],
@@ -200,7 +291,7 @@
       "column": "ENTIRE_LINE",
       "indent_size": 0,
       "prepend_newlines": 1,
-      "row_index": 14,
+      "row_index": 23,
       "value": [
         "%ID_PACKAGE_MANAGEMENT_REBOOT_REQUIRED%"
       ],

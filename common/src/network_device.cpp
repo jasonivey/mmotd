@@ -19,11 +19,20 @@ NetworkDevice::NetworkDevice(const string &interface) : interface_name(interface
 }
 
 bool NetworkDevice::HasActiveBeenTested() const {
-    return !boost::indeterminate(active);
+    auto active_holds_initial_value = boost::indeterminate(active);
+    return !active_holds_initial_value;
 }
 
 bool NetworkDevice::IsActive() const {
-    return boost::indeterminate(active) ? false : static_cast<bool>(active);
+    if (active) {
+        return true;
+    } else if (!active) {
+        return false;
+    } else {
+        // since active hasn't been set to true/false yet then return 'false'
+        MMOTD_CHECKS(boost::indeterminate(active), "active must be indeterminate as we tested for true/false");
+        return false;
+    }
 }
 
 void NetworkDevice::SetActive(bool value) {
@@ -62,20 +71,26 @@ void NetworkDevices::SetActive(const string &interface_name, bool value) {
 void NetworkDevices::FilterWorthless() {
     auto i = remove_if(std::begin(devices_), std::end(devices_), [](const auto &device) {
         if (device.interface_name.empty()) {
+            // if there wasn't a name given to the interface (en1, en5, etc) -- remove device
             return true;
         } else if (!device.HasActiveBeenTested() || !device.IsActive()) {
+            // if the device isn't active or couldn't be tested for whether it was active -- remove device
             return true;
         } else if (!device.mac_address) {
+            // if the device does not have a mac address -- remove device
             return true;
         } else if (device.ip_addresses.empty()) {
+            // if there are no IP addresses at all -- remove device
             return true;
         } else {
+            // if there are no IPv4 addresses -- remove device
             auto j = find_if(std::begin(device.ip_addresses), std::end(device.ip_addresses), [](const auto &ip) {
                 return ip.is_v4();
             });
             return j == std::end(device.ip_addresses);
         }
     });
+    // delete all those devices which were moved to (i, end(devices_)]
     devices_.erase(i, std::end(devices_));
 }
 

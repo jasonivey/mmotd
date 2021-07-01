@@ -45,7 +45,7 @@ struct TemplateItemSettings {
     fmt::text_style GetValueColor(size_t index) const noexcept;
 
     std::string to_string() const;
-    bool validate(const TemplateConfig &default_settings);
+    bool is_valid(const TemplateConfig &default_settings);
 
     void from_json(const nlohmann::json &root, const TemplateItemSettings *default_settings);
     void to_json(nlohmann::json &root, const TemplateItemSettings &default_settings) const;

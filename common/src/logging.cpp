@@ -5,6 +5,7 @@
 #include "common/include/source_location.h"
 #include "common/include/version.h"
 
+#include <algorithm>
 #include <charconv>
 #include <chrono>
 #include <cstdint>
@@ -27,32 +28,42 @@ namespace fs = std::filesystem;
 using namespace mmotd::source_location;
 using namespace std;
 
-namespace {
+namespace mmotd::logging {
 
-class LogSeverity {
+class LogSeverityImpl : public LogSeverity {
 public:
-    ~LogSeverity() = default;
-    LogSeverity(const LogSeverity &) = delete;
-    LogSeverity(const LogSeverity &&) = delete;
-    const LogSeverity &operator=(const LogSeverity &) = delete;
-    const LogSeverity &operator=(const LogSeverity &&) = delete;
+    LogSeverityImpl() = default;
+    ~LogSeverityImpl() override;
+    LogSeverityImpl(const LogSeverityImpl &) = delete;
+    LogSeverityImpl(const LogSeverityImpl &&) = delete;
+    const LogSeverityImpl &operator=(const LogSeverityImpl &) = delete;
+    const LogSeverityImpl &operator=(const LogSeverityImpl &&) = delete;
 
-    static LogSeverity &Instance() {
-        static auto log_severity = LogSeverity{};
-        return log_severity;
-    }
-
-    mmotd::logging::Severity GetSeverity() const noexcept { return severity_; }
-    void SetSeverity(mmotd::logging::Severity severity) noexcept { severity_ = severity; }
+    Severity GetSeverity() const override { return severity_; }
+    void SetSeverity(Severity severity) override { severity_ = severity; }
 
 private:
-    LogSeverity() = default;
     mmotd::logging::Severity severity_ = mmotd::logging::Severity::verbose;
 };
 
+LogSeverity::~LogSeverity() {
+}
+
+LogSeverityImpl::~LogSeverityImpl() {
+}
+
+mmotd::logging::LogSeverity &mmotd::logging::LogSeverity::Instance() noexcept {
+    static LogSeverityImpl instance;
+    return instance;
+}
+
+} // namespace mmotd::logging
+
+namespace {
+
 class FileLogger {
 public:
-    FileLogger() = default;
+    FileLogger() : file_stream_(), mutex_() {}
     ~FileLogger() { Close(); }
     FileLogger(const FileLogger &) = delete;
     FileLogger(const FileLogger &&) = delete;
@@ -94,6 +105,9 @@ void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr
     auto lock = lock_guard<mutex>(mutex_);
     if (file_stream_ && file_stream_.is_open()) {
         fmt::print(file_stream_, FMT_STRING("{}"), string_view(data(input), size(input)));
+		// fix_todo: add config value for debug which when enabled can enable a FileLogger debug variable
+        // temporary debug statement
+        // file_stream_.flush();
     }
     if (append_to_stderr) {
         fmt::print(stderr, FMT_STRING("{}"), string_view(data(input), size(input)));
@@ -259,13 +273,13 @@ void CommonLogInternal(const SourceLocation &source_location,
 
 namespace mmotd::logging {
 
-Severity GetSeverity() noexcept {
-    return LogSeverity::Instance().GetSeverity();
-}
+// Severity GetSeverity() noexcept {
+//     return LogSeverity::Instance().GetSeverity();
+// }
 
-void UpdateSeverity(Severity severity) noexcept {
-    return LogSeverity::Instance().SetSeverity(severity);
-}
+// void UpdateSeverity(Severity severity) noexcept {
+//     return LogSeverity::Instance().SetSeverity(severity);
+// }
 
 void InitializeLogging(const string &binary_name) {
     auto logging_path = GetLoggingPath(binary_name);

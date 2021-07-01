@@ -18,15 +18,6 @@ enum class ArchitectureType {
 ArchitectureType to_architecture_type(const std::string &type_str);
 std::string to_string(ArchitectureType architecture);
 
-enum class EndianType {
-    little,
-    big,
-    unknown,
-};
-
-EndianType detect_endian_type();
-std::string to_string(EndianType endian);
-
 enum class KernelType { unknown, linux, darwin };
 
 KernelType to_kernel_type(const std::string &type_str);
@@ -55,7 +46,6 @@ struct KernelDetails {
     KernelVersion kernel_version;
     KernelType kernel = KernelType::unknown;
     ArchitectureType architecture = ArchitectureType::unknown;
-    EndianType endian = EndianType::unknown;
 
     static KernelDetails from_string(const std::string &kernel_type,
                                      const std::string &host_name,

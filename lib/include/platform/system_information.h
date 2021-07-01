@@ -12,7 +12,6 @@ struct SystemDetails {
     std::string kernel_release;
     std::string kernel_type;
     std::string architecture_type;
-    std::string byte_order;
     std::string platform_version;
     std::string platform_name;
 

@@ -72,6 +72,12 @@ optional<string> TemplateString::GetInformationValue(const string &information_i
     }
     const auto &information = *information_holder;
     auto information_value = information.GetValue();
+    if (empty(information_value)) {
+        // fix_todo: set a config value item for what this string should be
+        //  when a value has not been found.  i.e. if hostname had an error
+        //  when attempting to query the value...
+        information_value = "<unknown>";
+    }
     LOG_VERBOSE("found {} with value {}", information_id, information_value);
     return make_optional(information_value);
 }

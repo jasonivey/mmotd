@@ -17,6 +17,10 @@ using fmt::format;
 
 namespace mmotd::networking {
 
+MacAddress::MacAddress() {
+    memset(std::data(data_), 0, std::size(data_));
+}
+
 MacAddress::MacAddress(const uint8_t *buffer, size_t buffer_size) {
     if (buffer_size != MAC_ADDRESS_SIZE) {
         MMOTD_THROW_INVALID_ARGUMENT("invalid size of mac address");

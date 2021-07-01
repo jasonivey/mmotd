@@ -13,15 +13,12 @@ static const bool load_average_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::LoadAverage>(); });
 
 void LoadAverage::FindInformation() {
-    auto details = mmotd::platform::GetLoadAverageDetails();
-    auto [processor_cnt, ld_average] = details;
-
-    auto processor_count = GetInfoTemplate(InformationId::ID_PROCESSOR_COUNT_PROCESSOR_CORE_COUNT);
-    processor_count.SetValueArgs(processor_cnt);
-    AddInformation(processor_count);
-
+    auto load_average_holder = mmotd::platform::GetLoadAverageDetails();
+    if (!load_average_holder.has_value()) {
+        return;
+    }
     auto load_average = GetInfoTemplate(InformationId::ID_LOAD_AVERAGE_LOAD_AVERAGE);
-    load_average.SetValueArgs(ld_average);
+    load_average.SetValueArgs(*load_average_holder);
     AddInformation(load_average);
 }
 

@@ -2,12 +2,14 @@
 #if defined(_WIN32)
 #include "lib/include/platform/load_average.h"
 
+#include <optional>
+
 using namespace std;
 
 namespace mmotd::platform {
 
 LoadAverageDetails GetLoadAverageDetails() {
-    return LoadAverageDetails{};
+    return nullopt;
 }
 
 } // namespace mmotd::platform

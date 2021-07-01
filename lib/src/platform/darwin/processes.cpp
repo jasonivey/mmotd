@@ -4,6 +4,7 @@
 #include "common/include/posix_error.h"
 #include "lib/include/platform/processes.h"
 
+#include <array>
 #include <cstdint>
 #include <vector>
 
@@ -17,24 +18,26 @@ using namespace std;
 namespace {
 
 optional<vector<int32_t>> GetProcessesInfo() {
-    int mib[3] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL};
-    int count = 8; // arbitrary count
-    for (int index = 0; index < count; ++index) {
-        LOG_VERBOSE("{}. attempting to get process list", index);
+    auto mib = array<int, 3>{CTL_KERN, KERN_PROC, KERN_PROC_ALL};
+    static constexpr int count = 8; // arbitrary retry count
+    for (int i = 0; i != count; ++i) {
+        LOG_VERBOSE("attempt #{} to get process list", i + 1);
         auto size = size_t{0};
-        if (sysctl(mib, 3, nullptr, &size, nullptr, 0) == -1) {
+        if (sysctl(std::data(mib), 3, nullptr, &size, nullptr, 0) == -1) {
             LOG_ERROR("sysctl(KERN_PROC_ALL) failed, details: {}", mmotd::error::posix_error::to_string());
             break;
         }
 
         size += size + (size >> 3); // add some
         auto buffer = vector<uint8_t>(size, 0);
-        if (sysctl(mib, 3, buffer.data(), &size, nullptr, 0) == -1) {
+        if (sysctl(std::data(mib), 3, std::data(buffer), &size, nullptr, 0) == -1) {
             if (errno == ENOMEM) {
-                LOG_ERROR("sysctl(KERN_PROC_ALL) failed with ENOMEM, attempting allocation again");
+                LOG_ERROR("attempt #{} failed, sysctl(KERN_PROC_ALL) == ENOMEM, attempting larger allocation", i + 1);
                 continue;
             }
-            LOG_ERROR("sysctl(KERN_PROC_ALL) failed, details: {}", mmotd::error::posix_error::to_string());
+            LOG_ERROR("attempt #{} failed, sysctl(KERN_PROC_ALL) failed, details: {}",
+                      i + 1,
+                      mmotd::error::posix_error::to_string());
             break;
         }
 
@@ -48,10 +51,10 @@ optional<vector<int32_t>> GetProcessesInfo() {
 
         auto pids = vector<int32_t>{};
         const kinfo_proc *current = proc_list;
-        for (auto i = size_t{0}; i < proc_count && current != nullptr; ++i, ++current) {
+        for (auto j = size_t{0}; j < proc_count && current != nullptr; ++j, ++current) {
             pids.push_back(current->kp_proc.p_pid);
         }
-        return pids;
+        return {pids};
     }
 
     return nullopt;
@@ -66,7 +69,7 @@ optional<size_t> GetProcessCount() {
     if (!process_ids) {
         return nullopt;
     }
-    return make_optional((*process_ids).size());
+    return {(*process_ids).size()};
 }
 
 } // namespace mmotd::platform
