@@ -11,8 +11,28 @@ namespace mmotd::logging {
 
 enum class Severity { none = 0, fatal = 1, error = 2, warning = 3, info = 4, debug = 5, verbose = 6 };
 
-Severity GetSeverity() noexcept;
-void UpdateSeverity(Severity severity) noexcept;
+class LogSeverity {
+public:
+    LogSeverity() = default;
+    virtual ~LogSeverity();
+    LogSeverity(const LogSeverity &) = delete;
+    LogSeverity(const LogSeverity &&) = delete;
+    const LogSeverity &operator=(const LogSeverity &) = delete;
+    const LogSeverity &operator=(const LogSeverity &&) = delete;
+
+    static LogSeverity &Instance() noexcept;
+
+    virtual Severity GetSeverity() const = 0;
+    virtual void SetSeverity(Severity severity) = 0;
+};
+
+inline Severity GetSeverity() noexcept {
+    return LogSeverity::Instance().GetSeverity();
+}
+
+inline void UpdateSeverity(Severity severity) noexcept {
+    return LogSeverity::Instance().SetSeverity(severity);
+}
 
 void InitializeLogging(const std::string &binary_name);
 

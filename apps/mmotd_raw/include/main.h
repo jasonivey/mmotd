@@ -63,6 +63,10 @@ bool ForceLinkOptionalProviders() {
     extern bool gLinkPackageManagementInfo;
     gLinkPackageManagementInfo = true;
 #endif
+#if !defined(OMIT_LINK_HARDWARE_INFORMATION)
+    extern bool gLinkHardwareInformation;
+    gLinkHardwareInformation = true;
+#endif
     return true;
 }
 

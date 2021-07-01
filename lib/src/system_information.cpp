@@ -48,10 +48,6 @@ void SystemInformation::CreateInformationObjects(const mmotd::platform::SystemDe
     architecture_type.SetValueArgs(details.architecture_type);
     AddInformation(architecture_type);
 
-    auto byte_order = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_BYTEORDER);
-    byte_order.SetValueArgs(details.byte_order);
-    AddInformation(byte_order);
-
     auto platform_version = GetInfoTemplate(InformationId::ID_SYSTEM_INFORMATION_PLATFORM_VERSION);
     platform_version.SetValueArgs(details.platform_version);
     AddInformation(platform_version);

@@ -1,13 +1,15 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #if defined(__APPLE__)
+#include "common/assertion/include/precondition.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/system_information.h"
 #include "lib/include/system_details.h"
 
+#include <array>
+#include <cstddef>
 #include <limits>
 #include <optional>
-#include <sstream>
 #include <tuple>
 #include <vector>
 
@@ -25,22 +27,20 @@ namespace {
 
 template<typename T>
 string GetPlatformIdentifier(int major, int minor, const T &version_map) {
-    auto identifier = string{"unknown"};
     for (const auto &[major_version, minor_version, id] : version_map) {
         if (major == major_version && minor <= minor_version) {
-            identifier = string{id};
-            break;
+            return string(id);
         }
     }
-    return identifier;
+    return string{"unknown"};
 }
 
 string GetPlatformNameVersion(int major, int minor) {
-    static constexpr std::array<std::tuple<int, int, const char *>, 6> PLATFORM_NAMES = {
+    static constexpr std::array<std::tuple<int, int, const char *>, 3> PLATFORM_NAMES = {
         make_tuple(10, 11, "Mac OS X"),
         make_tuple(10, 15, "macOS 10"),
         make_tuple(11, numeric_limits<int>::max(), "macOS 11")};
-    static constexpr std::array<std::tuple<int, int, const char *>, 20> VERSION_NAMES = {
+    static constexpr std::array<std::tuple<int, int, const char *>, 17> VERSION_NAMES = {
         make_tuple(10, 0, "Cheetah"),
         make_tuple(10, 1, "Puma"),
         make_tuple(10, 2, "Jaguar"),
@@ -66,24 +66,16 @@ string GetPlatformNameVersion(int major, int minor) {
 }
 
 optional<tuple<int, int, int>> GetOsVersion() {
-    int mib[4] = {0, 0, 0, 0};
-    size_t miblen = 512;
-    if (sysctlnametomib("kern.osproductversion", mib, &miblen) == -1) {
+    auto version_buf = array<char, 64>{};
+    auto buf_size = std::size(version_buf);
+    if (sysctlbyname("kern.osproductversion", std::data(version_buf), &buf_size, nullptr, 0) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
-        LOG_ERROR("error calling sysctlnametomib with kern.osproductversion, details: {}", error_str);
-        return nullopt;
-    }
-    char version[512] = {0};
-    memset(version, 0, 512);
-    size_t length = sizeof(long long);
-    if (sysctl(mib, 2, version, &length, nullptr, 0) == -1) {
-        auto error_str = mmotd::error::posix_error::to_string();
-        LOG_ERROR("error calling sysctl with kern.osproductversion, details: {}", error_str);
+        LOG_ERROR("error calling sysctlbyname with kern.osproductversion, details: {}", error_str);
         return nullopt;
     }
     auto versions = vector<string>{};
-    boost::split(versions, version, boost::is_any_of("."));
-    auto version_numbers = vector<int>{0, 0, 0};
+    boost::split(versions, version_buf, boost::is_any_of("."));
+    auto version_numbers = vector<int>(size_t{3}, int{0});
     if (!versions.empty()) {
         version_numbers[0] = stoi(versions[0]);
     }
@@ -93,7 +85,7 @@ optional<tuple<int, int, int>> GetOsVersion() {
     if (versions.size() > 2) {
         version_numbers[2] = stoi(versions[2]);
     }
-    return make_optional(make_tuple(version_numbers[0], version_numbers[1], version_numbers[2]));
+    return {make_tuple(version_numbers[0], version_numbers[1], version_numbers[2])};
 }
 
 optional<KernelDetails> GetKernelDetails() {
@@ -138,7 +130,6 @@ SystemDetails GetSystemInformationDetails() {
     details.kernel_release = kernel_details.kernel_version.release.to_string();
     details.kernel_type = mmotd::system::to_string(kernel_details.kernel);
     details.architecture_type = mmotd::system::to_string(kernel_details.architecture);
-    details.byte_order = mmotd::system::to_string(kernel_details.endian);
 
     auto os_version_holder = GetOsVersion();
     if (!os_version_holder) {

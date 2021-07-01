@@ -8,7 +8,7 @@
 namespace mmotd::networking {
 
 struct MacAddress {
-    MacAddress() = default;
+    MacAddress();
     MacAddress(const std::uint8_t *buffer, std::size_t buffer_size);
 
     explicit operator bool() const { return !IsZero(); }
@@ -21,8 +21,8 @@ struct MacAddress {
 private:
     bool IsZero() const;
 
-    static const size_t MAC_ADDRESS_SIZE = 6;
-    std::array<std::uint8_t, MAC_ADDRESS_SIZE> data_;
+    static constexpr size_t MAC_ADDRESS_SIZE = 6;
+    std::array<std::uint8_t, MAC_ADDRESS_SIZE> data_ = {0, 0, 0, 0, 0, 0};
 };
 
 } // namespace mmotd::networking

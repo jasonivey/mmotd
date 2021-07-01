@@ -85,18 +85,6 @@ string to_string(ArchitectureType architecture) {
     }
 }
 
-string to_string(EndianType endian) {
-    switch (endian) {
-        case EndianType::little:
-            return "little";
-        case EndianType::big:
-            return "big";
-        case EndianType::unknown:
-        default:
-            return "unknown";
-    }
-}
-
 ArchitectureType to_architecture_type(const string &type_str) {
     if (boost::iequals(type_str, "x86_64")) {
         return ArchitectureType::x64;
@@ -108,17 +96,6 @@ ArchitectureType to_architecture_type(const string &type_str) {
         return ArchitectureType::x86;
     } else {
         return ArchitectureType::unknown;
-    }
-}
-
-EndianType detect_endian_type() {
-    const uint16_t test = 0xFF00;
-    const auto result = *static_cast<const uint8_t *>(static_cast<const void *>(&test));
-
-    if (result == 0xFF) {
-        return EndianType::big;
-    } else {
-        return EndianType::little;
     }
 }
 
@@ -186,7 +163,6 @@ KernelDetails KernelDetails::from_string(const string &kernel_type,
     kernel_details.host_name = host_name;
     kernel_details.computer_name = TransformHostNameToComputerName(host_name);
     kernel_details.architecture = to_architecture_type(architecture);
-    kernel_details.endian = detect_endian_type();
     return kernel_details;
 }
 

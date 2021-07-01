@@ -25,7 +25,7 @@ struct NetworkDevice {
     std::string interface_name;
     IpAddresses ip_addresses;
     MacAddress mac_address;
-    boost::tribool active{boost::indeterminate};
+    boost::tribool active = boost::indeterminate;
 
     bool HasActiveBeenTested() const;
     bool IsActive() const;

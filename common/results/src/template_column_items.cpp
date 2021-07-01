@@ -308,7 +308,7 @@ value_color: [{}])"),
                   mmotd::algorithms::join(value_color, ", ", color::to_string));
 }
 
-bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
+bool TemplateItemSettings::is_valid(const TemplateConfig &default_config) {
     auto i = find(begin(default_config.columns), end(default_config.columns), column);
     if (i == end(default_config.columns)) {
         LOG_ERROR("item at row index={} has an invalid column={}, valid columns are {}",
@@ -318,7 +318,7 @@ bool TemplateItemSettings::validate(const TemplateConfig &default_config) {
         return false;
     }
     if (empty(name) && empty(value)) {
-        LOG_ERROR("column item at row index={} does not have a name or a value", row_index);
+        LOG_ERROR("item at column={}, row={} has 0 names and 0 values", column_to_string(column), row_index);
         return false;
     }
     return true;
@@ -347,12 +347,10 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
         indent_size = default_settings->indent_size;
     }
     if (root.contains("row_index")) {
-        // no default taken from default_settings
+        // fix_todo: refactor the row_index property in favor of "NEXT" or "increment"
         root.at("row_index").get_to(row_index);
-    } else if (default_settings != nullptr) {
-        // default_settings == nullptr is only true when creating default_settings
-        LOG_WARNING("item missing row_index property (must have it for ordering purposes)");
     }
+    // this should never be in the default or in the "column_items" array
     if (root.contains("repeatable_index")) {
         root.at("repeatable_index").get_to(repeatable_index);
     } else if (default_settings != nullptr) {
@@ -383,12 +381,11 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
     } else if (default_settings != nullptr) {
         is_optional = default_settings->is_optional;
     }
+    // often when "column" == "ENTIRE_LINE" there will only be
+    //  "value" = ["%ID_SOME_PROPERTY%"] and no
+    //  "name" = [] -- this invariant is checked in TemplateItemSettings::is_valid
     if (root.contains("name")) {
-        // no default taken from default_settings
         root.at("name").get_to(name);
-    } else if (default_settings != nullptr) {
-        // default_settings == nullptr is only true when creating default_settings
-        LOG_WARNING("item missing name property (should leave an empty [] name for completeness)");
     }
     if (root.contains("name_color")) {
         name_color = read_colors(root["name_color"]);
@@ -396,11 +393,7 @@ void TemplateItemSettings::from_json(const json &root, const TemplateItemSetting
         name_color = default_settings->name_color;
     }
     if (root.contains("value")) {
-        // no default taken from default_settings
         root.at("value").get_to(value);
-    } else if (default_settings != nullptr) {
-        // default_settings == nullptr is only true when creating default_settings
-        LOG_WARNING("item missing value property (should leave an empty [] value for completeness)");
     }
     if (root.contains("value_color")) {
         value_color = read_colors(root["value_color"]);

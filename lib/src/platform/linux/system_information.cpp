@@ -54,7 +54,6 @@ optional<mmotd::system::KernelDetails> GetKernelDetails() {
     LOG_DEBUG("kernel release:        : {}", kernel_details.kernel_version.release.to_string());
     LOG_DEBUG("kernel type            : {}", mmotd::system::to_string(kernel_details.kernel));
     LOG_DEBUG("architecture           : {}", mmotd::system::to_string(kernel_details.architecture));
-    LOG_DEBUG("endian type            : {}", mmotd::system::to_string(kernel_details.endian));
 
     return make_optional(kernel_details);
 }
@@ -230,7 +229,6 @@ SystemDetails GetSystemInformationDetails() {
     details.kernel_release = kernel_details.kernel_version.release.to_string();
     details.kernel_type = mmotd::system::to_string(kernel_details.kernel);
     details.architecture_type = mmotd::system::to_string(kernel_details.architecture);
-    details.byte_order = mmotd::system::to_string(kernel_details.endian);
 
     auto [platform_name, major, minor, patch] = *os_version_holder;
     details.platform_version = format(FMT_STRING("{}.{:02}.{}"), major, minor, patch);

@@ -5,19 +5,16 @@
 #include "lib/include/platform/load_average.h"
 
 #include <cerrno>
+#include <cmath>
 #include <cstdlib>
 #include <fstream>
 #include <iterator>
 #include <optional>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
-
-#include <math.h>
-#include <sys/sysinfo.h>
 
 using namespace std;
 using fmt::format;
@@ -25,17 +22,6 @@ using fmt::format;
 constexpr static const char *LOAD_AVERAGE_FILENAME = "/proc/loadavg";
 
 namespace {
-
-optional<int32_t> GetCpuCount() {
-    auto cpu_count = sysconf(_SC_NPROCESSORS_ONLN);
-    if (cpu_count == -1) {
-        LOG_ERROR("sysconf returned -1 calling get processor count _SC_NPROCESSORS_ONLN");
-        return nullopt;
-    } else {
-        LOG_INFO("sysconf for _SC_NPROCESSORS_ONLN returned {} processors", cpu_count);
-        return make_optional(cpu_count);
-    }
-}
 
 optional<double> FromString(string str) {
     char *str_end = nullptr;
@@ -77,17 +63,13 @@ optional<double> GetSystemLoadAverage() {
 
 namespace mmotd::platform {
 
-LoadAverageDetails GetLoadAverageDetails() {
-    auto cpu_count_holder = GetCpuCount();
-    int32_t cpu_count = cpu_count_holder.has_value() ? cpu_count_holder.value() : int32_t{0};
-
+std::optional<double> GetLoadAverageDetails() {
     auto load_average_holder = GetSystemLoadAverage();
-    double load_average = 0.0;
-    if (load_average_holder.has_value() && !isnan(load_average_holder.value())) {
-        load_average = load_average_holder.value();
+    if (load_average_holder.has_value() && !std::isnan(load_average_holder.value())) {
+        return load_average_holder;
     }
 
-    return make_tuple(cpu_count, load_average);
+    return nullopt;
 }
 
 } // namespace mmotd::platform

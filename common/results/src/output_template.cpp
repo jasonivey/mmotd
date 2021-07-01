@@ -75,12 +75,12 @@ void OutputTemplate::from_json(const json &root) {
     for (auto &root_item : root.at("column_items")) {
         auto column_item = data::TemplateItemSettings{};
         column_item.from_json(root_item, &template_config.default_settings);
-        if (column_item.validate(template_config)) {
-            items.emplace_back(column_item);
+        if (column_item.is_valid(template_config)) {
+            items.emplace_back(std::move(column_item));
         }
     }
-    column_items_ = items;
-    template_config_ = template_config;
+    column_items_ = std::move(items);
+    template_config_ = std::move(template_config);
 }
 
 void OutputTemplate::to_json(json &root) const {
@@ -88,7 +88,7 @@ void OutputTemplate::to_json(json &root) const {
     for (const auto &column_item : column_items_) {
         auto json_item = json();
         column_item.to_json(json_item, template_config_.default_settings);
-        column_items.emplace_back(json_item);
+        column_items.emplace_back(std::move(json_item));
     }
     root = json{{"config", template_config_}, {"column_items", column_items}};
 }
@@ -140,86 +140,153 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
     {
         auto item = TemplateColumnItem{};
         item.row_index = 5;
-        item.name = {"Boot Time:"};
-        item.value = {"%ID_BOOT_TIME_BOOT_TIME%"};
-        item.append_newlines = 2;
+        item.name = {"Up Time:"};
+        item.value = {"%ID_BOOT_TIME_UP_TIME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
+        item.append_newlines = 2;
         item.row_index = 6;
+        item.name = {"Boot Time:"};
+        item.value = {"%ID_BOOT_TIME_BOOT_TIME%"};
+        items.emplace_back(item);
+    }
+    // Hardware specific
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 7;
+        item.name = {"Machine Type:"};
+        item.value = {"%ID_HARDWARE_MACHINE_TYPE%"};
+        items.emplace_back(item);
+    }
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 8;
+        item.name = {"Machine Model:"};
+        item.value = {"%ID_HARDWARE_MACHINE_MODEL%"};
+        items.emplace_back(item);
+    }
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 9;
+        item.name = {"CPU:"};
+        item.value = {"%ID_HARDWARE_CPU_NAME%"};
+        items.emplace_back(item);
+    }
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 10;
+        item.name = {"CPU Cores:"};
+        item.value = {"%ID_HARDWARE_CPU_CORE_COUNT%"};
+        items.emplace_back(item);
+    }
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 11;
+        item.name = {"CPU Byte Order:"};
+        item.value = {"%ID_HARDWARE_CPU_BYTE_ORDER%"};
+        items.emplace_back(item);
+    }
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 12;
+        item.name = {"GPU:"};
+        item.value = {"%ID_HARDWARE_GPU_MODEL_NAME%"};
+        items.emplace_back(item);
+    }
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 13;
+        item.name = {"Monitor:"};
+        item.value = {"%ID_HARDWARE_MONITOR_NAME%"};
+        items.emplace_back(item);
+    }
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 14;
+        item.name = {"Resolution:"};
+        item.value = {"%ID_HARDWARE_MONITOR_RESOLUTION%"};
+        item.append_newlines = 2;
+        items.emplace_back(item);
+    }
+    // The rest of the information
+    {
+        auto item = TemplateColumnItem{};
+        item.row_index = 15;
         item.name = {"Computer Name:"};
         item.value = {"%ID_SYSTEM_INFORMATION_COMPUTER_NAME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 7;
+        item.row_index = 16;
         item.name = {"Hostname:"};
         item.value = {"%ID_SYSTEM_INFORMATION_HOST_NAME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 8;
+        item.row_index = 17;
         item.name = {"Public IP:"};
         item.value = {"%ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 9;
+        item.row_index = 18;
         item.name = {"System Load:"};
         item.value = {"%ID_LOAD_AVERAGE_LOAD_AVERAGE%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 10;
+        item.row_index = 19;
         item.name = {"Processes:"};
         item.value = {"%ID_PROCESSES_PROCESS_COUNT%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 11;
+        item.row_index = 20;
         item.name = {"Users Logged In:"};
         item.value = {"%ID_LOGGED_IN_USER_LOGGED_IN%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 12;
+        item.row_index = 21;
         item.name = {"Usage of /:"};
         item.value = {"%ID_FILE_SYSTEM_PERCENT_USED% of %ID_FILE_SYSTEM_TOTAL%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 13;
+        item.row_index = 22;
         item.name = {"Memory Usage:"};
         item.value = {"%ID_MEMORY_USAGE_PERCENT_USED% of %ID_MEMORY_USAGE_TOTAL%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 14;
+        item.row_index = 23;
         item.name = {"Swap Usage:"};
         item.value = {"%ID_SWAP_USAGE_PERCENT_USED% of %ID_SWAP_USAGE_TOTAL%%ID_SWAP_USAGE_ENCRYPTED%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 15;
+        item.row_index = 24;
         item.is_repeatable = true;
         item.is_optional = true;
         item.name = {"IP %ID_NETWORK_INFO_INTERFACE_NAME%:", "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"};
         item.value = {"%ID_NETWORK_INFO_IP%", "%ID_NETWORK_INFO_MAC%"};
         items.emplace_back(item);
     }
+    // Whether the package manager is annoying us with updates
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 16;
+        item.row_index = 25;
         item.indent_size = 0;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_yellow)};
         item.value = {"%ID_PACKAGE_MANAGEMENT_UPDATE_DETAILS%"};
@@ -227,9 +294,10 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         item.prepend_newlines = 1;
         items.emplace_back(item);
     }
+    // Use the fortune databases to print a random "software engineering" quote
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 17;
+        item.row_index = 26;
         item.indent_size = 0;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan)};
         item.value = {"%ID_FORTUNE_FORTUNE%"};
@@ -237,9 +305,10 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         item.prepend_newlines = 1;
         items.emplace_back(item);
     }
+    // Notify the user whether the package manager has a reboot required
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 18;
+        item.row_index = 27;
         item.indent_size = 0;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_red)};
         item.value = {"%ID_PACKAGE_MANAGEMENT_REBOOT_REQUIRED%"};

@@ -3,6 +3,7 @@
 #include "common/include/logging.h"
 #include "lib/include/platform/load_average.h"
 
+#include <cmath>
 #include <ctime>
 #include <optional>
 
@@ -15,17 +16,6 @@ using fmt::format;
 using namespace std;
 
 namespace {
-
-optional<int32_t> GetCpuCount() {
-    auto cpu_count = sysconf(_SC_NPROCESSORS_ONLN);
-    if (cpu_count == -1) {
-        LOG_ERROR("sysconf returned -1 calling get processor count _SC_NPROCESSORS_ONLN");
-        return nullopt;
-    } else {
-        LOG_INFO("sysconf for _SC_NPROCESSORS_ONLN returned {} processors", cpu_count);
-        return make_optional(cpu_count);
-    }
-}
 
 optional<double> GetSystemLoadAverage() {
     auto load = loadavg{};
@@ -46,14 +36,12 @@ optional<double> GetSystemLoadAverage() {
 
 namespace mmotd::platform {
 
-LoadAverageDetails GetLoadAverageDetails() {
-    auto cpu_count_holder = GetCpuCount();
-    int32_t cpu_count = cpu_count_holder ? *cpu_count_holder : int32_t{0};
-
-    auto load_average_holder = GetSystemLoadAverage();
-    double load_average = load_average_holder ? *load_average_holder : double{0.0};
-
-    return make_tuple(cpu_count, load_average);
+optional<double> GetLoadAverageDetails() {
+    auto load_average = GetSystemLoadAverage();
+    if (load_average.has_value() && !std::isnan(load_average.value())) {
+        return load_average;
+    }
+    return nullopt;
 }
 
 } // namespace mmotd::platform
