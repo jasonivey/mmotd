@@ -14,6 +14,7 @@ set_default_policies()
 add_executable(${MMOTD_TARGET_NAME}
                ../common/test/src/exception_matcher.cpp
                ../common/test/src/test_assertion.cpp
+               ../common/test/src/test_config_options.cpp
                ../common/test/src/test_exception.cpp
                ../common/test/src/test_mac_address.cpp
                ../common/test/src/test_position_index.cpp

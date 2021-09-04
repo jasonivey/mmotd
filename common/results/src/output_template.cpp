@@ -257,21 +257,21 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 21;
         item.name = {"Usage of /:"};
-        item.value = {"%ID_FILE_SYSTEM_PERCENT_USED% of %ID_FILE_SYSTEM_TOTAL%"};
+        item.value = {"%ID_FILE_SYSTEM_SUMMARY%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
         item.row_index = 22;
         item.name = {"Memory Usage:"};
-        item.value = {"%ID_MEMORY_USAGE_PERCENT_USED% of %ID_MEMORY_USAGE_TOTAL%"};
+        item.value = {"%ID_MEMORY_USAGE_SUMMARY%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
         item.row_index = 23;
         item.name = {"Swap Usage:"};
-        item.value = {"%ID_SWAP_USAGE_PERCENT_USED% of %ID_SWAP_USAGE_TOTAL%%ID_SWAP_USAGE_ENCRYPTED%"};
+        item.value = {"%ID_SWAP_USAGE_SUMMARY%"};
         items.emplace_back(item);
     }
     {

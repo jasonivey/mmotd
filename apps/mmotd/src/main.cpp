@@ -1,8 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "apps/mmotd/include/cli_app_options_creator.h"
 #include "apps/mmotd/include/main.h"
 #include "common/include/algorithm.h"
-#include "common/include/app_options.h"
+#include "common/include/cli_options_parser.h"
+#include "common/include/config_options.h"
 #include "common/include/logging.h"
 #include "common/results/include/output_template.h"
 #include "common/results/include/output_template_printer.h"
@@ -19,26 +19,26 @@
 using mmotd::algorithms::unused;
 using namespace fmt;
 using namespace std;
+using mmotd::core::CliOptionsParser;
+using mmotd::core::ConfigOptions;
 
 namespace {
 
-const tuple<bool, const AppOptions *> LoadAppOptions(const int argc, char **argv) {
-    const auto *app_options_creator = CliAppOptionsCreator::ParseCommandLine(argc, argv);
-    if (app_options_creator->IsAppFinished()) {
-        return make_tuple(app_options_creator->IsErrorExit(), nullptr);
+const tuple<bool, const CliOptionsParser *> LoadAppOptions(const int argc, char **argv) {
+    const auto *parser = CliOptionsParser::ParseCommandLine(argc, argv);
+    if (parser == nullptr) {
+        return make_tuple(true, nullptr);
+    } else if (parser->IsAppFinished()) {
+        return make_tuple(parser->IsErrorExit(), nullptr);
+    } else {
+        return make_tuple(false, parser);
     }
-    auto *app_options = AppOptions::Initialize(*app_options_creator);
-    return make_tuple(false, app_options);
 }
 
-void PrintMmotd(const AppOptions &app_options) {
-    auto options = app_options.Instance().GetOptions();
-    if (!options.IsTemplatePathSet()) {
-        LOG_INFO("template file was not specified");
-    }
-    const auto template_filename = options.GetTemplatePath();
-
+void PrintMmotd(const CliOptionsParser &) {
     using namespace mmotd::results;
+
+    const auto template_filename = ConfigOptions::Instance().GetValueAsStringOr("cli.template_path", string{});
     auto output_template = unique_ptr<OutputTemplate>{};
     if (!empty(template_filename)) {
         output_template = MakeOutputTemplate(template_filename);
@@ -58,21 +58,31 @@ void PrintMmotd(const AppOptions &app_options) {
     PrintOutputTemplate(*output_template, informations);
 }
 
+void UpdateLogSeverity() {
+    const auto log_severity_raw = ConfigOptions::Instance().GetValueAsIntegerOr("cli.log_severity", -1);
+    if (log_severity_raw == -1) {
+        return;
+    }
+    auto new_severity = static_cast<mmotd::logging::Severity>(log_severity_raw);
+    auto current_severity = mmotd::logging::GetSeverity();
+    if (new_severity != current_severity) {
+        mmotd::logging::SetSeverity(new_severity);
+    }
+}
+
 int main_impl(int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
     auto signal_handling = backward::SignalHandling{};
     unused(signal_handling);
 
-    mmotd::logging::InitializeLogging(argv[0]);
+    mmotd::logging::InitializeLogging(*argv);
 
     auto [error_encountered, app_options] = LoadAppOptions(argc, argv);
     if (app_options == nullptr) {
         return error_encountered ? EXIT_FAILURE : EXIT_SUCCESS;
     }
-    if (app_options->GetOptions().IsLogSeveritySet()) {
-        mmotd::logging::UpdateSeverity(app_options->GetOptions().GetLoggingSeverity());
-    }
 
+    UpdateLogSeverity();
     PrintMmotd(*app_options);
     return EXIT_SUCCESS;
 }

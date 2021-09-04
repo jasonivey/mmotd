@@ -18,7 +18,7 @@ public:
     using TemplateColumnItems = std::vector<mmotd::results::data::TemplateColumnItem>;
 
     OutputTemplate();
-    MISSING_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(OutputTemplate);
+    NO_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(OutputTemplate);
 
     // These are the methods to parse the file when the --template arg is specified
     static std::optional<OutputTemplate> ParseOutputTemplate(std::string file_name);

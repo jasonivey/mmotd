@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
-#include "common/include/app_options.h"
+#include "common/include/config_options.h"
 #include "common/include/information.h"
 #include "common/include/information_decls.h"
 #include "common/include/informations.h"
@@ -24,6 +24,7 @@
 using namespace std;
 using fmt::format;
 using mmotd::algorithms::collect_if;
+using mmotd::core::ConfigOptions;
 using mmotd::information::Information;
 using mmotd::information::InformationId;
 using mmotd::information::Informations;
@@ -72,12 +73,12 @@ optional<string> TemplateString::GetInformationValue(const string &information_i
     }
     const auto &information = *information_holder;
     auto information_value = information.GetValue();
-    if (empty(information_value)) {
-        // fix_todo: set a config value item for what this string should be
-        //  when a value has not been found.  i.e. if hostname had an error
-        //  when attempting to query the value...
-        information_value = "<unknown>";
-    }
+    // if (empty(information_value)) {
+    // fix_todo: set a config value item for what this string should be
+    //  when a value has not been found.  i.e. if hostname had an error
+    //  when attempting to query the value...
+    // information_value = "<unknown>";
+    // }
     LOG_VERBOSE("found {} with value {}", information_id, information_value);
     return make_optional(information_value);
 }
@@ -325,7 +326,8 @@ fmt::text_style TemplateString::GetColorValue(string color_specification) {
 string TemplateString::ReplaceEmbeddedColorCodes(const string &text, fmt::text_style color_style) {
     auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
     auto formatted_str = template_substrings.to_string(&TemplateString::GetColorValue);
-    if (AppOptions::Instance().GetOptions().IsColorDisabled()) {
+    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("cli.color_output", false);
+    if (!color_output) {
         return formatted_str;
     } else {
         return format(color_style, FMT_STRING("{}"), formatted_str);

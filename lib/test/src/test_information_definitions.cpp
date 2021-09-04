@@ -90,6 +90,8 @@ TEST_CASE("information ids are correct", "[InformationId]") {
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_FILE_SYSTEM, 5002)));
     CHECK(InformationId::ID_FILE_SYSTEM_FREE ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_FILE_SYSTEM, 5003)));
+    CHECK(InformationId::ID_FILE_SYSTEM_SUMMARY ==
+          static_cast<InformationId>(MakeInformationId(CategoryId::ID_FILE_SYSTEM, 5004)));
 
     CHECK(InformationId::ID_FORTUNE_FORTUNE ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_FORTUNE, 6001)));
@@ -110,6 +112,8 @@ TEST_CASE("information ids are correct", "[InformationId]") {
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_MEMORY_USAGE, 10002)));
     CHECK(InformationId::ID_MEMORY_USAGE_FREE ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_MEMORY_USAGE, 10003)));
+    CHECK(InformationId::ID_MEMORY_USAGE_SUMMARY ==
+          static_cast<InformationId>(MakeInformationId(CategoryId::ID_MEMORY_USAGE, 10004)));
 
     CHECK(InformationId::ID_SWAP_USAGE_TOTAL ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_SWAP_USAGE, 12001)));
@@ -119,6 +123,8 @@ TEST_CASE("information ids are correct", "[InformationId]") {
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_SWAP_USAGE, 12003)));
     CHECK(InformationId::ID_SWAP_USAGE_ENCRYPTED ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_SWAP_USAGE, 12004)));
+    CHECK(InformationId::ID_SWAP_USAGE_SUMMARY ==
+          static_cast<InformationId>(MakeInformationId(CategoryId::ID_SWAP_USAGE, 12005)));
 
     CHECK(InformationId::ID_SYSTEM_INFORMATION_HOST_NAME ==
           static_cast<InformationId>(MakeInformationId(CategoryId::ID_SYSTEM_INFORMATION, 13001)));

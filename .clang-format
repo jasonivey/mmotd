@@ -85,6 +85,9 @@ IncludeCategories:
   # Catch2 unit test headers
   - Regex:    '^[<"]catch2/'
     Priority: 30
+  # TOML headers
+  - Regex:    '^[<"]toml(/[^\.]+)?\.hpp[>"]'
+    Priority: 30
   # fmt::format headers
   - Regex:    '^[<"]fmt/'
     Priority: 30
@@ -110,7 +113,7 @@ IncludeCategories:
   - Regex:    '^[<"]scope_guard.hpp[>"]'
     Priority: 30
   # C system headers.
-  - Regex:    '^[<"](aio|arpa/inet|assert|complex|cpio|ctype|curses|dirent|dlfcn|errno|fcntl|fenv|float|fmtmsg|fnmatch|ftw|glob|grp|iconv|ifaddrs|inttypes|iso646|langinfo|libgen|linux/|limits|locale|math|monetary|mqueue|ndbm|netdb|net/if|net/if_dl|netinet/in|netinet/tcp|nl_types|poll|pthread|pwd|regex|sched|search|semaphore|setjmp|signal|spawn|stdalign|stdarg|stdatomic|stdbool|stddef|stdint|stdio|stdlib|stdnoreturn|string|strings|stropts|sys/ipc|syslog|sys/mman|sys/msg|sys/resource|sys/select|sys/sem|sys/shm|sys/socket|sys/stat|sys/statvfs|sys/sysctl|sys/time|sys/times|sys/types|sys/uio|sys/un|sys/utsname|sys/wait|tar|term|termios|tgmath|threads|time|trace|uchar|ulimit|uncntrl|unistd|utime|utmpx|wchar|wctype|wordexp)\.h[">]$'
+  - Regex:    '^[<"](aio|arpa/inet|assert|complex|cpio|ctype|curses|dirent|dlfcn|errno|fcntl|fenv|float|fmtmsg|fnmatch|ftw|glob|grp|iconv|ifaddrs|inttypes|iso646|langinfo|libgen|linux/|limits|locale|math|monetary|mqueue|ndbm|netdb|net/if|net/if_dl|netinet/in|netinet/tcp|nl_types|poll|pthread|pwd|regex|sched|search|semaphore|setjmp|signal|spawn|stdalign|stdarg|stdatomic|stdbool|stddef|stdint|stdio|stdlib|stdnoreturn|string|strings|stropts|sys/ipc|syslog|sys/mman|sys/msg|sys/resource|sys/select|sys/sem|sys/shm|sys/socket|sys/stat|sys/statvfs|sys/sysctl|sys/time|sys/times|sys/types|sys/uio|sys/un|sys/utsname|sys/wait|tar|term|termios|tgmath|threads|time|trace|uchar|ulimit|uncntrl|unistd|utime|utmpx|utmp|wchar|wctype|wordexp)\.h[">]$'
     Priority: 60
   # MacOS C system headers.
   - Regex:    '^[<"](mach|mach-o|net|netinet|netinet6|nfs|pthread|readline|sys|uuid|vfs|xlocale)/'

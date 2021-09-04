@@ -13,6 +13,7 @@ int main(int argc, char *argv[]) {
     setlocale(LC_ALL, "en_US.UTF-8");
     auto signal_handling = backward::SignalHandling{};
     unused(signal_handling);
-    mmotd::logging::InitializeLogging(argv[0]);
+    mmotd::logging::InitializeLogging(*argv);
+    mmotd::logging::SetSeverity(mmotd::logging::Severity::verbose);
     return Catch::Session().run(argc, argv);
 }

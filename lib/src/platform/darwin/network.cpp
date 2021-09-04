@@ -59,7 +59,7 @@ bool IsInterfaceActive(const string &name, sa_family_t address_family, const str
     memcpy(ifmr.ifm_name, data(name), min(size(name), static_cast<size_t>(IFNAMSIZ - 1)));
 
     if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
-        LOG_ERROR("iterface does not support SIOCGIFMEDIA for {} in {}, details: {}",
+        LOG_DEBUG("iterface does not support SIOCGIFMEDIA for {} in {}, details: {}",
                   name,
                   family_name,
                   mmotd::error::posix_error::to_string());
@@ -71,15 +71,8 @@ bool IsInterfaceActive(const string &name, sa_family_t address_family, const str
         return false;
     }
 
-    const size_t media_list_size = static_cast<size_t>(ifmr.ifm_count) * sizeof(int);
-    int *media_list = static_cast<int *>(malloc(media_list_size));
-    if (media_list == nullptr) {
-        LOG_ERROR("malloc failed to allocate {} bytes for media list {} in {}", media_list_size, name, family_name);
-        return false;
-    }
-
-    auto media_list_deleter = sg::make_scope_guard([media_list]() noexcept { free(media_list); });
-    ifmr.ifm_ulist = media_list;
+    auto media_list = vector<int>(static_cast<size_t>(ifmr.ifm_count));
+    ifmr.ifm_ulist = media_list.data();
 
     if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
         LOG_ERROR("ioctl SIOCGIFMEDIA failed for {} in {}, details: {}",

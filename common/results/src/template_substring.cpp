@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/app_options.h"
+// #include "common/include/app_options.h"
+#include "common/include/config_options.h"
 #include "common/include/logging.h"
 #include "common/results/include/template_substring.h"
 
@@ -15,6 +16,7 @@
 
 using fmt::format;
 using namespace std;
+using mmotd::core::ConfigOptions;
 
 namespace mmotd::results {
 
@@ -131,7 +133,8 @@ string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_co
                 GetSubstring(),
                 GetSuffix());
     auto substring_text = GetSubstring();
-    if (auto colors_disabled = AppOptions::Instance().GetOptions().IsColorDisabled(); !colors_disabled) {
+    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("cli.color_output", false);
+    if (color_output) {
         const auto &colors = GetColorDefinitions();
         for_each(begin(colors), end(colors), [&convert_color, &substring_text](const auto &color) {
             if (!empty(substring_text)) {

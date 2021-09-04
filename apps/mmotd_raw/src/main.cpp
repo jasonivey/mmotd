@@ -66,13 +66,12 @@ void PrintMmotdRaw() {
     }
 }
 
-int main_impl(int argc, char **argv) {
+int main_impl(int, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
     auto signal_handling = backward::SignalHandling{};
     unused(signal_handling);
 
-    unused(argc);
-    mmotd::logging::InitializeLogging(argv[0]);
+    mmotd::logging::InitializeLogging(*argv);
 
     PrintMmotdRaw();
     return EXIT_SUCCESS;
