@@ -1,6 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/assertion.h"
-#include "common/include/config_option.h"
 #include "common/include/config_options.h"
 #include "common/include/logging.h"
 
@@ -25,6 +24,74 @@
 using namespace std;
 namespace fs = std::filesystem;
 using fmt::format;
+
+namespace {
+
+toml::value FindValue(const toml::value &root_value, queue<string> names) {
+    const toml::value *result_ptr = nullptr;
+    do {
+        const auto name = names.front();
+        names.pop();
+        if (result_ptr == nullptr) {
+            result_ptr = &root_value;
+        } else if (result_ptr->is_table() && result_ptr->contains(name)) {
+            const auto &value_ref = toml::find(*result_ptr, name);
+            result_ptr = &value_ref;
+        } else {
+            result_ptr = nullptr;
+        }
+    } while (!empty(names) && result_ptr != nullptr);
+
+    return result_ptr == nullptr ? toml::value{} : *result_ptr;
+}
+
+toml::value FindValue(const toml::value &core, const toml::value &cli, string input_name) {
+    using mmotd::core::ConfigOptions;
+
+    if (empty(input_name)) {
+        LOG_ERROR("unable to search for config option with an empty name");
+        return toml::value{};
+    }
+    auto names_deque = deque<string>{};
+    boost::split(names_deque, input_name, boost::is_any_of("."), boost::token_compress_on);
+    MMOTD_CHECKS(!empty(names_deque), "splitting for '.' must always return at least one element");
+
+    if (names_deque.front() != ConfigOptions::CORE_TABLE && names_deque.front() != ConfigOptions::CLI_TABLE) {
+        names_deque.push_front(string{ConfigOptions::CORE_TABLE});
+    }
+    auto names = queue<string>{std::move(names_deque)};
+
+    auto result = toml::value{};
+    if (names.back() == "template_path") {
+        // special case "template_path" -- let it come from:
+        //  1. (priority) command line
+        //  2. config file
+        if (names.front() == "core") {
+            names.front() = "cli";
+        }
+        auto cli_result = FindValue(cli, names);
+        if (!cli_result.is_uninitialized()) {
+            result = std::move(cli_result);
+        }
+        if (names.front() == "cli") {
+            names.front() = "core";
+        }
+        auto core_result = FindValue(core, names);
+        if (!core_result.is_uninitialized()) {
+            result = std::move(core_result);
+        }
+    } else {
+        if (names.front() == "core") {
+            result = FindValue(core, names);
+        } else {
+            result = FindValue(cli, names);
+        }
+    }
+
+    return result;
+}
+
+} // namespace
 
 namespace mmotd::core {
 
@@ -55,40 +122,6 @@ void ConfigOptions::ParseConfigFile(istream &input, const string &file_name) {
 void ConfigOptions::AddCliConfigOptions(istream &input) {
     MMOTD_CHECKS(cli_value_.is_uninitialized(), "CLI options are added once as a toml stream");
     cli_value_ = toml::parse(input, "cli-options.toml");
-}
-
-static toml::value FindValue(const toml::value &core, const toml::value &cli, string input_name) {
-    if (empty(input_name)) {
-        LOG_ERROR("unable to search for config option with an empty name");
-        return toml::value{};
-    }
-    auto names_deque = deque<string>{};
-    boost::split(names_deque, input_name, boost::is_any_of("."), boost::token_compress_on);
-    MMOTD_CHECKS(!empty(names_deque), "splitting for '.' must always return at least one element");
-
-    if (names_deque.front() != ConfigOptions::CORE_TABLE && names_deque.front() != ConfigOptions::CLI_TABLE) {
-        names_deque.push_front(string{ConfigOptions::CORE_TABLE});
-    }
-    auto names = queue<string>{std::move(names_deque)};
-    const toml::value *result_ptr = nullptr;
-    do {
-        const auto &name = names.front();
-        names.pop();
-        if (result_ptr == nullptr) {
-            if (name == ConfigOptions::CLI_TABLE && cli.is_table()) {
-                result_ptr = &cli;
-            } else if (name == ConfigOptions::CORE_TABLE && core.is_table()) {
-                result_ptr = &core;
-            }
-        } else if (result_ptr->is_table() && result_ptr->contains(name)) {
-            const auto &value_ref = toml::find(*result_ptr, name);
-            result_ptr = &value_ref;
-        } else {
-            result_ptr = nullptr;
-        }
-    } while (!empty(names) && result_ptr != nullptr);
-
-    return result_ptr != nullptr ? *result_ptr : toml::value{};
 }
 
 bool ConfigOptions::Contains(const std::string &name) const {

@@ -28,7 +28,6 @@ add_library (
     results/src/template_substring_range.cpp
     results/src/template_substrings.cpp
     src/cli_options_parser.cpp
-    src/config_option.cpp
     src/config_options.cpp
     src/information.cpp
     src/information_decls.cpp

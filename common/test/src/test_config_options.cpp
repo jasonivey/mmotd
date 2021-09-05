@@ -1,5 +1,4 @@
 #include "common/assertion/include/assertion.h"
-#include "common/include/config_option.h"
 #include "common/include/config_options.h"
 #include "common/test/include/exception_matcher.h"
 

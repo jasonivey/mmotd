@@ -1,13 +1,11 @@
 #pragma once
 #include "common/include/big_five_macros.h"
-#include "common/include/config_option.h"
 
 #include <cstdint>
 #include <iosfwd>
 #include <optional>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include <toml/value.hpp>
 
@@ -16,8 +14,6 @@ namespace mmotd::core {
 class CliOptionsParser;
 
 class ConfigOptions {
-    friend CliOptionsParser;
-
 public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(ConfigOptions);
 
