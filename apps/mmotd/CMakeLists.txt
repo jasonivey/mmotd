@@ -10,7 +10,6 @@ project (mmotd)
 
 add_executable (
     ${MMOTD_TARGET_NAME}
-    src/cli_app_options_creator.cpp
     src/main.cpp
     )
 

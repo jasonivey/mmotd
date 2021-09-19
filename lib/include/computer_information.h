@@ -24,7 +24,7 @@ class Informations;
 
 class ComputerInformation {
 public:
-    MISSING_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(ComputerInformation);
+    NO_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(ComputerInformation);
 
     static ComputerInformation &Instance();
 

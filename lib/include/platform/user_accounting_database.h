@@ -70,22 +70,3 @@ inline DbEntries GetDbEntries<ENTRY_TYPE::User>() {
 }
 
 } // namespace mmotd::platform::user_account_database
-
-namespace mmotd::platform::user {
-
-struct UserInformation {
-    std::string username;
-    uid_t user_id = UINT_MAX;
-    gid_t group_id = UINT_MAX;
-    std::string full_name;
-    std::string home_directory;
-    std::string shell;
-
-    bool empty() const { return user_id == UINT_MAX && username.empty(); }
-
-    static UserInformation from_passwd(const passwd &pw);
-};
-
-const UserInformation &GetUserInformation();
-
-} // namespace mmotd::platform::user

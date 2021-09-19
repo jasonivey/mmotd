@@ -2,6 +2,7 @@
 #if defined(__APPLE__)
 #include "common/include/chrono_io.h"
 #include "common/include/logging.h"
+#include "common/include/user_information.h"
 #include "lib/include/platform/lastlog.h"
 #include "lib/include/platform/user_accounting_database.h"
 
@@ -21,7 +22,7 @@ namespace mmotd::platform {
 
 LastLoginDetails GetLastLogDetails() {
     using namespace mmotd::platform::user_account_database;
-    using namespace mmotd::platform::user;
+    using mmotd::core::GetUserInformation;
 
     auto entries = GetDbEntries<ENTRY_TYPE::User>();
     auto user_info = GetUserInformation();

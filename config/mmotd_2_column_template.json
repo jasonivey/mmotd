@@ -226,7 +226,7 @@
       ],
       "row_index": 18,
       "value": [
-        "%ID_FILE_SYSTEM_PERCENT_USED% of %ID_FILE_SYSTEM_TOTAL%"
+        "%ID_FILE_SYSTEM_SUMMARY%"
       ]
     },
     {
@@ -250,7 +250,7 @@
         "Memory Usage:"
       ],
       "value": [
-        "%ID_MEMORY_USAGE_PERCENT_USED% of %ID_MEMORY_USAGE_TOTAL%"
+        "%ID_MEMORY_USAGE_SUMMARY%"
       ]
     },
     {
@@ -260,7 +260,7 @@
       ],
       "row_index": 20,
       "value": [
-        "%ID_SWAP_USAGE_PERCENT_USED% of %ID_SWAP_USAGE_TOTAL%%ID_SWAP_USAGE_ENCRYPTED%"
+        "%ID_SWAP_USAGE_SUMMARY%"
       ]
     },
     {

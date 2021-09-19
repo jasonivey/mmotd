@@ -34,11 +34,6 @@ public:
 
     void SetValue(std::string new_value) { value_ = new_value; }
 
-    template<typename S, typename... Args>
-    void SetValueFormat(const S &format, Args &&...args) {
-        SetValueImpl(std::string_view(format), fmt::format_arg_store<fmt::format_context, Args...>(args...));
-    }
-
     template<typename... Args>
     void SetValueArgs(Args &&...args) {
         SetValueImpl(std::string_view(format_str_), fmt::format_arg_store<fmt::format_context, Args...>(args...));

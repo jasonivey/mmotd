@@ -1,5 +1,9 @@
 # modified message of the day
 
+template_path="/tmp/mmotd_template.json"
+
+[information-providers]
+
 # display last login
 last-login=false
 
@@ -47,4 +51,3 @@ sub-header=false
 
 # display a random quote
 random-quote=false
-# 

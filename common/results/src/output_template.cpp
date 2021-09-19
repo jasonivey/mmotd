@@ -257,21 +257,21 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 21;
         item.name = {"Usage of /:"};
-        item.value = {"%ID_FILE_SYSTEM_PERCENT_USED% of %ID_FILE_SYSTEM_TOTAL%"};
+        item.value = {"%ID_FILE_SYSTEM_SUMMARY%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
         item.row_index = 22;
         item.name = {"Memory Usage:"};
-        item.value = {"%ID_MEMORY_USAGE_PERCENT_USED% of %ID_MEMORY_USAGE_TOTAL%"};
+        item.value = {"%ID_MEMORY_USAGE_SUMMARY%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
         item.row_index = 23;
         item.name = {"Swap Usage:"};
-        item.value = {"%ID_SWAP_USAGE_PERCENT_USED% of %ID_SWAP_USAGE_TOTAL%%ID_SWAP_USAGE_ENCRYPTED%"};
+        item.value = {"%ID_SWAP_USAGE_SUMMARY%"};
         items.emplace_back(item);
     }
     {
@@ -339,14 +339,14 @@ unique_ptr<OutputTemplate> MakeOutputTemplateFromDefault() {
     return make_unique<OutputTemplate>();
 }
 
-void WriteDefaultOutputTemplate(string file_name) {
+void WriteDefaultOutputTemplate(fs::path file_path) {
     auto output_template = OutputTemplate{};
     auto root = json{};
     to_json(root, output_template);
 
-    auto output = ofstream(fs::path(file_name));
+    auto output = ofstream(file_path);
     if (!output.is_open()) {
-        LOG_ERROR("unable to open '{}' for writing output template", file_name);
+        LOG_ERROR("unable to open '{}' for writing output template", file_path);
         return;
     }
     output << root.dump(2, ' ') << endl;

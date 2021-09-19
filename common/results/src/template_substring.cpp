@@ -1,5 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/app_options.h"
+// #include "common/include/app_options.h"
+#include "common/include/coloring.h"
+#include "common/include/config_options.h"
 #include "common/include/logging.h"
 #include "common/results/include/template_substring.h"
 
@@ -15,6 +17,7 @@
 
 using fmt::format;
 using namespace std;
+using mmotd::core::ConfigOptions;
 
 namespace mmotd::results {
 
@@ -125,20 +128,25 @@ string TemplateSubstring::to_string() const {
 }
 
 string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_color) const {
+    using mmotd::core::colors::RemoveNonAsciiCharsCopy;
     LOG_VERBOSE("prefix=\"{}\", color=\"{}\", text=\"{}\", suffix=\"{}\"",
                 GetPrefix(),
                 color_definitions_to_string(GetColorDefinitions()),
                 GetSubstring(),
                 GetSuffix());
-    auto substring_text = GetSubstring();
-    if (auto colors_disabled = AppOptions::Instance().GetOptions().IsColorDisabled(); !colors_disabled) {
-        const auto &colors = GetColorDefinitions();
-        for_each(begin(colors), end(colors), [&convert_color, &substring_text](const auto &color) {
-            if (!empty(substring_text)) {
-                substring_text = format(convert_color(color), FMT_STRING("{}"), substring_text);
-            }
-        });
+    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("cli.color_output", false);
+
+    if (!color_output) {
+        return RemoveNonAsciiCharsCopy(GetPrefix() + GetSubstring() + GetSuffix());
     }
+
+    auto substring_text = GetSubstring();
+    const auto &colors = GetColorDefinitions();
+    for_each(begin(colors), end(colors), [&convert_color, &substring_text](const auto &color) {
+        if (!empty(substring_text)) {
+            substring_text = format(convert_color(color), FMT_STRING("{}"), substring_text);
+        }
+    });
     return GetPrefix() + substring_text + GetSuffix();
 }
 

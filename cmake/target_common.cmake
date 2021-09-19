@@ -137,9 +137,18 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-gnu-zero-variadic-macro-arguments>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-unused-local-typedef>
         # msvc only
-        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/EHsc> # /EHsc # Warning fix!
-        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4>   # /W4 increase warning level
-        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/WX>   # /WX treat all warnings as errors
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/EHsc>                     # ignore asynchronous structured exceptions (SEH)
+                                                                     # as SEH does not unwind the stack properly and SE
+                                                                     # are almost always FATAL.  If there is a need for
+                                                                     # partial recovery in a specific use case then in
+                                                                     # that module use '/EHa', __try, __except, and
+                                                                     # __finally.
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/W4>                       # increase warning level
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/WX>                       # treat all warnings as errors
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8>                    # set source and execution character sets to be utf-8
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/source-charset:utf-8>     # set source character sets to be utf-8
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/execution-charset:utf-8>  # set execution character sets to be utf-8.
+
         # /w14242 # 'identfier': conversion from 'type1' to 'type1', possible loss of data
         # /w14254 # 'operator': conversion from 'type1:field_bits' to 'type2:field_bits', possible loss of data
         # /w14263 # 'function': member function does not override any base class virtual member function
@@ -189,8 +198,9 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE ${date_SOURCE_DIR}/include
         PRIVATE ${scope_guard_SOURCE_DIR}
         PRIVATE ${OPENSSL_INCLUDE_DIR}
+        PRIVATE ${toml11_SOURCE_DIR}
+        PRIVATE ${cli11_SOURCE_DIR}/include
         PRIVATE $<$<AND:$<STREQUAL:"${target_type}","executable">,$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">>:${catch2_SOURCE_DIR}/single_include>
-        PRIVATE $<$<AND:$<STREQUAL:"${target_type}","executable">,$<NOT:$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">>>:${cli11_SOURCE_DIR}/include>
         )
 
     if (target_type STREQUAL "executable")

@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
-#include "common/include/app_options.h"
+#include "common/include/config_options.h"
 #include "common/include/information.h"
 #include "common/include/information_decls.h"
 #include "common/include/informations.h"
@@ -20,10 +20,12 @@
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/color.h>
+#include <fmt/ostream.h>
 
 using namespace std;
 using fmt::format;
 using mmotd::algorithms::collect_if;
+using mmotd::core::ConfigOptions;
 using mmotd::information::Information;
 using mmotd::information::InformationId;
 using mmotd::information::Informations;
@@ -52,7 +54,7 @@ optional<Information> TemplateString::FindInformation(const string &information_
     if (information_index >= std::size(information_ptrs)) {
         LOG_WARNING("attempting to find the index={} of id={} when there is only {} of that id",
                     information_index,
-                    information_id,
+                    quoted(information_id),
                     std::size(information_ptrs));
         return nullopt;
     } else if (information_ptrs[information_index] == nullptr) {
@@ -67,18 +69,12 @@ optional<string> TemplateString::GetInformationValue(const string &information_i
                                                      size_t information_index) {
     auto information_holder = TemplateString::FindInformation(information_id, informations, information_index);
     if (!information_holder) {
-        LOG_WARNING("unable to find information id {}", information_id);
+        LOG_WARNING("unable to find information id: {}", quoted(information_id));
         return nullopt;
     }
     const auto &information = *information_holder;
     auto information_value = information.GetValue();
-    if (empty(information_value)) {
-        // fix_todo: set a config value item for what this string should be
-        //  when a value has not been found.  i.e. if hostname had an error
-        //  when attempting to query the value...
-        information_value = "<unknown>";
-    }
-    LOG_VERBOSE("found {} with value {}", information_id, information_value);
+    LOG_VERBOSE("found information id: {} with value: {}", quoted(information_id), quoted(information_value));
     return make_optional(information_value);
 }
 
@@ -98,7 +94,7 @@ TemplateString::ReplaceInformationIds(const string &text, const Informations &in
         auto match = *i;
         LOG_VERBOSE("index: {}, pos: {}, len: {}, iterator: {}", index, match.position(), match.length(), match.str());
         if (match.position() > static_cast<ptrdiff_t>(index)) {
-            LOG_VERBOSE("adding prefix: \"{}\"", text.substr(index, static_cast<size_t>(match.position()) - index));
+            LOG_VERBOSE("adding prefix: {}", quoted(text.substr(index, static_cast<size_t>(match.position()) - index)));
             formatted_str += text.substr(index, static_cast<size_t>(match.position()) - index);
         }
         index = static_cast<size_t>(match.position() + match.length());
@@ -263,7 +259,7 @@ void TemplateString::ParseColorCodeSubstring(const string &text,
 
     if (!regex_search(cbegin(text) + static_cast<ptrdiff_t>(index), cend(text), matches, regex_color_pattern)) {
         auto input_substr = string_view{text.c_str() + index};
-        LOG_VERBOSE("color code not found in \"{}\"", input_substr);
+        LOG_VERBOSE("color code not found in {}", quoted(input_substr));
         TemplateString::UpdateLastTemplateSubstring(text, template_substrings, std::size(text));
         index = std::size(text);
         return;
@@ -277,7 +273,7 @@ void TemplateString::ParseColorCodeSubstring(const string &text,
     auto match_substr = string{cbegin(text) + static_cast<ptrdiff_t>(index) + matches.position(),
                                cbegin(text) + static_cast<ptrdiff_t>(index) + matches.position() + matches.length()};
     auto input_substr = string_view{text.c_str() + index};
-    LOG_VERBOSE("color code found match={}, text=\"{}\"", match_substr, input_substr);
+    LOG_VERBOSE("color code found match={}, text={}", quoted(match_substr), quoted(input_substr));
 
     auto prefix = SubstringRange{};
     if (!std::empty(template_substrings)) {
@@ -325,11 +321,8 @@ fmt::text_style TemplateString::GetColorValue(string color_specification) {
 string TemplateString::ReplaceEmbeddedColorCodes(const string &text, fmt::text_style color_style) {
     auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
     auto formatted_str = template_substrings.to_string(&TemplateString::GetColorValue);
-    if (AppOptions::Instance().GetOptions().IsColorDisabled()) {
-        return formatted_str;
-    } else {
-        return format(color_style, FMT_STRING("{}"), formatted_str);
-    }
+    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("cli.color_output", false);
+    return color_output ? format(color_style, FMT_STRING("{}"), formatted_str) : formatted_str;
 }
 
 string TemplateString::TransformTemplate(const string &text,

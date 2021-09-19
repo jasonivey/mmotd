@@ -34,6 +34,11 @@ void Memory::FindInformation() {
     auto percent_used = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_PERCENT_USED);
     percent_used.SetValueArgs(details.percent_used);
     AddInformation(percent_used);
+
+    auto summary = GetInfoTemplate(InformationId::ID_MEMORY_USAGE_SUMMARY);
+    auto summary_str = format(FMT_STRING("{:.01f}% of {}"), details.percent_used, to_human_size(details.total));
+    summary.SetValue(summary_str);
+    AddInformation(summary);
 }
 
 } // namespace mmotd::information

@@ -4,9 +4,9 @@
 #include "common/include/chrono_io.h"
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
+#include "common/include/user_information.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/general.h"
-#include "lib/include/platform/user_accounting_database.h"
 
 #include <chrono>
 #include <iterator>
@@ -122,7 +122,7 @@ string Greetings::GetLocalDateTime() const {
 namespace mmotd::information {
 
 void General::FindInformation() {
-    auto user_info = mmotd::platform::user::GetUserInformation();
+    auto user_info = mmotd::core::GetUserInformation();
     if (user_info.empty()) {
         return;
     }

@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/logging.h"
+#include "common/include/user_information.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/platform/user_accounting_database.h"
 #include "lib/include/users_logged_in.h"
@@ -30,7 +31,7 @@ void UsersLoggedIn::FindInformation() {
 
 string UsersLoggedIn::GetUsersLoggedIn() {
     using namespace mmotd::platform::user_account_database;
-    using namespace mmotd::platform::user;
+    using mmotd::core::GetUserInformation;
 
     auto user_information = GetUserInformation();
     auto user_account_enteries = GetDbEntries<ENTRY_TYPE::User>();

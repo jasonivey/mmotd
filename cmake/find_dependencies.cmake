@@ -36,7 +36,6 @@ option (BUILD_TZ_LIB "build/install of TZ library" ON)
 FetchContent_Declare(date
     GIT_REPOSITORY   https://github.com/HowardHinnant/date.git
     GIT_TAG          v3.0.0
-    GIT_PROGRESS     TRUE
 )
 set(MESSAGE_QUIET ON)
 FetchContent_MakeAvailable(date)
@@ -46,7 +45,6 @@ unset(MESSAGE_QUIET)
 FetchContent_Declare(Backward
     GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git
     #GIT_TAG          v1.5
-    #GIT_PROGRESS     TRUE
 )
 set(MESSAGE_QUIET ON)
 FetchContent_MakeAvailable(Backward)
@@ -57,7 +55,6 @@ set(FORT_ENABLE_TESTING OFF CACHE INTERNAL "")
 FetchContent_Declare(fort
     GIT_REPOSITORY   https://github.com/seleznevae/libfort.git
     GIT_TAG          v0.4.2
-    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(fort)
 if (NOT fort_POPULATED)
@@ -71,7 +68,6 @@ endif ()
 FetchContent_Declare(catch2
     GIT_REPOSITORY   https://github.com/catchorg/Catch2.git
     GIT_TAG          v2.13.4
-    GIT_PROGRESS     TRUE
 )
 FetchContent_MakeAvailable(catch2)
 
@@ -79,7 +75,6 @@ FetchContent_MakeAvailable(catch2)
 FetchContent_Declare(json
     GIT_REPOSITORY   https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
     GIT_TAG          v3.9.1
-    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(json)
 if(NOT json_POPULATED)
@@ -100,14 +95,12 @@ if (NOT certify_POPULATED)
     target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
 endif ()
 
-# Component: fmt.  The library will be added into C++20 and is already a great substitue for both iostreams and
-#                  printf.  There is support for most all types, re-ordered argument assignment, and builtin
-#                  support for std::date and std::time using the formatting arguments specified with both strftime
-#                  and strptime.
+# Component: fmt.  The library has been added to C++20 (only in the MSVC STL as of this writing).  It a great
+#                  substitue for both iostreams and printf.  There is support for all builtin and STL types,
+#                  ability to re-ordered argument assignment, and support for std::date and std::time.
 FetchContent_Declare(fmt
     GIT_REPOSITORY   https://github.com/fmtlib/fmt.git
-    GIT_TAG          8.0.0
-    GIT_PROGRESS     TRUE
+    GIT_TAG          8.0.1
 )
 FetchContent_GetProperties(fmt)
 if (NOT fmt_POPULATED)
@@ -115,6 +108,18 @@ if (NOT fmt_POPULATED)
     set(MESSAGE_QUIET ON)
     add_subdirectory(${fmt_SOURCE_DIR} ${fmt_BINARY_DIR} EXCLUDE_FROM_ALL)
     unset(MESSAGE_QUIET)
+endif ()
+
+# Component: toml11.  A C++11 header-only toml parser/encoder depending only on C++ standard library.
+FetchContent_Declare(toml11
+    GIT_REPOSITORY   https://github.com/ToruNiina/toml11.git
+    GIT_TAG          v3.7.0
+)
+FetchContent_GetProperties(toml11)
+if (NOT toml11_POPULATED)
+    FetchContent_Populate(toml11)
+    add_library(toml11 INTERFACE)
+    target_include_directories(toml11 INTERFACE ${toml11_SOURCE_DIR}/include)
 endif ()
 
 # Component: CLI11.  A simple command line/environment variable/config file parsing component which adds just enough
@@ -125,7 +130,6 @@ FetchContent_Declare(cli11
     #  on a few of the features there.  Once CLI11 creates a new release I will update this
     #  rely on that tag
     #GIT_TAG         v1.9.1
-    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(cli11)
 if (NOT cli11_POPULATED)
@@ -142,7 +146,6 @@ endif ()
 FetchContent_Declare(scope_guard
     GIT_REPOSITORY   https://github.com/ricab/scope_guard.git
     GIT_TAG          v0.2.3
-    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(scope_guard)
 if (NOT scope_guard_POPULATED)
@@ -164,7 +167,6 @@ endif ()
 FetchContent_Declare(random
     GIT_REPOSITORY   https://github.com/effolkronium/random.git
     GIT_TAG          v1.3.1
-    GIT_PROGRESS     TRUE
 )
 FetchContent_GetProperties(random)
 if (NOT random_POPULATED)

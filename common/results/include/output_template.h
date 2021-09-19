@@ -3,6 +3,7 @@
 #include "common/include/big_five_macros.h"
 #include "common/results/include/template_column_items.h"
 
+#include <filesystem>
 #include <iosfwd>
 #include <memory>
 #include <optional>
@@ -18,7 +19,7 @@ public:
     using TemplateColumnItems = std::vector<mmotd::results::data::TemplateColumnItem>;
 
     OutputTemplate();
-    MISSING_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(OutputTemplate);
+    NO_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(OutputTemplate);
 
     // These are the methods to parse the file when the --template arg is specified
     static std::optional<OutputTemplate> ParseOutputTemplate(std::string file_name);
@@ -55,6 +56,6 @@ void to_json(nlohmann::json &root, const OutputTemplate &output_template);
 
 std::unique_ptr<OutputTemplate> MakeOutputTemplate(std::string file_name);
 std::unique_ptr<OutputTemplate> MakeOutputTemplateFromDefault();
-void WriteDefaultOutputTemplate(std::string file_name);
+void WriteDefaultOutputTemplate(std::filesystem::path file_path);
 
 } // namespace mmotd::results
