@@ -2,8 +2,10 @@
 #pragma once
 #include "common/include/config_options.h"
 
+#include <filesystem>
 #include <memory>
 #include <string>
+#include <utility>
 
 namespace CLI {
 class App;
@@ -21,28 +23,21 @@ public:
     CliOptionsParser(CliOptionsParser &&other) = delete;
     CliOptionsParser &operator=(CliOptionsParser &&other) = delete;
 
-    static CliOptionsParser *ParseCommandLine(const int argc, char **argv);
-
-    bool IsAppFinished() const { return app_finished_; }
-    bool IsErrorExit() const { return error_exit_; }
+    static std::pair<bool, bool> ParseCommandLine(const int argc, char **argv);
 
 private:
     CliOptionsParser();
 
-    static CliOptionsParser &GetInstance();
-
-    void Parse(const int argc, char **argv);
+    std::pair<bool, bool> Parse(const int argc, char **argv);
 
     void AddConfigOptions() const;
     void AddOptionsToSubCommand(CLI::App &app);
     void AddOptionDeclarations(CLI::App &app);
 
-    static void WriteDefaultConfiguration(std::string file_name, std::string app_config);
-    static void WriteDefaultOutputTemplate(std::string file_name);
+    static void WriteDefaultConfiguration(std::filesystem::path file_path, std::string app_config);
+    static void WriteDefaultTemplate(std::filesystem::path file_path);
 
     std::unique_ptr<CliOptions> options_;
-    bool app_finished_ = false;
-    bool error_exit_ = false;
 };
 
 } // namespace mmotd::core

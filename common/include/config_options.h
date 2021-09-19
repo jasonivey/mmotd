@@ -2,6 +2,7 @@
 #include "common/include/big_five_macros.h"
 
 #include <cstdint>
+#include <filesystem>
 #include <iosfwd>
 #include <optional>
 #include <string>
@@ -11,14 +12,12 @@
 
 namespace mmotd::core {
 
-class CliOptionsParser;
-
 class ConfigOptions {
 public:
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(ConfigOptions);
 
     static ConfigOptions &Instance(bool reinitialize = false);
-    void ParseConfigFile(const std::string &file_name);
+    void ParseConfigFile(std::filesystem::path file_path);
     void ParseConfigFile(std::istream &input, const std::string &file_name);
     void AddCliConfigOptions(std::istream &input);
 
@@ -42,8 +41,16 @@ public:
     static constexpr std::string_view CLI_TABLE = "cli";
 
 private:
+    toml::value FindValue(std::string input_name) const;
+    void InitializeConfigPath();
+    void InitializeTemplatePath();
+    std::string GetConfigPath() const noexcept { return config_path_; }
+    std::string GetTemplatePath() const noexcept { return template_path_; }
+
     toml::value core_value_;
     toml::value cli_value_;
+    std::string config_path_;
+    std::string template_path_;
 };
 
 } // namespace mmotd::core

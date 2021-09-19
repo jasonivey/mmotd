@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 namespace mmotd::logging {
 

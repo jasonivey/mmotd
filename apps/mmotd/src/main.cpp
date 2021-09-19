@@ -16,29 +16,19 @@
 #include <boost/exception/diagnostic_information.hpp>
 #include <fmt/format.h>
 
-using mmotd::algorithms::unused;
 using namespace fmt;
 using namespace std;
+using mmotd::algorithms::unused;
 using mmotd::core::CliOptionsParser;
 using mmotd::core::ConfigOptions;
 
 namespace {
 
-const tuple<bool, const CliOptionsParser *> LoadAppOptions(const int argc, char **argv) {
-    const auto *parser = CliOptionsParser::ParseCommandLine(argc, argv);
-    if (parser == nullptr) {
-        return make_tuple(true, nullptr);
-    } else if (parser->IsAppFinished()) {
-        return make_tuple(parser->IsErrorExit(), nullptr);
-    } else {
-        return make_tuple(false, parser);
-    }
-}
-
-void PrintMmotd(const CliOptionsParser &) {
+void PrintMmotd() {
     using namespace mmotd::results;
 
     const auto template_filename = ConfigOptions::Instance().GetValueAsStringOr("cli.template_path", string{});
+    LOG_INFO("template file name: {}", quoted(template_filename));
     auto output_template = unique_ptr<OutputTemplate>{};
     if (!empty(template_filename)) {
         output_template = MakeOutputTemplate(template_filename);
@@ -72,18 +62,18 @@ void UpdateLogSeverity() {
 
 int main_impl(int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
-    auto signal_handling = backward::SignalHandling{};
+    auto signal_handling = backward::SignalHandling();
     unused(signal_handling);
 
     mmotd::logging::InitializeLogging(*argv);
 
-    auto [error_encountered, app_options] = LoadAppOptions(argc, argv);
-    if (app_options == nullptr) {
-        return error_encountered ? EXIT_FAILURE : EXIT_SUCCESS;
+    auto [app_finished, error_exit] = CliOptionsParser::ParseCommandLine(argc, argv);
+    if (app_finished) {
+        return error_exit ? EXIT_FAILURE : EXIT_SUCCESS;
     }
 
     UpdateLogSeverity();
-    PrintMmotd(*app_options);
+    PrintMmotd();
     return EXIT_SUCCESS;
 }
 

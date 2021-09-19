@@ -95,13 +95,12 @@ if (NOT certify_POPULATED)
     target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
 endif ()
 
-# Component: fmt.  The library has been added to C++20 (although I believe the MSVC standard library has the only experimental) and is already a great substitue for both iostreams and
-#                  printf.  There is support for most all types, re-ordered argument assignment, and builtin
-#                  support for std::date and std::time using the formatting arguments specified with both strftime
-#                  and strptime.
+# Component: fmt.  The library has been added to C++20 (only in the MSVC STL as of this writing).  It a great
+#                  substitue for both iostreams and printf.  There is support for all builtin and STL types,
+#                  ability to re-ordered argument assignment, and support for std::date and std::time.
 FetchContent_Declare(fmt
     GIT_REPOSITORY   https://github.com/fmtlib/fmt.git
-    GIT_TAG          8.0.0
+    GIT_TAG          8.0.1
 )
 FetchContent_GetProperties(fmt)
 if (NOT fmt_POPULATED)

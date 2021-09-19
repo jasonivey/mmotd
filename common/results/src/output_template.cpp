@@ -339,14 +339,14 @@ unique_ptr<OutputTemplate> MakeOutputTemplateFromDefault() {
     return make_unique<OutputTemplate>();
 }
 
-void WriteDefaultOutputTemplate(string file_name) {
+void WriteDefaultOutputTemplate(fs::path file_path) {
     auto output_template = OutputTemplate{};
     auto root = json{};
     to_json(root, output_template);
 
-    auto output = ofstream(fs::path(file_name));
+    auto output = ofstream(file_path);
     if (!output.is_open()) {
-        LOG_ERROR("unable to open '{}' for writing output template", file_name);
+        LOG_ERROR("unable to open '{}' for writing output template", file_path);
         return;
     }
     output << root.dump(2, ' ') << endl;

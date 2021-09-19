@@ -3,6 +3,7 @@
 #include "common/include/big_five_macros.h"
 #include "common/results/include/template_column_items.h"
 
+#include <filesystem>
 #include <iosfwd>
 #include <memory>
 #include <optional>
@@ -55,6 +56,6 @@ void to_json(nlohmann::json &root, const OutputTemplate &output_template);
 
 std::unique_ptr<OutputTemplate> MakeOutputTemplate(std::string file_name);
 std::unique_ptr<OutputTemplate> MakeOutputTemplateFromDefault();
-void WriteDefaultOutputTemplate(std::string file_name);
+void WriteDefaultOutputTemplate(std::filesystem::path file_path);
 
 } // namespace mmotd::results

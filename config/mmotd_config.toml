@@ -1,6 +1,6 @@
 # modified message of the day
 
-
+template_path="/tmp/mmotd_template.json"
 
 [information-providers]
 
