@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include <cstdint>
+#include <iosfwd>
 #include <string>
 
 namespace mmotd::source_location {
@@ -33,5 +34,6 @@ private:
 };
 
 std::string to_string(const SourceLocation &location);
+std::ostream &operator<<(std::ostream &out, const SourceLocation &source_location);
 
 } // namespace mmotd::source_location

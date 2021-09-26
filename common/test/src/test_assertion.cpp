@@ -1,7 +1,10 @@
 #include "common/assertion/include/assertion.h"
+#include "common/assertion/include/exception.h"
+#include "common/include/source_location.h"
 #include "common/test/include/exception_matcher.h"
 
 #include <stdexcept>
+#include <string_view>
 
 #include <catch2/catch.hpp>
 #include <fmt/format.h>
@@ -11,67 +14,102 @@ using namespace Catch::Matchers;
 using namespace mmotd::assertion;
 using namespace std;
 
+namespace {
+
+void PreconditionSuccess() {
+    PRECONDITIONS(true, "PRECONDITIONS does not throw when expression is true");
+}
+
+void PreconditionFail() {
+    PRECONDITIONS(false, "PRECONDITIONS throws when expression is false");
+}
+
+void CheckSuccess() {
+    CHECKS(true, "CHECKS does not throw when expression is true");
+}
+
+void CheckFail() {
+    CHECKS(false, "CHECKS throws when expression is false");
+}
+
+void PostconditionSuccess() {
+    POSTCONDITIONS(true, "POSTCONDITIONS does not throw when expression is true");
+}
+
+void PostconditionFail() {
+    POSTCONDITIONS(false, "POSTCONDITIONS throws when expression is false");
+}
+
+} // namespace
+
 namespace mmotd::test {
 
-TEST_CASE("Assertion inherits from RuntimeError", "[assertion]") {
+CATCH_TEST_CASE("Assertion inherits from RuntimeError", "[assertion]") {
     auto assertion = Assertion("assertion");
-    CHECK(dynamic_cast<const std::exception *>(&assertion) != nullptr);
-    CHECK(dynamic_cast<const std::runtime_error *>(&assertion) != nullptr);
+    CATCH_CHECK(dynamic_cast<const std::exception *>(&assertion) != nullptr);
+    CATCH_CHECK(dynamic_cast<const std::runtime_error *>(&assertion) != nullptr);
 }
 
-TEST_CASE("Assertion contains context", "[assertion]") {
-    auto assertion = Assertion("assertion");
+CATCH_TEST_CASE("Assertion contains context", "[assertion]") {
+    auto assertion =
+        Assertion{GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "Assertion", "assertion")};
     auto assertion_str = string(assertion.what());
     fmt::print(FMT_STRING("{}\n"), assertion_str);
-    CHECK_THAT(assertion_str, Contains("mmotd::assertion::Assertion::Assertion"));
+    CATCH_CHECK_THAT(assertion_str, Contains("____C_A_T_C_H____T_E_S_T____"));
 }
 
-TEST_CASE("MMOTD_ALWAYS_FAIL throws catchable exception", "[assertion]") {
-    CHECK_THROWS_MATCHES(MMOTD_ALWAYS_FAIL("throws a catchable exception"),
-                         mmotd::assertion::Assertion,
-                         MmotdExceptionMatcher("throws a catchable exception"));
+CATCH_TEST_CASE("ALWAYS_FAIL throws assertion exception", "[assertion]") {
+    CATCH_CHECK_THROWS_MATCHES(ALWAYS_FAIL("throws an mmotd::assertion::Assertion"),
+                               mmotd::assertion::Assertion,
+                               MmotdExceptionMatcher("throws an mmotd::assertion::Assertion"));
 }
 
-TEST_CASE("MMOTD_PRECONDITION(true) does not throw", "[assertion]") {
-    CHECK_NOTHROW(MMOTD_PRECONDITION(true));
+CATCH_TEST_CASE("PRECONDITIONS(false) throws", "[assertion]") {
+    CATCH_CHECK_THROWS_AS(PreconditionFail(), mmotd::assertion::Assertion);
 }
 
-TEST_CASE("MMOTD_PRECONDITION(false) throws", "[assertion]") {
-    CHECK_THROWS_AS(MMOTD_PRECONDITION(false), mmotd::assertion::Assertion);
+CATCH_TEST_CASE("PRECONDITIONS(true) does not throw", "[assertion]") {
+    CATCH_CHECK_NOTHROW(PreconditionSuccess());
 }
 
-TEST_CASE("MMOTD_PRECONDITIONS(true) does not throw", "[assertion]") {
-    CHECK_NOTHROW(MMOTD_PRECONDITIONS(true, "this should not throw!"));
+CATCH_TEST_CASE("PRECONDITIONS(false) throws message", "[assertion]") {
+    CATCH_CHECK_THROWS_MATCHES(PreconditionFail(),
+                               mmotd::assertion::Assertion,
+                               MmotdExceptionMatcher("PRECONDITIONS throws when expression is false"));
 }
 
-TEST_CASE("MMOTD_PRECONDITIONS(false) throws", "[assertion]") {
-    CHECK_THROWS_MATCHES(MMOTD_PRECONDITIONS(false, "this should throw!"),
-                         mmotd::assertion::Assertion,
-                         MmotdExceptionMatcher("this should throw!"));
+CATCH_TEST_CASE("CHECKS(false) throws", "[assertion]") {
+    CATCH_CHECK_THROWS_AS(CheckFail(), mmotd::assertion::Assertion);
 }
 
-TEST_CASE("MMOTD_CHECK(true) does not throw", "[assertion]") {
-    CHECK_NOTHROW(MMOTD_CHECK(true));
+CATCH_TEST_CASE("CHECKS(true) does not throw", "[assertion]") {
+    CATCH_CHECK_NOTHROW(CheckSuccess());
 }
 
-TEST_CASE("MMOTD_CHECK(false) throws", "[assertion]") {
-    CHECK_THROWS_AS(MMOTD_CHECK(false), mmotd::assertion::Assertion);
+CATCH_TEST_CASE("CHECKS(false) throws message", "[assertion]") {
+    CATCH_CHECK_THROWS_MATCHES(CheckFail(),
+                               mmotd::assertion::Assertion,
+                               MmotdExceptionMatcher("CHECKS throws when expression is false"));
 }
 
-TEST_CASE("MMOTD_CHECKS(true) does not throw", "[assertion]") {
-    CHECK_NOTHROW(MMOTD_CHECKS(true, "this should not throw!"));
+CATCH_TEST_CASE("POSTCONDITIONS(false) throws", "[assertion]") {
+    CATCH_CHECK_THROWS_AS(PostconditionFail(), mmotd::assertion::Assertion);
 }
 
-TEST_CASE("MMOTD_CHECKS(false) throws", "[assertion]") {
-    CHECK_THROWS_MATCHES(MMOTD_CHECKS(false, "this should throw!"),
-                         mmotd::assertion::Assertion,
-                         MmotdExceptionMatcher("this should throw!"));
+CATCH_TEST_CASE("POSTCONDITIONS(true) does not throw", "[assertion]") {
+    CATCH_CHECK_NOTHROW(PostconditionSuccess());
 }
 
-TEST_CASE("MMOTD_THROW_ASSERTION throws", "[assertion]") {
-    CHECK_THROWS_MATCHES(MMOTD_THROW_ASSERTION("this should throw!"),
-                         mmotd::assertion::Assertion,
-                         MmotdExceptionMatcher("this should throw!"));
+CATCH_TEST_CASE("POSTCONDITIONS(false) throws message", "[assertion]") {
+    CATCH_CHECK_THROWS_MATCHES(PostconditionFail(),
+                               mmotd::assertion::Assertion,
+                               MmotdExceptionMatcher("POSTCONDITIONS throws when expression is false"));
+}
+
+CATCH_TEST_CASE("THROW_ASSERTION does just that - throws", "[assertion]") {
+    CATCH_CHECK_THROWS_MATCHES(THROW_ASSERTION("throws a std::runtime_error"),
+                               mmotd::assertion::Assertion,
+                               MmotdExceptionMatcher("throws a std::runtime_error"));
 }
 
 } // namespace mmotd::test

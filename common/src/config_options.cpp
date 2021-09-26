@@ -40,8 +40,8 @@ bool IsRequestingTemplatePath(string name) {
 }
 
 toml::value FindValueInTable(const toml::value &root_value, queue<string> names) {
-    MMOTD_PRECONDITIONS(!root_value.is_uninitialized(), "unable to find value when the root is uninitialized");
-    MMOTD_PRECONDITIONS(size(names) >= 2, "the names queue must have atleast two values (root and value to find)");
+    PRECONDITIONS(!root_value.is_uninitialized(), "unable to find value when the root is uninitialized");
+    PRECONDITIONS(size(names) >= 2, "the names queue must have atleast two values (root and value to find)");
 
     const toml::value *result_ptr = nullptr;
     do {
@@ -62,15 +62,14 @@ toml::value FindValueInTable(const toml::value &root_value, queue<string> names)
 
 toml::value FindValueImpl(const toml::value &core, const toml::value &cli, queue<string> names) {
     using mmotd::core::ConfigOptions;
-    MMOTD_PRECONDITIONS(!empty(names), "the queue of names should never be empty");
+    PRECONDITIONS(!empty(names), "the queue of names should never be empty");
     const auto &search_table = names.front() == ConfigOptions::CORE_TABLE ? core : cli;
     return FindValueInTable(search_table, names);
 }
 
 fs::path FindPath(const toml::value &root, string name) {
     using namespace mmotd::core::special_files;
-    MMOTD_PRECONDITIONS(root.is_table(),
-                        format(FMT_STRING("toml root value must always be a table, not {}"), root.type()));
+    PRECONDITIONS(root.is_table(), "toml root value must always be a table, not {}", root.type());
 
     if (!root.contains(name) || !root.at(name).is_string()) {
         LOG_ERROR("root toml::value does not contain {} or it is not a string", quoted(name));
@@ -134,7 +133,7 @@ void ConfigOptions::ParseConfigFile(fs::path file_path) {
     LOG_VERBOSE("parsing config file: {}", file_path);
     auto ec = error_code{};
     if (!fs::exists(file_path, ec) || ec) {
-        MMOTD_ALWAYS_FAIL(format(FMT_STRING("config file '{}' does not exist"), file_path));
+        ALWAYS_FAIL("config file '{}' does not exist", file_path);
     }
     core_value_ = toml::parse(file_path);
     LOG_VERBOSE("\nconfig options:\n{}", to_string());
@@ -147,7 +146,7 @@ void ConfigOptions::ParseConfigFile(istream &input, const string &file_name) {
 }
 
 void ConfigOptions::AddCliConfigOptions(istream &input) {
-    MMOTD_CHECKS(cli_value_.is_uninitialized(), "CLI options are added once as a toml stream");
+    CHECKS(cli_value_.is_uninitialized(), "CLI options are added once as a toml stream");
     cli_value_ = toml::parse(input, "cli-options.toml");
     InitializeConfigPath();
     if (!empty(GetConfigPath())) {
@@ -181,8 +180,7 @@ toml::value ConfigOptions::FindValue(string input_name) const {
 
     auto names_deque = deque<string>{};
     boost::split(names_deque, input_name, boost::is_any_of("."), boost::token_compress_on);
-    MMOTD_CHECKS(!empty(names_deque),
-                 format(FMT_STRING("splitting {} on '.' must have at least one value"), quoted(input_name)));
+    CHECKS(!empty(names_deque), "splitting {} on '.' must have at least one value", quoted(input_name));
 
     if (names_deque.front() != ConfigOptions::CORE_TABLE && names_deque.front() != ConfigOptions::CLI_TABLE) {
         names_deque.push_front(string{ConfigOptions::CORE_TABLE});

@@ -2,14 +2,17 @@
 #include "common/test/include/exception_matcher.h"
 
 #include <exception>
+#include <iomanip>
 #include <string>
+
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 
 using namespace std;
 
 namespace mmotd::test {
 
-MmotdExceptionMatcher::MmotdExceptionMatcher(char const *text) : text_(text) {
-}
+MmotdExceptionMatcher::MmotdExceptionMatcher(char const *text) : text_(text) {}
 
 MmotdExceptionMatcher::~MmotdExceptionMatcher() = default;
 
