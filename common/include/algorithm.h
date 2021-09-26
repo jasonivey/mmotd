@@ -16,7 +16,8 @@
 namespace mmotd::algorithms {
 
 template<typename... Args>
-inline constexpr void unused(Args &&...) noexcept {}
+inline void unused(Args &&...) noexcept {
+}
 
 template<class BidIter, class T>
 inline BidIter find_last(BidIter first, BidIter last, T value) {
@@ -85,7 +86,7 @@ inline size_t erase_if(Container &container, Pred pred) {
             ++i;
         }
     }
-    CHECKS(start_size >= container.size(), "erase_if should never make the container larger");
+    MMOTD_CHECKS(start_size >= container.size(), "erase_if should never make the container larger");
     return start_size - container.size();
 }
 

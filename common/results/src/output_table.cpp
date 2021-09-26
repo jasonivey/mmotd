@@ -101,10 +101,10 @@ int GetStringWidth(const void *vbeg, const void *vend, size_t *width) {
             LOG_ERROR("invalid multibyte character was encountered");
             return 1;
         }
-        CHECKS(input_width <= size(input),
-               "the visible width ({}) should never be more than the input string size ({})",
-               input_width,
-               size(input));
+        MMOTD_CHECKS(input_width <= size(input),
+                     format(FMT_STRING("the visible width ({}) should never be more than the input string size ({})"),
+                            input_width,
+                            size(input)));
         width_cache.emplace_back(input, input_width);
     }
     if (width != nullptr) {

@@ -22,7 +22,8 @@ vector<int> GetIndexesWithoutEntireLine(vector<int> indexes) {
 }
 
 vector<int> GetIndexesWithoutEntireLine(vector<int> indexes, ptrdiff_t index) {
-    PRECONDITIONS(static_cast<size_t>(index) < size(indexes), "index must be less than the size of the container");
+    MMOTD_PRECONDITIONS(static_cast<size_t>(index) < size(indexes),
+                        "index must be less than the size of the container");
     auto i = remove(begin(indexes), begin(indexes) + index, ENTIRE_LINE);
     indexes.erase(i, begin(indexes) + index);
     return indexes;
@@ -37,7 +38,7 @@ PositionIndex::PositionIndex(const ColumnIndexes &indexes, size_t index) :
 }
 
 PositionIndex::PositionIndex(const vector<int> &indexes, size_t index) : index_(index) {
-    PRECONDITIONS(index < size(indexes), "index must be less than the size of the container");
+    MMOTD_PRECONDITIONS(index < size(indexes), "index must be less than the size of the container");
     column_ = static_cast<int>(indexes[index]);
     auto container_without_entire_line = GetIndexesWithoutEntireLine(indexes);
     if (size(container_without_entire_line) == 1 || column_ == ENTIRE_LINE) {
@@ -75,7 +76,7 @@ size_t PositionIndex::GetIndex() const noexcept {
 }
 
 string PositionIndex::to_string() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     switch (position_) {
         case Position::First:
             return "first";
@@ -92,37 +93,37 @@ string PositionIndex::to_string() const {
 }
 
 bool PositionIndex::IsStartOfLine() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     return IsPositionOneOf(position_, PositionIndex::Position::First | PositionIndex::Position::FirstAndLast);
 }
 
 bool PositionIndex::IsEntireLine() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     return position_ == PositionIndex::Position::FirstAndLast;
 }
 
 bool PositionIndex::IsFirstColumn() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     return position_ == PositionIndex::Position::First;
 }
 
 bool PositionIndex::IsMiddleColumn() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     return position_ == PositionIndex::Position::Middle;
 }
 
 bool PositionIndex::IsLastColumn() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     return position_ == PositionIndex::Position::Last;
 }
 
 bool PositionIndex::IsEndOfLine() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     return IsPositionOneOf(position_, PositionIndex::Position::FirstAndLast | PositionIndex::Position::Last);
 }
 
 bool PositionIndex::IsMultipleColumnLine() const {
-    PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(IsPositionValid(true), "position index must be one of the Position values");
     return IsPositionOneOf(position_,
                            PositionIndex::Position::First | PositionIndex::Position::Middle |
                                PositionIndex::Position::Last);

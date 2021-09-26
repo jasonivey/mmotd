@@ -18,137 +18,137 @@ using namespace std;
 
 namespace mmotd::results::test {
 
-CATCH_TEST_CASE("constructor", "[PositionIndex]") {
-    CATCH_SECTION("constructor does not take empty container") {
-        CATCH_CHECK_THROWS_MATCHES(PositionIndex(vector<int>{}, 0),
-                                   mmotd::assertion::Assertion,
-                                   MmotdExceptionMatcher("index must be less than the size of the container"));
+TEST_CASE("constructor", "[PositionIndex]") {
+    SECTION("constructor does not take empty container") {
+        CHECK_THROWS_MATCHES(PositionIndex(vector<int>{}, 0),
+                             mmotd::assertion::Assertion,
+                             MmotdExceptionMatcher("index must be less than the size of the container"));
     }
 
-    CATCH_SECTION("ENTIRE_LINE matches FirstAndLast") {
+    SECTION("ENTIRE_LINE matches FirstAndLast") {
         auto position_index1 = PositionIndex(vector<int>{ENTIRE_LINE}, 0);
-        CATCH_CHECK(position_index1.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index1.GetColumnNumber() == ENTIRE_LINE);
+        CHECK(position_index1.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index1.GetColumnNumber() == ENTIRE_LINE);
     }
 
-    CATCH_SECTION("ENTIRE_LINE and 1 other column matches FirstAndLast and FirstAndLast") {
+    SECTION("ENTIRE_LINE and 1 other column matches FirstAndLast and FirstAndLast") {
         auto position_index1a = PositionIndex(vector<int>{ENTIRE_LINE, 0}, 0);
         auto position_index1b = PositionIndex(vector<int>{ENTIRE_LINE, 0}, 1);
-        CATCH_CHECK(position_index1a.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index1a.GetColumnNumber() == ENTIRE_LINE);
-        CATCH_CHECK(position_index1b.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index1b.GetColumnNumber() == 0);
+        CHECK(position_index1a.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index1a.GetColumnNumber() == ENTIRE_LINE);
+        CHECK(position_index1b.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index1b.GetColumnNumber() == 0);
 
         auto position_index2a = PositionIndex(vector<int>{ENTIRE_LINE, 666}, 0);
         auto position_index2b = PositionIndex(vector<int>{ENTIRE_LINE, 666}, 1);
-        CATCH_CHECK(position_index2a.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index2a.GetColumnNumber() == ENTIRE_LINE);
-        CATCH_CHECK(position_index2b.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index2b.GetColumnNumber() == 666);
+        CHECK(position_index2a.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index2a.GetColumnNumber() == ENTIRE_LINE);
+        CHECK(position_index2b.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index2b.GetColumnNumber() == 666);
     }
 
-    CATCH_SECTION("single element matches FirstAndLast") {
+    SECTION("single element matches FirstAndLast") {
         auto position_index1 = PositionIndex(vector<int>{0}, 0);
-        CATCH_CHECK(position_index1.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index1.GetColumnNumber() == 0);
+        CHECK(position_index1.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index1.GetColumnNumber() == 0);
 
         auto position_index2 = PositionIndex(vector<int>{22}, 0);
-        CATCH_CHECK(position_index2.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index2.GetColumnNumber() == 22);
+        CHECK(position_index2.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index2.GetColumnNumber() == 22);
 
         auto position_index3 = PositionIndex(vector<int>{3000}, 0);
-        CATCH_CHECK(position_index3.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index3.GetColumnNumber() == 3000);
+        CHECK(position_index3.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index3.GetColumnNumber() == 3000);
     }
 
-    CATCH_SECTION("two elements matches First and Last") {
+    SECTION("two elements matches First and Last") {
         auto position_index1a = PositionIndex(vector<int>{0, 1}, 0);
         auto position_index1b = PositionIndex(vector<int>{0, 1}, 1);
-        CATCH_CHECK(position_index1a.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index1a.GetColumnNumber() == 0);
-        CATCH_CHECK(position_index1b.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index1b.GetColumnNumber() == 1);
+        CHECK(position_index1a.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index1a.GetColumnNumber() == 0);
+        CHECK(position_index1b.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index1b.GetColumnNumber() == 1);
 
         auto position_index2a = PositionIndex(vector<int>{22, 23}, 0);
         auto position_index2b = PositionIndex(vector<int>{22, 23}, 1);
-        CATCH_CHECK(position_index2a.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index2a.GetColumnNumber() == 22);
-        CATCH_CHECK(position_index2b.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index2b.GetColumnNumber() == 23);
+        CHECK(position_index2a.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index2a.GetColumnNumber() == 22);
+        CHECK(position_index2b.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index2b.GetColumnNumber() == 23);
 
         auto position_index3a = PositionIndex(vector<int>{3000, 4000}, 0);
         auto position_index3b = PositionIndex(vector<int>{3000, 4000}, 1);
-        CATCH_CHECK(position_index3a.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index3a.GetColumnNumber() == 3000);
-        CATCH_CHECK(position_index3b.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index3b.GetColumnNumber() == 4000);
+        CHECK(position_index3a.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index3a.GetColumnNumber() == 3000);
+        CHECK(position_index3b.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index3b.GetColumnNumber() == 4000);
     }
 
-    CATCH_SECTION("three elements matches First, Middle and Last") {
+    SECTION("three elements matches First, Middle and Last") {
         auto container1 = vector<int>{0, 1, 2};
         auto position_index0 = PositionIndex(container1, 0);
         auto position_index1 = PositionIndex(container1, 1);
         auto position_index2 = PositionIndex(container1, 2);
-        CATCH_CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index0.GetColumnNumber() == 0);
-        CATCH_CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index1.GetColumnNumber() == 1);
-        CATCH_CHECK(position_index2.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index2.GetColumnNumber() == 2);
+        CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index0.GetColumnNumber() == 0);
+        CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index1.GetColumnNumber() == 1);
+        CHECK(position_index2.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index2.GetColumnNumber() == 2);
     }
 
-    CATCH_SECTION("three scattered elements matches First, Middle and Last") {
+    SECTION("three scattered elements matches First, Middle and Last") {
         auto container1 = vector<int>{112, 151, 188};
         auto position_index0 = PositionIndex(container1, 0);
         auto position_index1 = PositionIndex(container1, 1);
         auto position_index2 = PositionIndex(container1, 2);
-        CATCH_CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index0.GetColumnNumber() == 112);
-        CATCH_CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index1.GetColumnNumber() == 151);
-        CATCH_CHECK(position_index2.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index2.GetColumnNumber() == 188);
+        CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index0.GetColumnNumber() == 112);
+        CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index1.GetColumnNumber() == 151);
+        CHECK(position_index2.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index2.GetColumnNumber() == 188);
     }
 
-    CATCH_SECTION("five elements matches First, Middle and Last") {
+    SECTION("five elements matches First, Middle and Last") {
         auto container1 = vector<int>{0, 1, 2, 3, 4};
         auto position_index0 = PositionIndex(container1, 0);
         auto position_index1 = PositionIndex(container1, 1);
         auto position_index2 = PositionIndex(container1, 2);
         auto position_index3 = PositionIndex(container1, 3);
         auto position_index4 = PositionIndex(container1, 4);
-        CATCH_CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index0.GetColumnNumber() == 0);
-        CATCH_CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index1.GetColumnNumber() == 1);
-        CATCH_CHECK(position_index2.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index2.GetColumnNumber() == 2);
-        CATCH_CHECK(position_index3.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index3.GetColumnNumber() == 3);
-        CATCH_CHECK(position_index4.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index4.GetColumnNumber() == 4);
+        CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index0.GetColumnNumber() == 0);
+        CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index1.GetColumnNumber() == 1);
+        CHECK(position_index2.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index2.GetColumnNumber() == 2);
+        CHECK(position_index3.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index3.GetColumnNumber() == 3);
+        CHECK(position_index4.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index4.GetColumnNumber() == 4);
     }
 
-    CATCH_SECTION("five scattered elements matches First, Middle and Last") {
+    SECTION("five scattered elements matches First, Middle and Last") {
         auto container1 = vector<int>{33, 44, 55, 66, 77};
         auto position_index0 = PositionIndex(container1, 0);
         auto position_index1 = PositionIndex(container1, 1);
         auto position_index2 = PositionIndex(container1, 2);
         auto position_index3 = PositionIndex(container1, 3);
         auto position_index4 = PositionIndex(container1, 4);
-        CATCH_CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index0.GetColumnNumber() == 33);
-        CATCH_CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index1.GetColumnNumber() == 44);
-        CATCH_CHECK(position_index2.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index2.GetColumnNumber() == 55);
-        CATCH_CHECK(position_index3.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index3.GetColumnNumber() == 66);
-        CATCH_CHECK(position_index4.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index4.GetColumnNumber() == 77);
+        CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index0.GetColumnNumber() == 33);
+        CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index1.GetColumnNumber() == 44);
+        CHECK(position_index2.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index2.GetColumnNumber() == 55);
+        CHECK(position_index3.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index3.GetColumnNumber() == 66);
+        CHECK(position_index4.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index4.GetColumnNumber() == 77);
     }
 
-    CATCH_SECTION("five+ scattered elements with ENTIRE_LINE matches First, Middle and Last") {
+    SECTION("five+ scattered elements with ENTIRE_LINE matches First, Middle and Last") {
         auto container1 = vector<int>{33, 44, ENTIRE_LINE, 55, 66, 77};
         auto position_index0 = PositionIndex(container1, 0);
         auto position_index1 = PositionIndex(container1, 1);
@@ -156,18 +156,18 @@ CATCH_TEST_CASE("constructor", "[PositionIndex]") {
         auto position_index3 = PositionIndex(container1, 3);
         auto position_index4 = PositionIndex(container1, 4);
         auto position_index5 = PositionIndex(container1, 5);
-        CATCH_CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
-        CATCH_CHECK(position_index0.GetColumnNumber() == 33);
-        CATCH_CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index1.GetColumnNumber() == 44);
-        CATCH_CHECK(position_index2.GetPosition() == PositionIndex::Position::FirstAndLast);
-        CATCH_CHECK(position_index2.GetColumnNumber() == ENTIRE_LINE);
-        CATCH_CHECK(position_index3.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index3.GetColumnNumber() == 55);
-        CATCH_CHECK(position_index4.GetPosition() == PositionIndex::Position::Middle);
-        CATCH_CHECK(position_index4.GetColumnNumber() == 66);
-        CATCH_CHECK(position_index5.GetPosition() == PositionIndex::Position::Last);
-        CATCH_CHECK(position_index5.GetColumnNumber() == 77);
+        CHECK(position_index0.GetPosition() == PositionIndex::Position::First);
+        CHECK(position_index0.GetColumnNumber() == 33);
+        CHECK(position_index1.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index1.GetColumnNumber() == 44);
+        CHECK(position_index2.GetPosition() == PositionIndex::Position::FirstAndLast);
+        CHECK(position_index2.GetColumnNumber() == ENTIRE_LINE);
+        CHECK(position_index3.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index3.GetColumnNumber() == 55);
+        CHECK(position_index4.GetPosition() == PositionIndex::Position::Middle);
+        CHECK(position_index4.GetColumnNumber() == 66);
+        CHECK(position_index5.GetPosition() == PositionIndex::Position::Last);
+        CHECK(position_index5.GetColumnNumber() == 77);
     }
 }
 

@@ -47,18 +47,18 @@ string Row::GetColumnNumberStr() const noexcept {
 }
 
 size_t Row::GetColumnCount() const {
-    PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
-    PRECONDITIONS(!empty(names_) && !empty(values_), "output names and values must not be empty");
+    MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
+    MMOTD_PRECONDITIONS(!empty(names_) && !empty(values_), "output names and values must not be empty");
     return empty(names_.front()) || empty(values_.front()) ? size_t{1} : size_t{2};
 }
 
 size_t Row::GetHeight() const {
-    PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
+    MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
     return size(names_);
 }
 
 void Row::SetPositionIndex(PositionIndex position_index) {
-    PRECONDITIONS(position_index.IsPositionValid(), "position index must be one of the Position values");
+    MMOTD_PRECONDITIONS(position_index.IsPositionValid(), "position index must be one of the Position values");
     position_index_ = position_index;
 }
 
@@ -78,12 +78,12 @@ bool Row::BalanceNameValueSize() {
             AddName(string{});
         }
     }
-    CHECKS(size(names_) == size(values_), "output names and values are not equal sizes");
+    MMOTD_CHECKS(size(names_) == size(values_), "output names and values are not equal sizes");
     return true;
 }
 
 size_t Row::UpdateRowNumber(int row_number) {
-    PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
+    MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
     LOG_VERBOSE("updating row number: {} to: {} for name: '{}', value: '{}'",
                 item_.row_index,
                 row_number,
@@ -133,24 +133,24 @@ void Row::SetNameValue(const Informations &informations) {
 }
 
 bool Row::HasName(size_t index) const {
-    PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
-    PRECONDITIONS(index < size(names_), "index must be less than the size of names");
+    MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
+    MMOTD_PRECONDITIONS(index < size(names_), "index must be less than the size of names");
     return !empty(names_[index]);
 }
 
 bool Row::HasValue(size_t index) const {
-    PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
-    PRECONDITIONS(index < size(values_), "index must be less than the size of values");
+    MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
+    MMOTD_PRECONDITIONS(index < size(values_), "index must be less than the size of values");
     return !empty(values_[index]);
 }
 
 string Row::GetName(size_t index) const {
-    PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
+    MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
     return index < size(names_) ? names_[index] : string{};
 }
 
 string Row::GetValue(size_t index) const {
-    PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
+    MMOTD_PRECONDITIONS(size(names_) == size(values_), "output names and values must be equal sizes");
     return index < size(values_) ? values_[index] : string{};
     return values_[index];
 }

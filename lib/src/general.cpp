@@ -97,9 +97,8 @@ optional<Greeting> Greetings::FindGreeting() const {
     } else if (value_in_range(hour, EVENING_GREETING.begin(), EVENING_GREETING.end())) {
         return EVENING_GREETING;
     } else {
-        CHECKS(value_outside_range(hour, NIGHT_GREETING.begin(), NIGHT_GREETING.end()),
-               "hour value={} did not find it's way into any block of time",
-               hour);
+        MMOTD_CHECKS(value_outside_range(hour, NIGHT_GREETING.begin(), NIGHT_GREETING.end()),
+                     fmt::format(FMT_STRING("hour value={} did not find it's way into any block of time"), hour));
         return NIGHT_GREETING;
     }
 }

@@ -15,7 +15,7 @@ using namespace std;
 namespace mmotd::networking {
 
 NetworkDevice::NetworkDevice(const string &interface) : interface_name(interface) {
-    PRECONDITIONS(!empty(interface), "interface name should never be empty");
+    MMOTD_PRECONDITIONS(!empty(interface), "interface name should never be empty");
 }
 
 bool NetworkDevice::HasActiveBeenTested() const {
@@ -30,7 +30,7 @@ bool NetworkDevice::IsActive() const {
         return false;
     } else {
         // since active hasn't been set to true/false yet then return 'false'
-        CHECKS(boost::indeterminate(active), "active must be indeterminate as we tested for true/false");
+        MMOTD_CHECKS(boost::indeterminate(active), "active must be indeterminate as we tested for true/false");
         return false;
     }
 }

@@ -61,7 +61,7 @@ optional<uint32_t> FromString(string_view str, int base = 10) {
 }
 
 optional<fmt::text_style> GetHexColorValue(string value) {
-    PRECONDITIONS(!empty(value), "unable to convert empty string to hex color");
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to hex color");
     const auto pattern = regex(R"(^hex\(\s*([0-9A-Fa-f]{2}|0)\s*([0-9A-Fa-f]{2})?\s*([0-9A-Fa-f]{2})?\s*\)$)",
                                std::regex_constants::ECMAScript | std::regex_constants::icase);
     auto matches = smatch{};
@@ -82,7 +82,7 @@ optional<fmt::text_style> GetHexColorValue(string value) {
 }
 
 optional<fmt::text_style> GetRgbColorValue(string value) {
-    PRECONDITIONS(!empty(value), "unable to convert empty string to rgb color");
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to rgb color");
     const auto pattern = regex(R"(^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$)",
                                std::regex_constants::ECMAScript | std::regex_constants::icase);
     auto matches = smatch{};
@@ -101,7 +101,7 @@ optional<fmt::text_style> GetRgbColorValue(string value) {
 }
 
 optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
-    PRECONDITIONS(!empty(value), "unable to convert empty string to plain color");
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to plain color");
     const auto colors = string{"black|red|green|yellow|blue|magenta|cyan|white"};
     const auto color_regex = regex(colors, regex_constants::ECMAScript | regex_constants::icase);
     auto match = smatch{};
@@ -133,7 +133,7 @@ optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
 }
 
 optional<tuple<bool, bool, bool, bool, bool>> GetTerminalColorEmphasis(string value) {
-    PRECONDITIONS(!empty(value), "unable to convert empty string to color emphasis");
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to color emphasis");
     auto bold = false, italic = false, underline = false, strikethrough = false, bright = false;
     if (boost::icontains(value, "bold_") || boost::icontains(value, "_bold")) {
         bold = true;
@@ -159,7 +159,7 @@ optional<tuple<bool, bool, bool, bool, bool>> GetTerminalColorEmphasis(string va
 }
 
 optional<fmt::text_style> GetTerminalColorValue(string value) {
-    PRECONDITIONS(!empty(value), "unable to convert empty string to terminal color");
+    MMOTD_PRECONDITIONS(!empty(value), "unable to convert empty string to terminal color");
     auto emphasis_holder = GetTerminalColorEmphasis(value);
     if (!emphasis_holder) {
         return nullopt;
@@ -205,8 +205,9 @@ inline int column_from_string(const string &column_str) {
     } else if (auto column_holder = FromString(string_view(data(column_str))); column_holder) {
         return static_cast<int>(*column_holder);
     } else {
-        THROW_OUT_OF_RANGE(
-            "Input template json contains invalid columns.  Columns is an array of strings.  Each array element must be a valid integer or 'ENTIRE_LINE'");
+        auto msg = string{
+            "Input template json contains invalid columns.  Columns is an array of strings.  Each array element must be a valid integer or 'ENTIRE_LINE'"};
+        MMOTD_THROW_OUT_OF_RANGE(msg);
         return -1;
     }
 }

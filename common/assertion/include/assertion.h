@@ -3,137 +3,130 @@
 
 #include "common/assertion/include/exception.h"
 #include "common/assertion/include/throw.h"
-#include "common/include/source_location.h"
 
 #include <stdexcept>
 #include <string>
-#include <string_view>
 
-#include <boost/config.hpp> // for BOOST_LIKELY
-#include <fmt/format.h>
-#include <fmt/ostream.h>
+#include <boost/assert.hpp>
+#include <boost/current_function.hpp>
+
+#define MMOTD_THROW_ASSERTION(msg)                                                                                \
+    mmotd::assertion::ThrowException(                                                                             \
+        mmotd::assertion::Assertion(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("Assertion", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                \
+        __FILE__,                                                                                                 \
+        __LINE__,                                                                                                 \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_INVALID_ARGUMENT(msg)                                                                 \
+    mmotd::assertion::ThrowException(                                                                     \
+        mmotd::assertion::InvalidArgument(mmotd::assertion::MakeExceptionMessage("InvalidArgument",       \
+                                                                                 msg,                     \
+                                                                                 __FILE__,                \
+                                                                                 __LINE__,                \
+                                                                                 BOOST_CURRENT_FUNCTION), \
+                                          true),                                                          \
+        __FILE__,                                                                                         \
+        __LINE__,                                                                                         \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_DOMAIN_ERROR(msg)                                                                               \
+    mmotd::assertion::ThrowException(                                                                               \
+        mmotd::assertion::DomainError(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("DomainError", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                  \
+        __FILE__,                                                                                                   \
+        __LINE__,                                                                                                   \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_LENGTH_ERROR(msg)                                                                               \
+    mmotd::assertion::ThrowException(                                                                               \
+        mmotd::assertion::LengthError(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("LengthError", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                  \
+        __FILE__,                                                                                                   \
+        __LINE__,                                                                                                   \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_OUT_OF_RANGE(msg)                                                                              \
+    mmotd::assertion::ThrowException(                                                                              \
+        mmotd::assertion::OutOfRange(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("OutOfRange", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                 \
+        __FILE__,                                                                                                  \
+        __LINE__,                                                                                                  \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_RUNTIME_ERROR(msg)                                                                               \
+    mmotd::assertion::ThrowException(                                                                                \
+        mmotd::assertion::RuntimeError(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("RuntimeError", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                   \
+        __FILE__,                                                                                                    \
+        __LINE__,                                                                                                    \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_RANGE_ERROR(msg)                                                                               \
+    mmotd::assertion::ThrowException(                                                                              \
+        mmotd::assertion::RangeError(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("RangeError", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                 \
+        __FILE__,                                                                                                  \
+        __LINE__,                                                                                                  \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_OVERFLOW_ERROR(msg)                                                                               \
+    mmotd::assertion::ThrowException(                                                                                 \
+        mmotd::assertion::OverflowError(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("OverflowError", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                    \
+        __FILE__,                                                                                                     \
+        __LINE__,                                                                                                     \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_THROW_UNDERFLOW_ERROR(msg)                                                                               \
+    mmotd::assertion::ThrowException(                                                                                  \
+        mmotd::assertion::UnderflowError(                                                                              \
+            mmotd::assertion::MakeExceptionMessage("UnderflowError", msg, __FILE__, __LINE__, BOOST_CURRENT_FUNCTION), \
+            true),                                                                                                     \
+        __FILE__,                                                                                                      \
+        __LINE__,                                                                                                      \
+        BOOST_CURRENT_FUNCTION)
+
+#define MMOTD_PRECONDITION BOOST_ASSERT
+#define MMOTD_PRECONDITIONS(expr, msg) BOOST_ASSERT_MSG(expr, std::string(msg).c_str())
+#define MMOTD_CHECK BOOST_ASSERT
+#define MMOTD_CHECKS(expr, msg) BOOST_ASSERT_MSG(expr, std::string(msg).c_str())
+#define MMOTD_ALWAYS_FAIL(msg) BOOST_ASSERT_MSG(false, std::string(msg).c_str())
+//#define POSTCONDITION BOOST_ASSERT
+//#define POSTCONDITION BOOST_ASSERT
 
 namespace mmotd::assertion {
 
-template<typename S, typename... Args>
-std::string MakeExceptionMessage(const mmotd::source_location::SourceLocation &source_location,
-                                 std::string_view exception_type,
-                                 const S &format,
-                                 Args &&...args) {
-    return mmotd::assertion::GetExceptionMessage(source_location,
-                                                 exception_type,
-                                                 format,
-                                                 fmt::make_args_checked<Args...>(format, args...));
-}
+class Assertion : public std::runtime_error, public virtual boost::exception {
+public:
+    explicit Assertion(const char *message, bool includes_stack_trace = false);
+    explicit Assertion(const std::string &message, bool includes_stack_trace = false);
 
-template<typename S>
-std::string MakeExceptionMessage(const mmotd::source_location::SourceLocation &source_location,
-                                 std::string_view exception_type,
-                                 const S &format) {
-    return mmotd::assertion::GetExceptionMessage(source_location, exception_type, format);
-}
+    Assertion(const Assertion &) = default;
+    Assertion &operator=(const Assertion &) = default;
+    Assertion(Assertion &&) = default;
+    Assertion &operator=(Assertion &&) = default;
+    ~Assertion() noexcept override;
+};
+
+std::string
+MakeExceptionMessage(const char *exception_type, const char *msg, const char *file, long line, const char *function);
+
+std::string MakeExceptionMessage(const std::string &exception_type,
+                                 const std::string &msg,
+                                 const char *file,
+                                 long line,
+                                 const char *function);
+
+std::string MakeExceptionMessage(const char *exception_type, const char *msg);
+
+std::string MakeExceptionMessage(const std::string &exception_type, const std::string &msg);
 
 } // namespace mmotd::assertion
-
-#define THROW_INVALID_ARGUMENT(format, ...)                                                                            \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::InvalidArgument(::mmotd::assertion::MakeExceptionMessage(   \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "InvalidArgument",                                                          \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_DOMAIN_ERROR(format, ...)                                                                                \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::DomainError(::mmotd::assertion::MakeExceptionMessage(       \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "DomainError",                                                              \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_LENGTH_ERROR(format, ...)                                                                                \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::LengthError(::mmotd::assertion::MakeExceptionMessage(       \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "LengthError",                                                              \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_OUT_OF_RANGE(format, ...)                                                                                \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::OutOfRange(::mmotd::assertion::MakeExceptionMessage(        \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "OutOfRange",                                                               \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_RUNTIME_ERROR(format, ...)                                                                               \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::RuntimeError(::mmotd::assertion::MakeExceptionMessage(      \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "RuntimeError",                                                             \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_RANGE_ERROR(format, ...)                                                                                 \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::RangeError(::mmotd::assertion::MakeExceptionMessage(        \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "RangeError",                                                               \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_OVERFLOW_ERROR(format, ...)                                                                              \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::OverflowError(::mmotd::assertion::MakeExceptionMessage(     \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "OverflowError",                                                            \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_UNDERFLOW_ERROR(format, ...)                                                                             \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::UnderflowError(::mmotd::assertion::MakeExceptionMessage(    \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "UnderflowError",                                                           \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define THROW_ASSERTION(format, ...)                                                                                   \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::Assertion(::mmotd::assertion::MakeExceptionMessage(         \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "Assertion",                                                                \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define ALWAYS_FAIL(format, ...)                                                                                       \
-    ::mmotd::assertion::ThrowException(::mmotd::assertion::Assertion(::mmotd::assertion::MakeExceptionMessage(         \
-                                           ::mmotd::source_location::SourceLocation::current(),                        \
-                                           "ALWAYS_FAIL",                                                              \
-                                           FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                            \
-                                       ::mmotd::source_location::SourceLocation::current())
-
-#define PRECONDITIONS(expr, format, ...)                                                                               \
-    do {                                                                                                               \
-        if (!(expr)) {                                                                                                 \
-            ::mmotd::assertion::ThrowException(::mmotd::assertion::Assertion(::mmotd::assertion::MakeExceptionMessage( \
-                                                   ::mmotd::source_location::SourceLocation::current(),                \
-                                                   "PRECONDITIONS",                                                    \
-                                                   FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                    \
-                                               ::mmotd::source_location::SourceLocation::current());                   \
-        }                                                                                                              \
-    } while (false)
-
-#define CHECKS(expr, format, ...)                                                                                      \
-    do {                                                                                                               \
-        if (!(expr)) {                                                                                                 \
-            ::mmotd::assertion::ThrowException(::mmotd::assertion::Assertion(::mmotd::assertion::MakeExceptionMessage( \
-                                                   ::mmotd::source_location::SourceLocation::current(),                \
-                                                   "CHECKS",                                                           \
-                                                   FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                    \
-                                               ::mmotd::source_location::SourceLocation::current());                   \
-        }                                                                                                              \
-    } while (false)
-
-#define POSTCONDITIONS(expr, format, ...)                                                                              \
-    do {                                                                                                               \
-        if (!(expr)) {                                                                                                 \
-            ::mmotd::assertion::ThrowException(::mmotd::assertion::Assertion(::mmotd::assertion::MakeExceptionMessage( \
-                                                   ::mmotd::source_location::SourceLocation::current(),                \
-                                                   "POSTCONDITIONS",                                                   \
-                                                   FMT_STRING(format) __VA_OPT__(, ) __VA_ARGS__)),                    \
-                                               ::mmotd::source_location::SourceLocation::current());                   \
-        }                                                                                                              \
-    } while (false)

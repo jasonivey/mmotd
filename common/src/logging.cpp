@@ -30,8 +30,7 @@ using namespace std;
 
 namespace {
 
-class FileLogger
-{
+class FileLogger {
 public:
     FileLogger() : file_stream_(), mutex_() {}
     ~FileLogger() { Close(); }
@@ -100,7 +99,7 @@ void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr
 //  and lives beyond the scope of all global/function static variable destruction
 FileLogger &GetFileLogger() {
     static auto file_logger = std::make_unique<FileLogger>();
-    CHECKS(file_logger, "file logger is not allocated");
+    MMOTD_CHECKS(file_logger, "file logger is not allocated");
     return *file_logger;
 }
 
@@ -225,13 +224,6 @@ void GetFormattedOutput(fmt::memory_buffer &out,
     }
 }
 
-void GetDirectFormattedOutput(fmt::memory_buffer &out, mmotd::logging::Severity severity, std::string_view msg) {
-    fmt::format_to(std::back_inserter(out), GetSeverityStyle(severity), FMT_STRING("{}"), msg);
-    if (out.size() != 0 && out[out.size() - 1] != '\n') {
-        out.push_back('\n');
-    }
-}
-
 void WriteLogHeader(const fs::path &binary_path) {
     auto version_str = mmotd::version::Version::Instance().to_string();
     auto app_name = binary_path.stem().string();
@@ -248,22 +240,13 @@ void WriteLogHeader(const fs::path &binary_path) {
     GetFileLogger().WriteLog(data);
 }
 
-void LogInternalImpl(const SourceLocation &source_location,
-                     mmotd::logging::Severity severity,
-                     const fmt::string_view &format,
-                     fmt::format_args args) {
+void CommonLogInternal(const SourceLocation &source_location,
+                       mmotd::logging::Severity severity,
+                       const fmt::string_view &format,
+                       fmt::format_args args) {
     auto data = fmt::memory_buffer{};
     GetSourceLocationFormattedOutput(data, severity, source_location);
     GetFormattedOutput(data, severity, format, args);
-    GetFileLogger().WriteLog(data, severity == mmotd::logging::Severity::fatal);
-}
-
-void LogDirectInternalImpl(const SourceLocation &source_location,
-                           mmotd::logging::Severity severity,
-                           std::string_view &msg) {
-    auto data = fmt::memory_buffer{};
-    GetSourceLocationFormattedOutput(data, severity, source_location);
-    GetDirectFormattedOutput(data, severity, msg);
     GetFileLogger().WriteLog(data, severity == mmotd::logging::Severity::fatal);
 }
 
@@ -299,20 +282,14 @@ void LogInternal(const SourceLocation &source_location,
                  Severity severity,
                  const fmt::string_view &format,
                  fmt::format_args args) {
-    LogInternalImpl(source_location, severity, format, args);
+    CommonLogInternal(source_location, severity, format, args);
 }
 
 void LogInternal(const mmotd::source_location::SourceLocation &source_location,
                  Severity severity,
                  const fmt::string_view &msg) {
     auto blank_args = fmt::format_args();
-    LogInternalImpl(source_location, severity, msg, blank_args);
-}
-
-void LogDirectInternal(const mmotd::source_location::SourceLocation &source_location,
-                       Severity severity,
-                       std::string_view msg) {
-    LogDirectInternalImpl(source_location, severity, msg);
+    CommonLogInternal(source_location, severity, msg, blank_args);
 }
 
 } // namespace mmotd::logging

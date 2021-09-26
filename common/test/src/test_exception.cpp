@@ -1,4 +1,3 @@
-#include "common/assertion/include/assertion.h"
 #include "common/assertion/include/exception.h"
 #include "common/test/include/exception_matcher.h"
 
@@ -15,164 +14,156 @@ using namespace std;
 
 namespace mmotd::test {
 
-CATCH_TEST_CASE("InvalidArgument inherits from std::invalid_argument", "[exception]") {
+TEST_CASE("InvalidArgument inherits from std::invalid_argument", "[exception]") {
     auto ex = InvalidArgument("invalid argument");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::invalid_argument *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::invalid_argument *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("InvalidArgument contains context", "[exception]") {
-    auto ex = InvalidArgument{
-        GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "InvalidArgument", "InvalidArgument")};
+TEST_CASE("InvalidArgument contains context", "[exception]") {
+    auto ex = InvalidArgument("invalid argument");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::InvalidArgument::InvalidArgument"));
 }
 
-CATCH_TEST_CASE("DomainError inherits from std::domain_error", "[exception]") {
+TEST_CASE("DomainError inherits from std::domain_error", "[exception]") {
     auto ex = DomainError("domain error");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::domain_error *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::domain_error *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("DomainError contains context", "[exception]") {
-    auto ex = DomainError{
-        GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "DomainError", "DomainError")};
+TEST_CASE("DomainError contains context", "[exception]") {
+    auto ex = DomainError("domain error");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::DomainError::DomainError"));
 }
 
-CATCH_TEST_CASE("LengthError inherits from std::length_error", "[exception]") {
+TEST_CASE("LengthError inherits from std::length_error", "[exception]") {
     auto ex = LengthError("length error");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::length_error *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::length_error *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("LengthError contains context", "[exception]") {
-    auto ex = LengthError{
-        GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "LengthError", "LengthError")};
+TEST_CASE("LengthError contains context", "[exception]") {
+    auto ex = LengthError("length error");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::LengthError::LengthError"));
 }
 
-CATCH_TEST_CASE("OutOfRange inherits from std::out_of_range", "[exception]") {
+TEST_CASE("OutOfRange inherits from std::out_of_range", "[exception]") {
     auto ex = OutOfRange("out of range");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::out_of_range *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::out_of_range *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("OutOfRange contains context", "[exception]") {
-    auto ex =
-        OutOfRange{GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "OutOfRange", "OutOfRange")};
+TEST_CASE("OutOfRange contains context", "[exception]") {
+    auto ex = OutOfRange("out of range");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::OutOfRange::OutOfRange"));
 }
 
-CATCH_TEST_CASE("RuntimeError inherits from std::runtime_error", "[exception]") {
+TEST_CASE("RuntimeError inherits from std::runtime_error", "[exception]") {
     auto ex = RuntimeError("runtime error");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::runtime_error *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::runtime_error *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("RuntimeError contains context", "[exception]") {
-    auto ex = RuntimeError{
-        GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "RuntimeError", "RuntimeError")};
+TEST_CASE("RuntimeError contains context", "[exception]") {
+    auto ex = RuntimeError("runtime error");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::RuntimeError::RuntimeError"));
 }
 
-CATCH_TEST_CASE("RangeError inherits from std::range_error", "[exception]") {
+TEST_CASE("RangeError inherits from std::range_error", "[exception]") {
     auto ex = RangeError("range error");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::range_error *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::range_error *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("RangeError contains context", "[exception]") {
-    auto ex =
-        RangeError{GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "RangeError", "RangeError")};
+TEST_CASE("RangeError contains context", "[exception]") {
+    auto ex = RangeError("range error");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::RangeError::RangeError"));
 }
 
-CATCH_TEST_CASE("OverflowError inherits from std::overflow_error", "[exception]") {
+TEST_CASE("OverflowError inherits from std::overflow_error", "[exception]") {
     auto ex = OverflowError("overflow error");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::overflow_error *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::overflow_error *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("OverflowError contains context", "[exception]") {
-    auto ex = OverflowError{
-        GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "OverflowError", "OverflowError")};
+TEST_CASE("OverflowError contains context", "[exception]") {
+    auto ex = OverflowError("overflow error");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::OverflowError::OverflowError"));
 }
 
-CATCH_TEST_CASE("UnderflowError inherits from std::underflow_error", "[exception]") {
+TEST_CASE("UnderflowError inherits from std::underflow_error", "[exception]") {
     auto ex = UnderflowError("underflow error");
-    CATCH_CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
-    CATCH_CHECK(dynamic_cast<const std::underflow_error *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::exception *>(&ex) != nullptr);
+    CHECK(dynamic_cast<const std::underflow_error *>(&ex) != nullptr);
 }
 
-CATCH_TEST_CASE("UnderflowError contains context", "[exception]") {
-    auto ex = UnderflowError{
-        GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "UnderflowError", "UnderflowError")};
+TEST_CASE("UnderflowError contains context", "[exception]") {
+    auto ex = UnderflowError("underflow error");
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CHECK_THAT(ex_str, Contains("mmotd::assertion::UnderflowError::UnderflowError"));
 }
 
-CATCH_TEST_CASE("THROW_INVALID_ARGUMENT throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_INVALID_ARGUMENT("this should throw!"),
-                               mmotd::assertion::InvalidArgument,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_INVALID_ARGUMENT throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_INVALID_ARGUMENT("this should throw!"),
+                         mmotd::assertion::InvalidArgument,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
-CATCH_TEST_CASE("THROW_DOMAIN_ERROR throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_DOMAIN_ERROR("this should throw!"),
-                               mmotd::assertion::DomainError,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_DOMAIN_ERROR throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_DOMAIN_ERROR("this should throw!"),
+                         mmotd::assertion::DomainError,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
-CATCH_TEST_CASE("THROW_LENGTH_ERROR throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_LENGTH_ERROR("this should throw!"),
-                               mmotd::assertion::LengthError,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_LENGTH_ERROR throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_LENGTH_ERROR("this should throw!"),
+                         mmotd::assertion::LengthError,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
-CATCH_TEST_CASE("THROW_OUT_OF_RANGE throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_OUT_OF_RANGE("this should throw!"),
-                               mmotd::assertion::OutOfRange,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_OUT_OF_RANGE throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_OUT_OF_RANGE("this should throw!"),
+                         mmotd::assertion::OutOfRange,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
-CATCH_TEST_CASE("THROW_RUNTIME_ERROR throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_RUNTIME_ERROR("this should throw!"),
-                               mmotd::assertion::RuntimeError,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_RUNTIME_ERROR throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_RUNTIME_ERROR("this should throw!"),
+                         mmotd::assertion::RuntimeError,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
-CATCH_TEST_CASE("THROW_RANGE_ERROR throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_RANGE_ERROR("this should throw!"),
-                               mmotd::assertion::RangeError,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_RANGE_ERROR throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_RANGE_ERROR("this should throw!"),
+                         mmotd::assertion::RangeError,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
-CATCH_TEST_CASE("THROW_OVERFLOW_ERROR throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_OVERFLOW_ERROR("this should throw!"),
-                               mmotd::assertion::OverflowError,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_OVERFLOW_ERROR throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_OVERFLOW_ERROR("this should throw!"),
+                         mmotd::assertion::OverflowError,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
-CATCH_TEST_CASE("THROW_UNDERFLOW_ERROR throws", "[exception]") {
-    CATCH_CHECK_THROWS_MATCHES(THROW_UNDERFLOW_ERROR("this should throw!"),
-                               mmotd::assertion::UnderflowError,
-                               MmotdExceptionMatcher("this should throw!"));
+TEST_CASE("MMOTD_THROW_UNDERFLOW_ERROR throws", "[exception]") {
+    CHECK_THROWS_MATCHES(MMOTD_THROW_UNDERFLOW_ERROR("this should throw!"),
+                         mmotd::assertion::UnderflowError,
+                         MmotdExceptionMatcher("this should throw!"));
 }
 
 } // namespace mmotd::test

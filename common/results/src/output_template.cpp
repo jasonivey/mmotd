@@ -21,7 +21,8 @@ using namespace std;
 
 namespace mmotd::results {
 
-OutputTemplate::OutputTemplate() : template_config_(), column_items_(GetDefaultColumnItems()) {}
+OutputTemplate::OutputTemplate() : template_config_(), column_items_(GetDefaultColumnItems()) {
+}
 
 optional<OutputTemplate> OutputTemplate::ParseOutputTemplate(string file_name) {
     auto ec = std::error_code{};
@@ -65,14 +66,8 @@ const mmotd::results::data::OutputSettings &OutputTemplate::GetOutputSettings() 
 }
 
 void OutputTemplate::from_json(const json &root) {
-    PRECONDITIONS(root.contains("config") && root.at("config").is_object(),
-                  "json does not contain {} or it is not an {}",
-                  quoted("config"),
-                  quoted("object"));
-    PRECONDITIONS(root.contains("column_items") && root.at("column_items").is_array(),
-                  "json does not contain {} or it is not an {}",
-                  quoted("column_items"),
-                  quoted("array"));
+    MMOTD_PRECONDITION(root.contains("config") && root.at("config").is_object());
+    MMOTD_PRECONDITION(root.contains("column_items") && root.at("column_items").is_array());
 
     auto template_config = root.at("config").get<data::TemplateConfig>();
     auto items = TemplateColumnItems{};

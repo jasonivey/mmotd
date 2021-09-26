@@ -4,13 +4,13 @@
 
 namespace mmotd::test {
 
-CATCH_TEST_CASE("MacAddress is zero constructed", "[MacAddress]") {
+TEST_CASE("MacAddress is zero constructed", "[MacAddress]") {
     auto mac_address = mmotd::networking::MacAddress{};
-    CATCH_CHECK(sizeof(mac_address) == 6);
+    CHECK(sizeof(mac_address) == 6);
 }
 
-CATCH_TEST_CASE("MacAddress size is always constant", "[MacAddress]") {
-    CATCH_CHECK(sizeof(mmotd::networking::MacAddress) == 6);
+TEST_CASE("MacAddress size is always constant", "[MacAddress]") {
+    CHECK(sizeof(mmotd::networking::MacAddress) == 6);
 }
 
 } // namespace mmotd::test

@@ -68,12 +68,12 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:DEBUG>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:_DEBUG>
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:NDEBUG>
-        # If this config identifier is defined then all CATCH macros are prefixed with CATCH_
-        # This enables the MMOTD project to define it's own version of 'CHECK'
-        PRIVATE CATCH_CONFIG_PREFIX_ALL
+        # This enables the BOOST_ASSERT macro and the "boost::assertion_failed",
+        #  "boost::assertion_failed_msg" functions
+        PRIVATE BOOST_ENABLE_ASSERT_HANDLER
         # This disables the BOOST_ASSERT macro and the "boost::assertion_failed",
         #  "boost::assertion_failed_msg" functions
-        # PRIVATE BOOST_DISABLE_ASSERTS
+        #PRIVATE BOOST_DISABLE_ASSERTS
         # When defined and compiler language is set to `-std=c++17` or higher,
         #  the lambda passed to scope_guard is required to be specified as `noexcept`.
         PRIVATE SG_REQUIRE_NOEXCEPT_IN_CPP17
