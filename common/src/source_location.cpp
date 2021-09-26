@@ -2,6 +2,8 @@
 #include "common/include/source_location.h"
 #include "common/include/source_location_common.h"
 
+#include <ostream>
+
 #include <fmt/format.h>
 
 using namespace std;
@@ -21,6 +23,11 @@ string to_string(const SourceLocation &location) {
         result += string{"#"} + ::to_string(line_number);
     }
     return result;
+}
+
+ostream &operator<<(ostream &out, const SourceLocation &source_location) {
+    out << to_string(source_location);
+    return out;
 }
 
 } // namespace mmotd::source_location
