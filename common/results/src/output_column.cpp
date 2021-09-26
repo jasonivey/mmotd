@@ -1,24 +1,19 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-// #include "common/assertion/include/assertion.h"
-// #include "common/results/include/output_position_index.h"
+#include "common/assertion/include/assertion.h"
 #include "common/include/information.h"
 #include "common/include/informations.h"
+#include "common/include/logging.h"
 #include "common/results/include/output_column.h"
 #include "common/results/include/output_row.h"
 #include "common/results/include/output_row_number_sentinals.h"
 #include "common/results/include/template_column_items.h"
 
-// #include "common/results/include/template_string.h"
-
-#include "common/include/logging.h"
-
 #include <boost/uuid/uuid_io.hpp>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 using fmt::format;
 using mmotd::information::Informations;
-// using mmotd::results::data::ENTIRE_LINE;
-// using mmotd::results::data::ENTIRE_LINE_REPR;
 using mmotd::results::data::TemplateColumnItem;
 
 using namespace std;
@@ -84,38 +79,38 @@ bool Column::HasPreviousRow(RowId row_id) const {
 
 const Row &Column::GetPreviousRow(RowId row_id) const {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", row_id);
     return *(i - 1);
 }
 
 Row &Column::GetPreviousRow(RowId row_id) {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", row_id);
     return *(i - 1);
 }
 
 const Row &Column::GetRow(RowId row_id) const {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", row_id);
     return *i;
 }
 
 Row &Column::GetRow(RowId row_id) {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", row_id);
     return *i;
 }
 
 Row &Column::GetRow(int row_number) {
     auto i = find_if(begin(rows_), end(rows_), [row_number](auto &row) { return row.GetRowNumber() == row_number; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row number '{}' was not found"), row_number));
+    CHECKS(i != end(rows_), "row number '{}' was not found", row_number);
     return *i;
 }
 
 const Row &Column::GetRow(int row_number) const {
     auto i =
         find_if(begin(rows_), end(rows_), [row_number](const auto &row) { return row.GetRowNumber() == row_number; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row number '{}' was not found"), row_number));
+    CHECKS(i != end(rows_), "row number '{}' was not found", row_number);
     return *i;
 }
 
