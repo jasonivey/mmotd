@@ -11,7 +11,10 @@ struct MmotdExceptionMatcher : Catch::MatcherBase<std::exception> {
     std::string text_;
 
     MmotdExceptionMatcher(char const *text);
-
+    MmotdExceptionMatcher(const MmotdExceptionMatcher &) = default;
+    MmotdExceptionMatcher &operator=(const MmotdExceptionMatcher &) = delete;
+    MmotdExceptionMatcher(MmotdExceptionMatcher &&) = default;
+    MmotdExceptionMatcher &operator=(MmotdExceptionMatcher &&) = delete;
     ~MmotdExceptionMatcher() override;
 
     bool match(std::exception const &arg) const override;

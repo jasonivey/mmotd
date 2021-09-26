@@ -84,38 +84,38 @@ bool Column::HasPreviousRow(RowId row_id) const {
 
 const Row &Column::GetPreviousRow(RowId row_id) const {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", boost::uuids::to_string(row_id));
     return *(i - 1);
 }
 
 Row &Column::GetPreviousRow(RowId row_id) {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", boost::uuids::to_string(row_id));
     return *(i - 1);
 }
 
 const Row &Column::GetRow(RowId row_id) const {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", boost::uuids::to_string(row_id));
     return *i;
 }
 
 Row &Column::GetRow(RowId row_id) {
     auto i = find_if(begin(rows_), end(rows_), [row_id](auto &row) { return row.GetId() == row_id; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row id '{}' was not found"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(rows_), "row id '{}' was not found", boost::uuids::to_string(row_id));
     return *i;
 }
 
 Row &Column::GetRow(int row_number) {
     auto i = find_if(begin(rows_), end(rows_), [row_number](auto &row) { return row.GetRowNumber() == row_number; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row number '{}' was not found"), row_number));
+    CHECKS(i != end(rows_), "row number '{}' was not found", row_number);
     return *i;
 }
 
 const Row &Column::GetRow(int row_number) const {
     auto i =
         find_if(begin(rows_), end(rows_), [row_number](const auto &row) { return row.GetRowNumber() == row_number; });
-    MMOTD_CHECKS(i != end(rows_), format(FMT_STRING("row number '{}' was not found"), row_number));
+    CHECKS(i != end(rows_), "row number '{}' was not found", row_number);
     return *i;
 }
 

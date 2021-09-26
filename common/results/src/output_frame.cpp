@@ -21,6 +21,7 @@
 #include <boost/uuid/uuid_io.hpp>
 #include <fmt/color.h>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 using fmt::format;
 using mmotd::information::InformationId;
@@ -68,7 +69,7 @@ const Column &Frame::GetColumn(ColumnIndex index) const {
         return idx == index;
     });
     if (i == end(columns_)) {
-        MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("column index {} not found in template columns"), index));
+        THROW_OUT_OF_RANGE("column index {} not found in template columns", index);
     }
     const auto &[_, column] = *i;
     return column;
@@ -80,7 +81,7 @@ Column &Frame::GetColumn(ColumnIndex index) {
         return idx == index;
     });
     if (i == end(columns_)) {
-        MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("column index {} not found in template columns"), index));
+        THROW_OUT_OF_RANGE("column index {} not found in template columns", index);
     }
     auto &[_, column] = *i;
     return column;
@@ -93,7 +94,7 @@ const Column &Frame::GetColumn(RowId row_id) const {
             return column;
         }
     }
-    MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("row id {} not found in any columns"), boost::uuids::to_string(row_id)));
+    THROW_OUT_OF_RANGE("row id {} not found in any columns", row_id);
     static const auto INVALID_COLUMN = Column{};
     return INVALID_COLUMN;
 }
@@ -105,7 +106,7 @@ Column &Frame::GetColumn(RowId row_id) {
             return column;
         }
     }
-    MMOTD_THROW_OUT_OF_RANGE(format(FMT_STRING("row id {} not found in any columns"), boost::uuids::to_string(row_id)));
+    THROW_OUT_OF_RANGE("row id {} not found in any columns", row_id);
     static auto INVALID_COLUMN = Column{};
     return INVALID_COLUMN;
 }
@@ -183,7 +184,7 @@ void Frame::RemoveEmptyRows() {
             continue;
         }
         if (empty_row_count == 0) {
-            MMOTD_CHECKS(!empty(row_ids), "must be dealing with a non-empty row at this point");
+            CHECKS(!empty(row_ids), "must be dealing with a non-empty row at this point");
             IncrementRowNumberSentinalsForHeight(row_numbers, i, GetRowHeight(row_number));
             continue;
         }
@@ -307,7 +308,7 @@ const Row &Frame::GetRow(RowId row_id) const {
         const auto &column = GetColumn(index);
         return column.ContainsRow(row_id);
     });
-    MMOTD_CHECKS(i != end(indexes), format(FMT_STRING("unable to find row id: {}"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(indexes), "unable to find row id: {}", row_id);
     return GetColumn(*i).GetRow(row_id);
 }
 
@@ -317,7 +318,7 @@ Row &Frame::GetRow(RowId row_id) {
         const auto &column = GetColumn(index);
         return column.ContainsRow(row_id);
     });
-    MMOTD_CHECKS(i != end(indexes), format(FMT_STRING("unable to find row id: {}"), boost::uuids::to_string(row_id)));
+    CHECKS(i != end(indexes), "unable to find row id: {}", row_id);
     return GetColumn(*i).GetRow(row_id);
 }
 

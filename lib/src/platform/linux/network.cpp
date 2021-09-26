@@ -79,7 +79,7 @@ bool IsIpv6AddressFamily(sa_family_t address_family) {
 }
 
 void AddMacAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddrs_ptr) {
-    MMOTD_PRECONDITIONS(ifaddrs_ptr != nullptr, "input ifaddrs must be valid");
+    PRECONDITIONS(ifaddrs_ptr != nullptr, "input ifaddrs must be valid");
 
     const auto interface_name = string{ifaddrs_ptr->ifa_name};
     const auto *sock_addr = reinterpret_cast<const struct sockaddr_ll *>(ifaddrs_ptr->ifa_addr);
@@ -89,8 +89,8 @@ void AddMacAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddr
 }
 
 optional<address> CreateIpAddress(const string &ip_str, const string &interface_name) {
-    MMOTD_PRECONDITIONS(!empty(ip_str), "unable to create ip address from an empty string");
-    MMOTD_PRECONDITIONS(!empty(interface_name), "unable to add ip address from an empty interface name");
+    PRECONDITIONS(!empty(ip_str), "unable to create ip address from an empty string");
+    PRECONDITIONS(!empty(interface_name), "unable to add ip address from an empty interface name");
 
     auto ec = boost::system::error_code{};
     auto ip_address = make_address(ip_str, ec);
@@ -118,7 +118,7 @@ optional<address> CreateIpAddress(const string &ip_str, const string &interface_
 }
 
 void AddIpAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddrs_ptr) {
-    MMOTD_PRECONDITIONS(ifaddrs_ptr != nullptr, "input ifaddrs must be valid");
+    PRECONDITIONS(ifaddrs_ptr != nullptr, "input ifaddrs must be valid");
 
     const auto interface_name = string{ifaddrs_ptr->ifa_name};
     const auto address_family = ifaddrs_ptr->ifa_addr->sa_family;
