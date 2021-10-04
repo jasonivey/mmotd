@@ -10,9 +10,9 @@ project (mmotd_common)
 
 add_library (
     ${MMOTD_TARGET_NAME} STATIC
-    assertion/src/assertion.cpp
     assertion/src/exception.cpp
     assertion/src/stack_trace.cpp
+    assertion/src/throw.cpp
     results/src/output_column.cpp
     results/src/output_column_indexes.cpp
     results/src/output_frame.cpp
