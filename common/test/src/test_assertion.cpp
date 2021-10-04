@@ -20,7 +20,7 @@ void PreconditionSuccess() {
     PRECONDITIONS(true, "PRECONDITIONS does not throw when expression is true");
 }
 
-void PreconditionFail() {
+[[noreturn]] void PreconditionFail() {
     PRECONDITIONS(false, "PRECONDITIONS throws when expression is false");
 }
 
@@ -28,7 +28,7 @@ void CheckSuccess() {
     CHECKS(true, "CHECKS does not throw when expression is true");
 }
 
-void CheckFail() {
+[[noreturn]] void CheckFail() {
     CHECKS(false, "CHECKS throws when expression is false");
 }
 
@@ -36,7 +36,7 @@ void PostconditionSuccess() {
     POSTCONDITIONS(true, "POSTCONDITIONS does not throw when expression is true");
 }
 
-void PostconditionFail() {
+[[noreturn]] void PostconditionFail() {
     POSTCONDITIONS(false, "POSTCONDITIONS throws when expression is false");
 }
 

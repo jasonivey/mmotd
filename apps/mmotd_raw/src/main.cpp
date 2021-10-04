@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "apps/mmotd_raw/include/main.h"
+#include "common/assertion/include/throw.h"
 #include "common/include/algorithm.h"
 #include "common/include/logging.h"
 #include "lib/include/computer_information.h"
@@ -81,19 +82,18 @@ int main_impl(int, char **argv) {
 
 int main(int argc, char *argv[]) {
     auto retval = EXIT_SUCCESS;
+    auto exception_message = string{};
+
     try {
         retval = main_impl(argc, argv);
     } catch (boost::exception &ex) {
-        auto diag = boost::diagnostic_information(ex);
-        LOG_FATAL("caught boost::exception in main: {}", diag);
-        retval = EXIT_FAILURE;
+        exception_message = mmotd::assertion::GetBoostExceptionMessage(ex);
     } catch (const std::exception &ex) {
-        auto diag = boost::diagnostic_information(ex);
-        LOG_FATAL("caught std::exception in main: {}", empty(diag) ? ex.what() : data(diag));
-        retval = EXIT_FAILURE;
-    } catch (...) {
-        auto diag = boost::current_exception_diagnostic_information();
-        LOG_FATAL("caught unknown exception in main: {}", diag);
+        exception_message = mmotd::assertion::GetStdExceptionMessage(ex);
+    } catch (...) { exception_message = mmotd::assertion::GetUnknownExceptionMessage(); }
+
+    if (!empty(exception_message)) {
+        LOG_FATAL("{}", exception_message);
         retval = EXIT_FAILURE;
     }
     return retval;

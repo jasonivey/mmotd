@@ -14,9 +14,14 @@
 #include "common/results/include/template_column_items.h"
 #include "common/results/include/template_string.h"
 
+#include <algorithm>
+#include <climits>
 #include <cstddef>
 #include <cstdlib>
 #include <iterator>
+#include <unordered_map>
+#include <utility>
+#include <vector>
 
 #include <boost/uuid/uuid_io.hpp>
 #include <fmt/color.h>
@@ -33,8 +38,6 @@ using mmotd::results::data::TemplateColumnItem;
 using mmotd::results::data::TemplateColumnItems;
 
 using namespace std;
-
-static constexpr const int INVALID_ROW = std::numeric_limits<int>::max();
 
 // namespace {
 
@@ -95,8 +98,6 @@ const Column &Frame::GetColumn(RowId row_id) const {
         }
     }
     THROW_OUT_OF_RANGE("row id {} not found in any columns", row_id);
-    static const auto INVALID_COLUMN = Column{};
-    return INVALID_COLUMN;
 }
 
 Column &Frame::GetColumn(RowId row_id) {
@@ -107,8 +108,6 @@ Column &Frame::GetColumn(RowId row_id) {
         }
     }
     THROW_OUT_OF_RANGE("row id {} not found in any columns", row_id);
-    static auto INVALID_COLUMN = Column{};
-    return INVALID_COLUMN;
 }
 
 size_t Frame::GetRowValueInformationIdCount(const string &value, const Informations &informations) const {
@@ -261,7 +260,7 @@ string Frame::CreateTable() const {
 }
 
 RowNumberSentinals Frame::GetFirstLastRowNumbers() const {
-    auto first_row_number = INVALID_ROW;
+    auto first_row_number = std::numeric_limits<int>::max();
     auto last_row_number = 0;
     for (auto index : GetColumnIndexes()) {
         auto sentinals = GetColumn(index).GetFirstLastRowNumbers();

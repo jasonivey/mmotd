@@ -1,10 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/throw.h"
 #include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/external_network.h"
 #include "lib/include/http_request.h"
 
 #include <sstream>
+#include <string_view>
 #include <tuple>
 
 #include <boost/asio/ip/address.hpp>
@@ -16,6 +18,7 @@
 using boost::asio::ip::make_address;
 using fmt::format;
 using namespace std;
+using namespace std::string_literals;
 
 bool gLinkExternalNetwork = false;
 
@@ -53,16 +56,19 @@ void ExternalNetwork::ParseJsonResponse(const string &response) {
     auto input_stream = istream{input_str_stream.rdbuf()};
     auto tree = pt::ptree{};
 
+    auto exception_message = string{};
     try {
         pt::read_json(input_stream, tree);
     } catch (boost::exception &ex) {
-        auto diag = boost::diagnostic_information(ex);
-        LOG_ERROR("boost::exception thrown while parsing external network response: {}", diag);
-        return;
+        exception_message = mmotd::assertion::GetBoostExceptionMessage(ex, "while parsing external network response"sv);
     } catch (const std::exception &ex) {
-        auto diag = boost::diagnostic_information(ex);
-        LOG_ERROR("std::exception thrown while parsing external network response: {}",
-                  empty(diag) ? ex.what() : data(diag));
+        exception_message = mmotd::assertion::GetStdExceptionMessage(ex, "while parsing external network response"sv);
+    } catch (...) {
+        exception_message = mmotd::assertion::GetUnknownExceptionMessage("while parsing external network response"sv);
+    }
+
+    if (!empty(exception_message)) {
+        LOG_ERROR("{}", exception_message);
         return;
     }
 

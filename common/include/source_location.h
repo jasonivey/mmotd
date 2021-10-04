@@ -25,14 +25,21 @@ struct SourceLocation {
     constexpr const char *function_name() const noexcept { return function_name_; }
     constexpr std::uint32_t line() const noexcept { return line_; }
     constexpr std::uint32_t column() const noexcept { return column_; }
+    constexpr bool empty() const noexcept {
+        return file_name_ == nullptr && function_name_ == nullptr && line_ == 0 && column_ == 0;
+    }
 
 private:
-    const char *file_name_ = "unknown";
-    const char *function_name_ = "unknown";
+    const char *file_name_ = nullptr;
+    const char *function_name_ = nullptr;
     std::uint32_t line_ = 0;
     std::uint32_t column_ = 0;
 };
 
+std::string file_name_to_string(const SourceLocation &location);
+std::string function_name_to_string(const SourceLocation &location);
+
+SourceLocation from_string(std::string input, std::string prefix = std::string{}, std::string suffix = std::string{});
 std::string to_string(const SourceLocation &location);
 std::ostream &operator<<(std::ostream &out, const SourceLocation &source_location);
 
