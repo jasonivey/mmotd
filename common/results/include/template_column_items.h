@@ -53,13 +53,9 @@ struct TemplateItemSettings {
 private:
     void default_to_json(nlohmann::json &root) const;
     void not_default_to_json(nlohmann::json &root, const TemplateItemSettings &default_settings) const;
-
-    std::vector<fmt::text_style> read_colors(const nlohmann::json &color_list) const;
-    std::vector<std::string> write_colors(const std::vector<fmt::text_style> &color_defs) const;
 };
 
 void from_json(const nlohmann::json &root, TemplateItemSettings &settings);
-// void to_json(nlohmann::json &root, const TemplateItemSettings &settings);
 
 struct OutputSettings {
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(OutputSettings);

@@ -24,6 +24,7 @@ using fmt::format;
 using nlohmann::json;
 using namespace std;
 using mmotd::results::data::ENTIRE_LINE, mmotd::results::data::ENTIRE_LINE_REPR;
+using mmotd::results::data::TemplateItemSettings;
 
 namespace {
 
@@ -216,6 +217,195 @@ inline string column_to_string(int column_value) {
     return column_value == ENTIRE_LINE ? string{ENTIRE_LINE_REPR} : to_string(column_value);
 }
 
+vector<fmt::text_style> read_colors(const json &color_list) {
+    auto color_defs = vector<fmt::text_style>{};
+    for (auto color_str : color_list) {
+        color_defs.push_back(mmotd::results::color::from_color_string(color_str));
+    }
+    return color_defs;
+}
+
+vector<string> write_colors(const vector<fmt::text_style> &color_defs) {
+    auto color_strs = vector<string>{};
+    for (auto color_def : color_defs) {
+        color_strs.push_back(mmotd::results::color::to_string(color_def));
+    }
+    return color_strs;
+}
+
+void from_json_indent_size(const json &root, const TemplateItemSettings *default_settings, int &indent_size) {
+    if (root.contains("indent_size")) {
+        root.at("indent_size").get_to(indent_size);
+    } else if (default_settings != nullptr) {
+        indent_size = default_settings->indent_size;
+    }
+}
+
+void from_json_row_index(const json &root, const TemplateItemSettings *, int &row_index) {
+    if (root.contains("row_index")) {
+        // fix_todo: refactor the row_index property in favor of "NEXT" or "increment"
+        root.at("row_index").get_to(row_index);
+    }
+}
+
+void from_json_repeatable_index(const json &root, const TemplateItemSettings *default_settings, int &repeatable_index) {
+    // this should never be in the default or in the "column_items" array
+    if (root.contains("repeatable_index")) {
+        root.at("repeatable_index").get_to(repeatable_index);
+    } else if (default_settings != nullptr) {
+        repeatable_index = default_settings->repeatable_index;
+    }
+}
+
+void from_json_column(const json &root, const TemplateItemSettings *default_settings, int &column) {
+    if (root.contains("column")) {
+        column = column_from_string(root.at("column"));
+    } else if (default_settings != nullptr) {
+        column = default_settings->column;
+    }
+}
+
+void from_json_prepend_newlines(const json &root, const TemplateItemSettings *default_settings, int &prepend_newlines) {
+    if (root.contains("prepend_newlines")) {
+        root.at("prepend_newlines").get_to(prepend_newlines);
+    } else if (default_settings != nullptr) {
+        prepend_newlines = default_settings->prepend_newlines;
+    }
+}
+
+void from_json_append_newlines(const json &root, const TemplateItemSettings *default_settings, int &append_newlines) {
+    if (root.contains("append_newlines")) {
+        root.at("append_newlines").get_to(append_newlines);
+    } else if (default_settings != nullptr) {
+        append_newlines = default_settings->append_newlines;
+    }
+}
+
+void from_json_is_repeatable(const json &root, const TemplateItemSettings *default_settings, bool &is_repeatable) {
+    if (root.contains("is_repeatable")) {
+        root.at("is_repeatable").get_to(is_repeatable);
+    } else if (default_settings != nullptr) {
+        is_repeatable = default_settings->is_repeatable;
+    }
+}
+
+void from_json_is_optional(const json &root, const TemplateItemSettings *default_settings, bool &is_optional) {
+    if (root.contains("is_optional")) {
+        root.at("is_optional").get_to(is_optional);
+    } else if (default_settings != nullptr) {
+        is_optional = default_settings->is_optional;
+    }
+}
+
+void from_json_name(const json &root, const TemplateItemSettings *, vector<string> &name) {
+    // often when "column" == "ENTIRE_LINE" there will only be
+    //  "value" = ["%ID_SOME_PROPERTY%"] and no
+    //  "name" = [] -- this invariant is checked in TemplateItemSettings::is_valid
+    if (root.contains("name")) {
+        root.at("name").get_to(name);
+    }
+}
+
+void from_json_name_color(const json &root,
+                          const TemplateItemSettings *default_settings,
+                          vector<fmt::text_style> &name_color) {
+    if (root.contains("name_color")) {
+        name_color = read_colors(root["name_color"]);
+    } else if (default_settings != nullptr) {
+        name_color = default_settings->name_color;
+    }
+}
+
+void from_json_value(const json &root, const TemplateItemSettings *, vector<string> &value) {
+    if (root.contains("value")) {
+        root.at("value").get_to(value);
+    }
+}
+
+void from_json_value_color(const json &root,
+                           const TemplateItemSettings *default_settings,
+                           vector<fmt::text_style> &value_color) {
+    if (root.contains("value_color")) {
+        value_color = read_colors(root["value_color"]);
+    } else if (default_settings != nullptr) {
+        value_color = default_settings->value_color;
+    }
+}
+
+void indent_size_to_json(nlohmann::json &root, const TemplateItemSettings &default_settings, const int indent_size) {
+    if (indent_size != default_settings.indent_size) {
+        root["indent_size"] = indent_size;
+    }
+}
+
+void row_index_to_json(nlohmann::json &root, const TemplateItemSettings &, const int row_index) {
+    root["row_index"] = row_index;
+}
+
+void column_to_json(nlohmann::json &root, const TemplateItemSettings &default_settings, const int column) {
+    if (column != default_settings.column) {
+        root["column"] = column_to_string(column);
+    }
+}
+
+void prepend_newlines_to_json(nlohmann::json &root,
+                              const TemplateItemSettings &default_settings,
+                              const int prepend_newlines) {
+    if (prepend_newlines != default_settings.prepend_newlines) {
+        root["prepend_newlines"] = prepend_newlines;
+    }
+}
+
+void append_newlines_to_json(nlohmann::json &root,
+                             const TemplateItemSettings &default_settings,
+                             const int append_newlines) {
+    if (append_newlines != default_settings.append_newlines) {
+        root["append_newlines"] = append_newlines;
+    }
+}
+
+void is_repeatable_to_json(nlohmann::json &root,
+                           const TemplateItemSettings &default_settings,
+                           const bool is_repeatable) {
+    if (is_repeatable != default_settings.is_repeatable) {
+        root["is_repeatable"] = is_repeatable;
+    }
+}
+
+void is_optional_to_json(nlohmann::json &root, const TemplateItemSettings &default_settings, const bool is_optional) {
+    if (is_optional != default_settings.is_optional) {
+        root["is_optional"] = is_optional;
+    }
+}
+
+void name_to_json(nlohmann::json &root, const TemplateItemSettings &, const vector<string> &name) {
+    if (!name.empty()) {
+        root["name"] = name;
+    }
+}
+
+void name_color_to_json(nlohmann::json &root,
+                        const TemplateItemSettings &default_settings,
+                        const vector<fmt::text_style> &name_color) {
+    if (!name_color.empty() && write_colors(name_color) != write_colors(default_settings.name_color)) {
+        root["name_color"] = write_colors(name_color);
+    }
+}
+
+void value_to_json(nlohmann::json &root, const TemplateItemSettings &, const vector<string> &value) {
+    if (!value.empty()) {
+        root["value"] = value;
+    }
+}
+
+void value_color_to_json(nlohmann::json &root,
+                         const TemplateItemSettings &default_settings,
+                         const vector<fmt::text_style> &value_color) {
+    if (!value_color.empty() && write_colors(value_color) != write_colors(default_settings.value_color)) {
+        root["value_color"] = write_colors(value_color);
+    }
+}
+
 } // namespace
 
 namespace mmotd::results::color {
@@ -323,82 +513,19 @@ bool TemplateItemSettings::is_valid(const TemplateConfig &default_config) {
     return true;
 }
 
-vector<fmt::text_style> TemplateItemSettings::read_colors(const json &color_list) const {
-    auto color_defs = vector<fmt::text_style>{};
-    for (auto color_str : color_list) {
-        color_defs.push_back(color::from_color_string(color_str));
-    }
-    return color_defs;
-}
-
-vector<string> TemplateItemSettings::write_colors(const vector<fmt::text_style> &color_defs) const {
-    auto color_strs = vector<string>{};
-    for (auto color_def : color_defs) {
-        color_strs.push_back(color::to_string(color_def));
-    }
-    return color_strs;
-}
-
 void TemplateItemSettings::from_json(const json &root, const TemplateItemSettings *default_settings) {
-    if (root.contains("indent_size")) {
-        root.at("indent_size").get_to(indent_size);
-    } else if (default_settings != nullptr) {
-        indent_size = default_settings->indent_size;
-    }
-    if (root.contains("row_index")) {
-        // fix_todo: refactor the row_index property in favor of "NEXT" or "increment"
-        root.at("row_index").get_to(row_index);
-    }
-    // this should never be in the default or in the "column_items" array
-    if (root.contains("repeatable_index")) {
-        root.at("repeatable_index").get_to(repeatable_index);
-    } else if (default_settings != nullptr) {
-        repeatable_index = default_settings->repeatable_index;
-    }
-    if (root.contains("column")) {
-        column = column_from_string(root.at("column"));
-    } else if (default_settings != nullptr) {
-        column = default_settings->column;
-    }
-    if (root.contains("prepend_newlines")) {
-        root.at("prepend_newlines").get_to(prepend_newlines);
-    } else if (default_settings != nullptr) {
-        prepend_newlines = default_settings->prepend_newlines;
-    }
-    if (root.contains("append_newlines")) {
-        root.at("append_newlines").get_to(append_newlines);
-    } else if (default_settings != nullptr) {
-        append_newlines = default_settings->append_newlines;
-    }
-    if (root.contains("is_repeatable")) {
-        root.at("is_repeatable").get_to(is_repeatable);
-    } else if (default_settings != nullptr) {
-        is_repeatable = default_settings->is_repeatable;
-    }
-    if (root.contains("is_optional")) {
-        root.at("is_optional").get_to(is_optional);
-    } else if (default_settings != nullptr) {
-        is_optional = default_settings->is_optional;
-    }
-    // often when "column" == "ENTIRE_LINE" there will only be
-    //  "value" = ["%ID_SOME_PROPERTY%"] and no
-    //  "name" = [] -- this invariant is checked in TemplateItemSettings::is_valid
-    if (root.contains("name")) {
-        root.at("name").get_to(name);
-    }
-    if (root.contains("name_color")) {
-        name_color = read_colors(root["name_color"]);
-    } else if (default_settings != nullptr) {
-        name_color = default_settings->name_color;
-    }
-    if (root.contains("value")) {
-        root.at("value").get_to(value);
-    }
-    if (root.contains("value_color")) {
-        value_color = read_colors(root["value_color"]);
-    } else if (default_settings != nullptr) {
-        value_color = default_settings->value_color;
-    }
+    from_json_indent_size(root, default_settings, indent_size);
+    from_json_row_index(root, default_settings, row_index);
+    from_json_repeatable_index(root, default_settings, repeatable_index);
+    from_json_column(root, default_settings, column);
+    from_json_prepend_newlines(root, default_settings, prepend_newlines);
+    from_json_append_newlines(root, default_settings, append_newlines);
+    from_json_is_repeatable(root, default_settings, is_repeatable);
+    from_json_is_optional(root, default_settings, is_optional);
+    from_json_name(root, default_settings, name);
+    from_json_name_color(root, default_settings, name_color);
+    from_json_value(root, default_settings, value);
+    from_json_value_color(root, default_settings, value_color);
 }
 
 void TemplateItemSettings::to_json(json &root, const TemplateItemSettings &default_settings) const {
@@ -422,37 +549,17 @@ void TemplateItemSettings::default_to_json(nlohmann::json &root) const {
 
 void TemplateItemSettings::not_default_to_json(nlohmann::json &root,
                                                const TemplateItemSettings &default_settings) const {
-    if (indent_size != default_settings.indent_size) {
-        root["indent_size"] = indent_size;
-    }
-    root["row_index"] = row_index;
-    if (column != default_settings.column) {
-        root["column"] = column_to_string(column);
-    }
-    if (prepend_newlines != default_settings.prepend_newlines) {
-        root["prepend_newlines"] = prepend_newlines;
-    }
-    if (append_newlines != default_settings.append_newlines) {
-        root["append_newlines"] = append_newlines;
-    }
-    if (is_repeatable != default_settings.is_repeatable) {
-        root["is_repeatable"] = is_repeatable;
-    }
-    if (is_optional != default_settings.is_optional) {
-        root["is_optional"] = is_optional;
-    }
-    if (!name.empty()) {
-        root["name"] = name;
-    }
-    if (!name_color.empty() && write_colors(name_color) != write_colors(default_settings.name_color)) {
-        root["name_color"] = write_colors(name_color);
-    }
-    if (!value.empty()) {
-        root["value"] = value;
-    }
-    if (!value_color.empty() && write_colors(value_color) != write_colors(default_settings.value_color)) {
-        root["value_color"] = write_colors(value_color);
-    }
+    indent_size_to_json(root, default_settings, indent_size);
+    row_index_to_json(root, default_settings, row_index);
+    column_to_json(root, default_settings, column);
+    prepend_newlines_to_json(root, default_settings, prepend_newlines);
+    append_newlines_to_json(root, default_settings, append_newlines);
+    is_repeatable_to_json(root, default_settings, is_repeatable);
+    is_optional_to_json(root, default_settings, is_optional);
+    name_to_json(root, default_settings, name);
+    name_color_to_json(root, default_settings, name_color);
+    value_to_json(root, default_settings, value);
+    value_color_to_json(root, default_settings, value_color);
 }
 
 void from_json(const json &root, TemplateItemSettings &settings) {
