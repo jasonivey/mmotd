@@ -134,7 +134,7 @@ string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_co
                 color_definitions_to_string(GetColorDefinitions()),
                 GetSubstring(),
                 GetSuffix());
-    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("cli.color_output", false);
+    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("color_output", false);
 
     if (!color_output) {
         return RemoveNonAsciiCharsCopy(GetPrefix() + GetSubstring() + GetSuffix());

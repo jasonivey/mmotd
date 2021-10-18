@@ -1,3 +1,4 @@
+// vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/big_five_macros.h"
 
@@ -14,12 +15,18 @@ namespace mmotd::core {
 
 class ConfigOptions {
 public:
-    DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(ConfigOptions);
+    NO_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(ConfigOptions);
 
+    // The `reinitialize = true` parameter is only to be used by the unit-tests
     static ConfigOptions &Instance(bool reinitialize = false);
+
     void ParseConfigFile(std::filesystem::path file_path);
-    void ParseConfigFile(std::istream &input, const std::string &file_name);
-    void AddCliConfigOptions(std::istream &input);
+
+    // This method is only to be used by the unit-tests
+    void ParseConfigFile(std::istream &input);
+
+    template<typename T>
+    void AddConfigOption(std::string name, T value);
 
     bool Contains(const std::string &name) const;
 
@@ -35,22 +42,22 @@ public:
     std::optional<std::string> GetValueAsString(const std::string &name) const noexcept;
     std::string GetValueAsStringOr(const std::string &name, std::string default_value) const noexcept;
 
+    bool WriteDefaultConfigOptions(std::filesystem::path file_path) const;
     std::string to_string() const;
 
-    static constexpr std::string_view CORE_TABLE = "core";
-    static constexpr std::string_view CLI_TABLE = "cli";
-
 private:
+    ConfigOptions();
+
     toml::value FindValue(std::string input_name) const;
-    void InitializeConfigPath();
-    void InitializeTemplatePath();
-    std::string GetConfigPath() const noexcept { return config_path_; }
-    std::string GetTemplatePath() const noexcept { return template_path_; }
 
     toml::value core_value_;
-    toml::value cli_value_;
-    std::string config_path_;
-    std::string template_path_;
 };
+
+template<typename T>
+void ConfigOptions::AddConfigOption(std::string name, T value) {
+    if (core_value_.is_table()) {
+        core_value_[name] = value;
+    }
+}
 
 } // namespace mmotd::core

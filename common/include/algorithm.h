@@ -5,13 +5,16 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <iterator>
 #include <limits>
+#include <sstream>
 #include <string>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 namespace mmotd::algorithms {
 
@@ -148,6 +151,54 @@ inline std::string join(const Container &container, Seperator seperator, Func fu
         output += func(*i);
     }
     return output;
+}
+
+template<class Container, class Seperator, class Func, class Pred>
+inline std::string join_if(const Container &container, Seperator seperator, Func func, Pred pred) {
+    auto output = std::string{};
+    auto end = std::end(container);
+    for (auto i = std::begin(container); i != end; ++i) {
+        const auto &element = func(*i);
+        if (pred(element)) {
+            if (std::distance(std::begin(container), i) != 0 && std::distance(i, end) != 1) {
+                output += seperator;
+            }
+            output += element;
+        }
+    }
+    return output;
+}
+
+//
+// This is a simple formatting function which takes an `input` string and splits
+//  it on whitespace. From there it creates lines of `output` text `max_length`
+//  in size.  These lines are seperated by a newline `\n` character and returned.
+// This algorithm should be refactored to take the `char` or `set of chars` to
+//  initially split the string.  It should also take a `char` or `string` which
+//  is should be used to join the `max_length` strings:
+//   example:
+//   string split_sentence(string input, string split_chars, size_t max_length, string join_chars);
+//
+inline std::string split_sentence(std::string input, std::size_t max_length) {
+    if (empty(input) || max_length >= std::size(input)) {
+        return input;
+    }
+    auto input_stream = std::istringstream{input};
+    auto chunks = std::vector<std::string>{std::istream_iterator<std::string>{input_stream},
+                                           std::istream_iterator<std::string>()};
+    auto joined_chunks = std::vector<std::string>{};
+    for (const auto &chunk : chunks) {
+        if (size(chunk) >= max_length) {
+            joined_chunks.push_back(chunk);
+        } else if (std::empty(joined_chunks)) {
+            joined_chunks.push_back(chunk);
+        } else if (size(joined_chunks.back()) + 1ull + size(chunk) >= max_length) {
+            joined_chunks.push_back(chunk);
+        } else {
+            joined_chunks.back() += std::string{" "} + chunk;
+        }
+    }
+    return mmotd::algorithms::join(joined_chunks, "\n", [](const auto &i) { return i; });
 }
 
 //

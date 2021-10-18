@@ -1,3 +1,4 @@
+#include "common/include/special_files.h"
 #include "common/results/include/output_template.h"
 #include "common/results/include/template_column_items.h"
 
@@ -18,49 +19,37 @@ using namespace std;
 
 namespace {
 
-fs::path FindOneColumnOutputTemplateFileName() {
-    error_code ec;
-    auto current_dir = fs::absolute(fs::current_path(ec));
-    CATCH_CHECK(!ec);
-    current_dir = fs::absolute(current_dir, ec);
-    CATCH_CHECK(!ec);
-
-    static const string ONE_COLUMN_OUTPUT_TEMPLATE_RELATIVE_PATH = {"config/mmotd_1_column_template.json"};
-
-    auto result = fs::path{};
-    while (result.empty() && current_dir != current_dir.root_directory()) {
-        auto one_column_output_template_path = current_dir / ONE_COLUMN_OUTPUT_TEMPLATE_RELATIVE_PATH;
-        if (fs::is_regular_file(one_column_output_template_path, ec) && !ec) {
-            result = fs::absolute(one_column_output_template_path, ec);
-            CATCH_CHECK(!ec);
-        } else {
-            current_dir = fs::absolute(current_dir / "..", ec);
-            CATCH_CHECK(!ec);
-        }
+fs::path FindDefaultTemplatePath() {
+    auto project_root = mmotd::core::special_files::FindProjectRootDirectory();
+    if (empty(project_root)) {
+        return fs::path{};
     }
-    return result;
+    auto ec = error_code{};
+    auto template_path = project_root / "config" / "mmotd_template.json";
+    if (fs::exists(template_path, ec) && !ec) {
+        return template_path;
+    } else {
+        return fs::path{};
+    }
 }
 
 } // namespace
 
 namespace mmotd::results::test {
 
-CATCH_TEST_CASE("default template matches 1 column template", "[OutputTemplate]") {
-    auto one_column_output_template_path = FindOneColumnOutputTemplateFileName();
-    CATCH_CHECK(!one_column_output_template_path.empty());
+CATCH_TEST_CASE("default output template matches mmotd_template.json", "[OutputTemplate]") {
+    auto default_template_path = FindDefaultTemplatePath();
+    CATCH_CHECK(!default_template_path.empty());
+
+    auto default_template_stream = ifstream(default_template_path);
+    CATCH_CHECK(default_template_stream.is_open());
+    auto default_template_json = json::parse(default_template_stream);
 
     auto output_template = OutputTemplate{};
-    auto default_json_output_template = json();
+    auto default_output_template_json = json();
+    output_template.to_json(default_output_template_json);
 
-    output_template.to_json(default_json_output_template);
-
-    auto input = ifstream(one_column_output_template_path.string());
-    CATCH_CHECK(input.is_open());
-
-    auto one_column_json_output_template = json();
-    one_column_json_output_template = json::parse(input);
-
-    CATCH_CHECK(one_column_json_output_template == default_json_output_template);
+    CATCH_CHECK(default_template_json == default_output_template_json);
 }
 
 } // namespace mmotd::results::test

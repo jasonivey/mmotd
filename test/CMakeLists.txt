@@ -13,12 +13,14 @@ set_default_policies()
 
 add_executable(${MMOTD_TARGET_NAME}
                ../common/test/src/exception_matcher.cpp
+               ../common/test/src/test_algorithm.cpp
                ../common/test/src/test_assertion.cpp
                ../common/test/src/test_config_options.cpp
                ../common/test/src/test_exception.cpp
                ../common/test/src/test_mac_address.cpp
-               ../common/test/src/test_position_index.cpp
                ../common/test/src/test_output_template.cpp
+               ../common/test/src/test_position_index.cpp
+               ../common/test/src/test_special_files.cpp
                ../common/test/src/test_template_string.cpp
                ../lib/test/src/test_information_definitions.cpp
                src/main.cpp

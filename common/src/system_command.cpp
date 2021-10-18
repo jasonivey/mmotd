@@ -3,6 +3,7 @@
 #include "common/include/system_command.h"
 
 #include <filesystem>
+#include <iomanip>
 #include <system_error>
 
 #include <boost/asio.hpp>
@@ -12,11 +13,28 @@
 using fmt::format;
 namespace fs = std::filesystem;
 using namespace std;
+using namespace std::string_literals;
 
 namespace {
 
 string CreateCommand(const fs::path &exe_path, const vector<string> &args) {
     return format(FMT_STRING("{} {}"), exe_path.string(), fmt::join(args, " "));
+}
+
+string CreateErrorStr(int result, string command, string std_out, string std_err) {
+    auto output = format(FMT_STRING("command: {} returned "), quoted(command));
+    output += format(FMT_STRING("[{}] {}, "), result == 0 ? "SUCCESS"s : "ERROR"s, result);
+    if (empty(std_out)) {
+        output += string{"stdout: \"\", "};
+    } else {
+        output += format(FMT_STRING("stdout:\n{}\n"), std_out);
+    }
+    if (empty(std_err)) {
+        output += string{"stderr: \"\""};
+    } else {
+        output += format(FMT_STRING("stderr:\n{}"), std_err);
+    }
+    return output;
 }
 
 } // namespace
@@ -33,23 +51,27 @@ optional<string> Run(const fs::path &exe_path, const vector<string> &args) {
         return nullopt;
     }
     auto command = CreateCommand(exe_path, args);
-
     auto exit_code = std::future<int>{};
     auto data = std::future<std::string>{};
+    auto error = std::future<std::string>{};
     auto io_service = io::io_service{};
-    auto child_process = bp::child(command, bp::std_out > data, io_service, bp::on_exit = exit_code);
+    auto child_process = bp::child(command,
+                                   bp::std_in.close(),
+                                   bp::std_out > data,
+                                   bp::std_err > error,
+                                   bp::on_exit = exit_code,
+                                   io_service);
     io_service.run();
     auto result = exit_code.get();
-    auto output = data.get();
+    auto std_output = data.get();
+    auto std_error = error.get();
 
-    if (result != 0) {
-        LOG_ERROR("'{}' returned error {}, output:\n{}", command, result, output);
-        return nullopt;
-    } else if (empty(output)) {
-        LOG_ERROR("'{}' returned 0 [success], without any output", command);
+    if (result != 0 || empty(std_output)) {
+        auto error_str = CreateErrorStr(result, command, std_output, std_error);
+        LOG_ERROR("{}", error_str);
         return nullopt;
     } else {
-        return {output};
+        return {std_output};
     }
 }
 

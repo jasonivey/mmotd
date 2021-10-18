@@ -7,7 +7,6 @@
 #include "lib/include/platform/memory.h"
 
 #include <fmt/format.h>
-#include <scope_guard.hpp>
 
 using fmt::format;
 using namespace std;

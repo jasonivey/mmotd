@@ -1,5 +1,6 @@
 #include "common/assertion/include/assertion.h"
 #include "common/include/config_options.h"
+#include "common/include/special_files.h"
 #include "common/test/include/exception_matcher.h"
 
 #include <istream>
@@ -14,7 +15,26 @@
 using namespace Catch;
 using namespace Catch::Matchers;
 using namespace std;
+namespace fs = std::filesystem;
 using namespace toml::literals::toml_literals;
+
+namespace {
+
+fs::path FindDefaultConfigPath() {
+    auto project_root = mmotd::core::special_files::FindProjectRootDirectory();
+    if (empty(project_root)) {
+        return fs::path{};
+    }
+    auto ec = error_code{};
+    auto template_path = project_root / "config" / "mmotd_config.toml";
+    if (fs::exists(template_path, ec) && !ec) {
+        return template_path;
+    } else {
+        return fs::path{};
+    }
+}
+
+} // namespace
 
 namespace mmotd::test {
 
@@ -45,7 +65,7 @@ CATCH_TEST_CASE("ConfigOptions test parsing stream", "[config options]") {
     auto input_stream = istringstream{buffer};
 
     auto &config_options = ConfigOptions::Instance(true);
-    config_options.ParseConfigFile(input_stream, "test.toml");
+    config_options.ParseConfigFile(input_stream);
 
     CATCH_CHECK(config_options.GetValueAsString("title") == "this is TOML literal");
     CATCH_CHECK(config_options.GetValueAsBoolean("color"));
@@ -63,7 +83,7 @@ color = true
     auto input_stream = istringstream{buffer};
 
     auto &config_options = ConfigOptions::Instance(true);
-    config_options.ParseConfigFile(input_stream, "test.toml");
+    config_options.ParseConfigFile(input_stream);
 
     CATCH_CHECK(config_options.Contains("version"));
     CATCH_CHECK(config_options.GetValueAsStringOr("version", "") == "0.99.88-alpha");
@@ -88,9 +108,59 @@ color = true
     auto input_stream = istringstream{buffer};
 
     auto &config_options = ConfigOptions::Instance(true);
-    config_options.ParseConfigFile(input_stream, "test.toml");
+    config_options.ParseConfigFile(input_stream);
 
     CATCH_CHECK(config_options.GetValueAsString("sub1.title") == "");
+}
+
+CATCH_TEST_CASE("default ConfigOptions match", "[config options]") {
+    using mmotd::core::ConfigOptions;
+    const toml::value config_value1 = u8R"(
+#
+# modified message of the day
+#
+
+# Enabling this may cause a performance cost. Every write to the log file will be flushed
+#  when set to 'true'. This disables the natural file output caching of log file writes and
+#  may enable seeing more debug statements before a crash.
+logging_flush=false
+
+# Replace the following with the location of where your "mmotd_template.json" exists
+# template_path="$HOME/.config/mmotd/mmotd_template.json"
+
+# This is the same value that is the last couple of segments of the file linked to /etc/localtime
+# /var/db/timezone/zoneinfo/America/Denver
+timezone="America/Denver"
+
+# The following three values are used to look-up the local whether, http://wttr.in/Albuquerque%20NM%20USA
+city="Albuquerque"
+state="NM"
+country="USA"
+)"_toml;
+    auto &config_options = ConfigOptions::Instance(true);
+    auto config_options_str = config_options.to_string();
+    auto input_stream = istringstream{config_options_str};
+    const toml::value config_value2 = toml::parse(input_stream);
+
+    CATCH_CHECK(config_value1 == config_value2);
+}
+
+CATCH_TEST_CASE("default ConfigOptions matches mmotd_config.toml", "[OutputTemplate]") {
+    using mmotd::core::ConfigOptions;
+
+    auto default_config_path = FindDefaultConfigPath();
+    CATCH_CHECK(!default_config_path.empty());
+
+    auto default_config_stream = ifstream(default_config_path);
+    CATCH_CHECK(default_config_stream.is_open());
+    auto default_config_toml = toml::parse(default_config_stream);
+
+    auto &config_options = ConfigOptions::Instance(true);
+    auto config_options_str = config_options.to_string();
+    auto config_options_stream = istringstream{config_options_str};
+    auto config_options_toml = toml::parse(config_options_stream);
+
+    CATCH_CHECK(default_config_toml == config_options_toml);
 }
 
 } // namespace mmotd::test

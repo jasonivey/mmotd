@@ -34,8 +34,8 @@ using mmotd::results::data::TemplateColumnItem;
 namespace mmotd::results {
 
 TemplateString::TemplateString(std::string text, fmt::text_style color_style) :
-    text_(std::move(text)), color_style_(color_style) {
-}
+    text_(std::move(text)),
+    color_style_(color_style) {}
 
 optional<Information> TemplateString::FindInformation(const string &information_id,
                                                       const Informations &informations,
@@ -321,7 +321,7 @@ fmt::text_style TemplateString::GetColorValue(string color_specification) {
 string TemplateString::ReplaceEmbeddedColorCodes(const string &text, fmt::text_style color_style) {
     auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
     auto formatted_str = template_substrings.to_string(&TemplateString::GetColorValue);
-    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("cli.color_output", false);
+    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("color_output", false);
     return color_output ? format(color_style, FMT_STRING("{}"), formatted_str) : formatted_str;
 }
 
