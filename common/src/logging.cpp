@@ -1,6 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/assertion/include/assertion.h"
 #include "common/include/chrono_io.h"
+#include "common/include/config_options.h"
 #include "common/include/logging.h"
 #include "common/include/source_location.h"
 #include "common/include/version.h"
@@ -24,14 +24,28 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+#include <sys/types.h>
+#include <unistd.h>
+
 namespace fs = std::filesystem;
 using namespace mmotd::source_location;
 using namespace std;
 
 namespace {
 
-class FileLogger
-{
+inline uint32_t GetProcessId() {
+    return static_cast<uint32_t>(getpid());
+}
+
+inline string GetBasename(string binary_name) {
+    if (empty(binary_name)) {
+        return string{"app"};
+    }
+    auto binary_path = fs::path{binary_name};
+    return binary_path.has_stem() ? binary_path.stem().string() : string{"app"};
+}
+
+class FileLogger {
 public:
     FileLogger() : file_stream_(), mutex_() {}
     ~FileLogger() { Close(); }
@@ -84,12 +98,13 @@ void FileLogger::Close() {
 
 void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr) {
     using namespace mmotd::logging;
+    using mmotd::core::ConfigOptions;
     auto lock = lock_guard<mutex>(mutex_);
     if (file_stream_ && file_stream_.is_open()) {
         fmt::print(file_stream_, FMT_STRING("{}"), string_view(data(input), size(input)));
-        // fix_todo: add config value for debug which when enabled can enable a FileLogger debug variable
-        // temporary debug statement
-        // file_stream_.flush();
+        if (ConfigOptions::Instance().GetValueAsBooleanOr("logging_flush", false)) {
+            file_stream_.flush();
+        }
     }
     if (append_to_stderr) {
         fmt::print(stderr, FMT_STRING("{}"), string_view(data(input), size(input)));
@@ -100,19 +115,15 @@ void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr
 //  and lives beyond the scope of all global/function static variable destruction
 FileLogger &GetFileLogger() {
     static auto file_logger = std::make_unique<FileLogger>();
-    CHECKS(file_logger, "file logger is not allocated");
     return *file_logger;
 }
 
+// This is storing the log file in "/tmp/mmotd-<proc-id>.log". Unique for each run of the app but will
+//  be destroyed upon every boot. (Good for auto-cleanup of existing log files).
 fs::path GetLoggingPath(const string &binary_name) {
-    if (!empty(binary_name)) {
-        auto ec = error_code{};
-        auto binary_path = fs::absolute(fs::path(binary_name), ec);
-        if (!ec) {
-            return binary_path.replace_extension("log");
-        }
-    }
-    return fs::current_path() / "app.log";
+    static const auto log_filename = format(FMT_STRING("{}-{:08x}.log"), GetBasename(binary_name), GetProcessId());
+    static const auto default_log_path = fs::path("/tmp") / log_filename;
+    return default_log_path;
 }
 
 inline bool HasHexPrefix(string num_value) {
@@ -201,7 +212,7 @@ void GetSourceLocationFormattedOutput(fmt::memory_buffer &out,
                                       const SourceLocation &source_location) {
     using namespace mmotd::logging;
     string thread_id_str = to_string(std::this_thread::get_id());
-    auto now_time_point = date::make_zoned(date::locate_zone("America/Denver"), std::chrono::system_clock::now());
+    auto now_time_point = date::make_zoned(mmotd::chrono::io::GetTimeZone(), std::chrono::system_clock::now());
     static constexpr size_t DATE_TIME_MILLISECOND_OFFSET = 23;
     static constexpr size_t SEVERITY_FIELD_WIDTH = 7;
     string now_str = date::format("%F %H:%M:%S", now_time_point).substr(0, DATE_TIME_MILLISECOND_OFFSET);
@@ -285,7 +296,6 @@ void SetSeverity(Severity severity, const SourceLocation &source_location) noexc
                    to_string(severity),
                    to_string(previous_severity));
     GetFileLogger().WriteLog(output);
-
     GetFileLogger().SetSeverity(severity);
 }
 

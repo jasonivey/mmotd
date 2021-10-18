@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/algorithm.h"
 #include "common/include/cli_options_parser.h"
 #include "common/include/config_options.h"
 #include "common/include/logging.h"
@@ -17,6 +18,7 @@
 #include <optional>
 #include <sstream>
 #include <stdexcept>
+#include <string_view>
 #include <system_error>
 
 #include <CLI/CLI.hpp>
@@ -198,15 +200,15 @@ pair<bool, bool> CliOptionsParser::ParseCommandLine(const int argc, char **argv)
     return parser.Parse(argc, argv);
 }
 
-CliOptionsParser::CliOptionsParser() : options_(new CliOptions) {
-}
+CliOptionsParser::CliOptionsParser() : options_(new CliOptions) {}
 
 CliOptionsParser::~CliOptionsParser() = default;
 
 pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
     bool app_finished = true;
     bool error_exit = false;
-    auto app = CLI::App{"modified message of the day"};
+    auto app = CLI::App{"modified message of the day", "mmotd"};
+    // app.get_formatter()->column_width(40ull);
     try {
         AddOptionDeclarations(app);
         app.parse(argc, argv);
@@ -214,7 +216,7 @@ pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
     } catch (const CLI::CallForHelp &help) {
         const auto &msg = app.help("", CLI::AppFormatMode::All);
         LOG_INFO("{}", msg);
-        cout << msg << endl;
+        cout << msg;
     } catch (const CLI::CallForVersion &version) {
         const string msg = format(FMT_STRING("version: {}"), app.version());
         LOG_INFO("{}", msg);
@@ -227,12 +229,16 @@ pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
     }
     auto output_config_path = options_->GetOutputConfigPath();
     if (!output_config_path.empty()) {
-        WriteDefaultConfiguration(output_config_path, app.config_to_str(true, true));
+        if (!WriteDefaultConfiguration(output_config_path)) {
+            error_exit = true;
+        }
         app_finished = true;
     }
     auto output_template_path = options_->GetOutputTemplatePath();
     if (!output_template_path.empty()) {
-        WriteDefaultTemplate(output_template_path);
+        if (!WriteDefaultTemplate(output_template_path)) {
+            error_exit = true;
+        }
         app_finished = true;
     }
     if (!app_finished) {
@@ -266,18 +272,17 @@ void CliOptionsParser::AddConfigOptions() const {
         color_output = color_when == ColorWhen::Always;
     }
 
-    auto cli_options = string{};
-    cli_options += format(FMT_STRING("config_path={}\n"), std::quoted(config_path.string()));
-    cli_options += format(FMT_STRING("template_path={}\n"), std::quoted(template_path.string()));
-    cli_options += format(FMT_STRING("log_severity={}\n"), static_cast<int64_t>(log_severity));
-    cli_options += format(FMT_STRING("color_output={}\n"), color_output);
-    auto cli_options_stream = istringstream{cli_options};
-    ConfigOptions::Instance().AddCliConfigOptions(cli_options_stream);
+    if (!empty(config_path)) {
+        ConfigOptions::Instance().ParseConfigFile(config_path);
+    }
+    if (!empty(template_path)) {
+        ConfigOptions::Instance().AddConfigOption("template_path"s, template_path.string());
+    }
+    ConfigOptions::Instance().AddConfigOption("log_severity"s, static_cast<int64_t>(log_severity));
+    ConfigOptions::Instance().AddConfigOption("color_output"s, color_output);
 }
 
 void CliOptionsParser::AddOptionsToSubCommand(CLI::App &app) {
-    using std::placeholders::_1;
-
     auto *create_config = app.add_subcommand("create_config");
     create_config->option_defaults()->configurable(false);
     create_config
@@ -302,6 +307,7 @@ void CliOptionsParser::AddOptionsToSubCommand(CLI::App &app) {
 }
 
 void CliOptionsParser::AddOptionDeclarations(CLI::App &app) {
+    using namespace mmotd::core::special_files;
     // allow_windows_style_options = defaults: { windows=true / non-windows=false }
     app.option_defaults()->configurable(true)->multi_option_policy(CLI::MultiOptionPolicy::Throw);
 
@@ -311,28 +317,39 @@ void CliOptionsParser::AddOptionDeclarations(CLI::App &app) {
            "Prints version information")
         ->configurable(false);
 
+    auto default_locations = GetDefaultLocationsStr();
+    constexpr auto config_description_fmt =
+        R"(Path to optional "toml" configuration file to specifiy application details. Default file name is {}. Default locations are {}.)";
+    auto config_description = fmt::vformat(fmt::to_string_view(config_description_fmt),
+                                           fmt::make_format_args(quoted(CONFIG_FILENAME), default_locations));
     app.add_option(
            "-c, --config",
            [this](auto &&paths) { return options_->SetConfigPath(forward<decltype(paths)>(paths)); },
-           "path to 'toml' configuration file to specifiy application details")
+           mmotd::algorithms::split_sentence(config_description, 70ull))
+        ->required(false)
         ->check(CLI::ExistingFile)
         ->envname("MMOTD_CONFIG_PATH")
         ->configurable(false);
 
+    constexpr auto template_description_fmt =
+        R"(Path to optional "json" template file for specifying output properties. Default file name is {}. Default locations are {}.)";
+    auto template_description = fmt::vformat(fmt::to_string_view(template_description_fmt),
+                                             fmt::make_format_args(quoted(TEMPLATE_FILENAME), default_locations));
     app.add_option(
            "-t, --template",
            [this](auto &&paths) { return options_->SetTemplatePath(forward<decltype(paths)>(paths)); },
-           "path to 'json' template file for specifying output properties")
+           mmotd::algorithms::split_sentence(template_description, 70ull))
+        ->required(false)
         ->check(CLI::ExistingFile)
         ->envname("MMOTD_TEMPLATE_PATH")
         ->configurable(false);
 
-    auto log_severity_description = "set the log severity (none, fatal, error, warning, info, debug, verbose)";
+    auto log_severity_description = "Set the log severity (none, fatal, error, warning, info, debug, verbose)";
     const LogSeverityValidator log_severity_validator;
     app.add_option(
            "-l, --log-severity,",
            [this](auto &&severities) { return options_->SetLogSeverity(forward<decltype(severities)>(severities)); },
-           log_severity_description)
+           mmotd::algorithms::split_sentence(log_severity_description, 70ull))
         ->check(log_severity_validator)
         ->configurable(false);
 
@@ -340,32 +357,41 @@ void CliOptionsParser::AddOptionDeclarations(CLI::App &app) {
     app.add_option(
            "-p,--pretty",
            [this](auto &&whens) { return options_->SetColorWhen(forward<decltype(whens)>(whens)); },
-           "when to use terminal colors (always, auto, never)")
+           "When to use terminal colors (always, auto, never)")
         ->check(color_validator)
         ->configurable(false);
 
     AddOptionsToSubCommand(app);
 }
 
-static void PrintStatus(string_view msg) {
+static void PrintStatus(string_view msg, bool error = false) {
+    constexpr auto error_header_ts = fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_red);
     constexpr auto header_ts = fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green);
     constexpr auto main_ts = fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white);
-    fmt::print(header_ts, FMT_STRING("[{:^7}]"), "INFO");
+    if (error) {
+        fmt::print(error_header_ts, FMT_STRING("[{:^7}]"), "ERROR");
+    } else {
+        fmt::print(header_ts, FMT_STRING("[{:^7}]"), "INFO");
+    }
     fmt::print(main_ts, FMT_STRING(": {}\n"), msg);
 }
 
-void CliOptionsParser::WriteDefaultConfiguration(fs::path file_path, string app_config) {
-    auto output = ofstream(file_path);
+bool CliOptionsParser::WriteDefaultConfiguration(fs::path file_path) {
     PrintStatus(format(FMT_STRING("start:  writing default configuration to '{}'"), file_path));
-    output << app_config << endl;
-    output.close();
-    PrintStatus(format(FMT_STRING("finish: writing default configuration to '{}'"), file_path));
+    auto result = ConfigOptions::Instance().WriteDefaultConfigOptions(file_path);
+    PrintStatus(
+        format(FMT_STRING("finish: writing default configuration to '{}', write status: {}"), file_path, result),
+        result);
+    return result;
 }
 
-void CliOptionsParser::WriteDefaultTemplate(fs::path file_path) {
+bool CliOptionsParser::WriteDefaultTemplate(fs::path file_path) {
+    using namespace mmotd::results;
     PrintStatus(format(FMT_STRING("start:  writing output template to '{}'"), file_path));
-    mmotd::results::WriteDefaultOutputTemplate(file_path);
-    PrintStatus(format(FMT_STRING("finish: writing output template to '{}'"), file_path));
+    auto result = WriteDefaultOutputTemplate(file_path);
+    PrintStatus(format(FMT_STRING("finish: writing output template to '{}', write status: {}"), file_path, result),
+                result);
+    return result;
 }
 
 } // namespace mmotd::core

@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include <fmt/format.h>
-#include <scope_guard.hpp>
 
 #include <sys/sysctl.h>
 

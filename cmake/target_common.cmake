@@ -71,19 +71,14 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # If this config identifier is defined then all CATCH macros are prefixed with CATCH_
         # This enables the MMOTD project to define it's own version of 'CHECK'
         PRIVATE CATCH_CONFIG_PREFIX_ALL
-        # This disables the BOOST_ASSERT macro and the "boost::assertion_failed",
-        #  "boost::assertion_failed_msg" functions
-        # PRIVATE BOOST_DISABLE_ASSERTS
         # When defined and compiler language is set to `-std=c++17` or higher,
         #  the lambda passed to scope_guard is required to be specified as `noexcept`.
         PRIVATE SG_REQUIRE_NOEXCEPT_IN_CPP17
-        # Avoids a compiler warning where the boost::placeholders::_1, _2, _3, etc. end up
-        #  conflicting with the ones in the standard C++ library as they are unintendedly
-        #  loaded into the global namespace (doh!).
-        PRIVATE $<$<CXX_COMPILER_ID:GNU>:BOOST_BIND_GLOBAL_PLACEHOLDERS=1>
         # FMT_ENFORCE_COMPILE_STRING requires all format strings to use FMT_STRING which enables
         #  compile time checking of the format string against the arguments.
         PRIVATE FMT_ENFORCE_COMPILE_STRING
+        # Boost ASIO has not updated it's code for C++20 and the removal of `std::result_of`
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:BOOST_ASIO_HAS_STD_INVOKE_RESULT>
         # When defined the discovery of system properties will be done serially
         #PRIVATE MMOTD_ASYNC_DISABLED
         )
@@ -130,6 +125,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wmost>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wweak-vtables>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wmissing-noreturn>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wdtor-name>
         # gnu only
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wtrampolines>
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>

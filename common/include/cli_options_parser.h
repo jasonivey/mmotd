@@ -34,8 +34,8 @@ private:
     void AddOptionsToSubCommand(CLI::App &app);
     void AddOptionDeclarations(CLI::App &app);
 
-    static void WriteDefaultConfiguration(std::filesystem::path file_path, std::string app_config);
-    static void WriteDefaultTemplate(std::filesystem::path file_path);
+    static bool WriteDefaultConfiguration(std::filesystem::path file_path);
+    static bool WriteDefaultTemplate(std::filesystem::path file_path);
 
     std::unique_ptr<CliOptions> options_;
 };

@@ -6,6 +6,7 @@
 #include "common/include/cli_options_parser.h"
 #include "common/include/config_options.h"
 #include "common/include/logging.h"
+#include "common/include/special_files.h"
 #include "common/results/include/output_template.h"
 #include "common/results/include/output_template_printer.h"
 #include "lib/include/computer_information.h"
@@ -29,12 +30,13 @@ namespace {
 
 void PrintMmotd() {
     using namespace mmotd::results;
+    using mmotd::core::special_files::ExpandEnvironmentVariables;
 
-    const auto template_filename = ConfigOptions::Instance().GetValueAsStringOr("cli.template_path", string{});
+    const auto template_filename = ConfigOptions::Instance().GetValueAsStringOr("template_path", string{});
     LOG_INFO("template file name: {}", quoted(template_filename));
     auto output_template = unique_ptr<OutputTemplate>{};
     if (!empty(template_filename)) {
-        output_template = MakeOutputTemplate(template_filename);
+        output_template = MakeOutputTemplate(ExpandEnvironmentVariables(template_filename));
     } else {
         output_template = MakeOutputTemplateFromDefault();
     }
@@ -52,7 +54,7 @@ void PrintMmotd() {
 }
 
 void UpdateLogSeverity() {
-    const auto log_severity_raw = ConfigOptions::Instance().GetValueAsIntegerOr("cli.log_severity", -1);
+    const auto log_severity_raw = ConfigOptions::Instance().GetValueAsIntegerOr("log_severity", -1);
     if (log_severity_raw == -1) {
         return;
     }

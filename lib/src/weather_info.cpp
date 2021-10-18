@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/chrono_io.h"
+#include "common/include/config_options.h"
 #include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/http_request.h"
@@ -8,18 +9,51 @@
 #include <iterator>
 #include <regex>
 #include <string>
+#include <vector>
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
 
 using fmt::format;
 using namespace std;
+using namespace std::string_literals;
 
 bool gLinkWeatherInfo = false;
 
-namespace mmotd::information {
+namespace {
 
-static constexpr const char *LOCATION = "Lehi UT US";
+pair<string, string> ParseSunriseSunset(string sunrise_str, string sunset_str) {
+    auto sunrise_holder = mmotd::chrono::io::from_string(sunrise_str, "%H:%M:%S");
+    auto sunrise_result = string{};
+    if (sunrise_holder) {
+        sunrise_result = mmotd::chrono::io::to_string(*sunrise_holder, "%I:%M:%S%p");
+    }
+    auto sunset_holder = mmotd::chrono::io::from_string(sunset_str, "%H:%M:%S");
+    auto sunset_result = string{};
+    if (sunset_holder) {
+        sunset_result = mmotd::chrono::io::to_string(*sunset_holder, "%I:%M:%S%p");
+    }
+    return {sunrise_result, sunset_result};
+}
+
+string GetLocation(string seperator) {
+    using namespace mmotd::core;
+    auto city = ConfigOptions::Instance().GetValueAsStringOr("city"s, std::string{});
+    auto state = ConfigOptions::Instance().GetValueAsStringOr("state"s, std::string{});
+    auto country = ConfigOptions::Instance().GetValueAsStringOr("country"s, std::string{});
+    return boost::join_if(vector{city, state, country}, seperator, [](const auto &str) { return !empty(str); });
+}
+
+string CreateWeatherRequestUrl() {
+    auto location = GetLocation("%20"s);
+    // "http://wttr.in/?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
+    // "http://wttr.in/Albuquerque%20NM%20USA?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
+    return format(FMT_STRING("/{}?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"), location);
+}
+
+} // namespace
+
+namespace mmotd::information {
 
 static const bool users_logged_in_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::WeatherInfo>(); });
@@ -55,36 +89,18 @@ void WeatherInfo::FindInformation() {
     AddInformation(location);
 }
 
-pair<string, string> ParseSunriseSunset(string sunrise_str, string sunset_str) {
-    auto sunrise_holder = mmotd::chrono::io::from_string(sunrise_str, "%H:%M:%S");
-    auto sunrise_result = string{};
-    if (sunrise_holder) {
-        sunrise_result = mmotd::chrono::io::to_string(*sunrise_holder, "%I:%M:%S%p");
-    }
-    auto sunset_holder = mmotd::chrono::io::from_string(sunset_str, "%H:%M:%S");
-    auto sunset_result = string{};
-    if (sunset_holder) {
-        sunset_result = mmotd::chrono::io::to_string(*sunset_holder, "%I:%M:%S%p");
-    }
-    return {sunrise_result, sunset_result};
-}
-
 tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     using boost::trim_copy, boost::replace_all_copy;
     using namespace mmotd::chrono::io;
     using namespace mmotd::networking;
 
-    //"http://wttr.in/?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
-    //"http://wttr.in/Lehi%20UT%20US?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
     auto http_request = HttpRequest(HttpProtocol::HTTP, "wttr.in");
-    auto url = format(FMT_STRING("/{}?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"),
-                      replace_all_copy(string{LOCATION}, " ", "%20"));
-    auto http_response = http_request.MakeRequest(url);
+    auto http_response = http_request.MakeRequest(CreateWeatherRequestUrl());
     if (!http_response) {
         return make_tuple(string{}, string{}, string{}, string{});
     }
 
-    auto location_str = string{LOCATION};
+    auto location_str = GetLocation(" "s);
     auto weather_str = *http_response;
     if (auto i = weather_str.find_first_of(':'); i != string::npos) {
         location_str = boost::trim_copy(weather_str.substr(0, i));

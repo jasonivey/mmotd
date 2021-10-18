@@ -27,6 +27,7 @@ using namespace mmotd::system;
 
 namespace {
 
+constexpr const int SYSTEM_PROFILER_TIMEOUT = 2; // anything more than 2 seconds and this application is useless!
 optional<string> RunSystemProfiler(string system_profiler_type);
 
 struct MachineInformation {
@@ -55,7 +56,7 @@ struct GpuInformation {
     string GetResolution() const;
 
     bool empty() const noexcept;
-    //string to_string() const;
+    // string to_string() const;
 
 private:
     vector<string> graphics_model_names;
@@ -204,8 +205,15 @@ optional<string> RunSystemProfiler(string system_profiler_type) {
     auto exit_code = std::future<int>{};
     auto data = std::future<std::string>{};
     auto io_service = io::io_service{};
-    auto command_str = format(FMT_STRING("/usr/sbin/system_profiler {} -json -detailLevel full"), system_profiler_type);
-    auto child_process = bp::child(command_str, bp::std_out > data, io_service, bp::on_exit = exit_code);
+    auto command_str = format(FMT_STRING("/usr/sbin/system_profiler {} -json -timeout {} -detailLevel full"),
+                              system_profiler_type,
+                              SYSTEM_PROFILER_TIMEOUT);
+    auto child_process = bp::child(command_str,
+                                   bp::std_in.close(),
+                                   bp::std_out > data,
+                                   bp::std_err > bp::null,
+                                   bp::on_exit = exit_code,
+                                   io_service);
     io_service.run();
     auto result = exit_code.get();
     auto output = data.get();
@@ -276,19 +284,21 @@ HardwareDetails GetHardwareInformationDetails() {
 
     auto gpu_information_holder = GpuInformation::QueryGpuInformation();
     if (!gpu_information_holder || gpu_information_holder.value().empty()) {
-        LOG_VERBOSE("gpu information was either null or empty");
+        LOG_WARNING("gpu information was either null or empty");
     } else {
-        details.gpu_name = gpu_information_holder.value().GetGraphicsModelName();
-        details.monitor_name = gpu_information_holder.value().GetDisplayName();
-        details.monitor_resolution = gpu_information_holder.value().GetResolution();
+        const auto &gpu_info = *gpu_information_holder;
+        details.gpu_name = gpu_info.GetGraphicsModelName();
+        details.monitor_name = gpu_info.GetDisplayName();
+        details.monitor_resolution = gpu_info.GetResolution();
     }
 
     auto machine_information_holder = MachineInformation::QueryMachineInformation();
     if (!machine_information_holder || machine_information_holder.value().empty()) {
-        LOG_VERBOSE("gpu information was either null or empty");
+        LOG_WARNING("machine information was either null or empty");
     } else {
-        details.machine_type = machine_information_holder.value().machine_type;
-        details.machine_model = machine_information_holder.value().machine_model;
+        const auto &machine_info = *machine_information_holder;
+        details.machine_type = machine_info.machine_type;
+        details.machine_model = machine_info.machine_model;
     }
 
     return details;

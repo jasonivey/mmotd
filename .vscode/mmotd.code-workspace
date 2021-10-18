@@ -118,6 +118,7 @@
 		"cmake.reconfigureOnChange": true,
 		"cmake.default.env": {
 			"CMAKE_BUILD_TYPE": "Debug"
-		}
+		},
+		"cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
 	}
 }

@@ -1,53 +1,20 @@
+#
 # modified message of the day
+#
 
-template_path="/tmp/mmotd_template.json"
+# Enabling this may cause a performance cost. Every write to the log file will be flushed
+#  when set to 'true'. This disables the natural file output caching of log file writes and
+#  may enable seeing more debug statements before a crash.
+logging_flush=false
 
-[information-providers]
+# Replace the following with the location of where your "mmotd_template.json" exists
+# template_path="$HOME/.config/mmotd/mmotd_template.json"
 
-# display last login
-last-login=false
+# This is the same value that is the last couple of segments of the file linked to /etc/localtime
+# /var/db/timezone/zoneinfo/America/Denver
+timezone="America/Denver"
 
-# display computer name
-computer-name=false
-
-# display host name
-host-name=false
-
-# display public ip address
-public-ip=false
-
-# display unread mail
-unread-mail=false
-
-# display system load
-system-load=false
-
-# display processor count
-processor-count=false
-
-# display disk usage
-disk-usage=false
-
-# display users logged in count
-users-count=false
-
-# display memory usage
-memory-usage=false
-
-# display swap usage
-swap-usage=false
-
-# display active network interfaces (ip and mac address)
-active-network-interfaces=false
-
-# display greeting using user name, OS name, release and kernel
-greeting=false
-
-# display the system information header with date and time
-header=false
-
-# display the system information sub-header with location, weather, sunrise and sunset
-sub-header=false
-
-# display a random quote
-random-quote=false
+# The following three values are used to look-up the local whether, http://wttr.in/Albuquerque%20NM%20USA
+city="Albuquerque"
+state="NM"
+country="USA"

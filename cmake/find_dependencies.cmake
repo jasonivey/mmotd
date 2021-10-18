@@ -35,7 +35,7 @@ endif ()
 option (BUILD_TZ_LIB "build/install of TZ library" ON)
 FetchContent_Declare(date
     GIT_REPOSITORY   https://github.com/HowardHinnant/date.git
-    GIT_TAG          v3.0.0
+    GIT_TAG          v3.0.1
 )
 set(MESSAGE_QUIET ON)
 FetchContent_MakeAvailable(date)
@@ -44,7 +44,7 @@ unset(MESSAGE_QUIET)
 # Component: Backward.  Stack trace library
 FetchContent_Declare(Backward
     GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git
-    #GIT_TAG          v1.5
+    GIT_TAG          v1.6
 )
 set(MESSAGE_QUIET ON)
 FetchContent_MakeAvailable(Backward)
@@ -67,14 +67,14 @@ endif ()
 # Component: Catch2.  Unit testing framework
 FetchContent_Declare(catch2
     GIT_REPOSITORY   https://github.com/catchorg/Catch2.git
-    GIT_TAG          v2.13.4
+    GIT_TAG          v2.13.7
 )
 FetchContent_MakeAvailable(catch2)
 
 # Component: json.  The lightweight repository of nlohmann/json which provides json support.
 FetchContent_Declare(json
     GIT_REPOSITORY   https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
-    GIT_TAG          v3.9.1
+    GIT_TAG          v3.10.4
 )
 FetchContent_GetProperties(json)
 if(NOT json_POPULATED)
@@ -126,10 +126,7 @@ endif ()
 #                    complexity needed for a project of this scale.
 FetchContent_Declare(cli11
     GIT_REPOSITORY   https://github.com/CLIUtils/CLI11.git
-    # The git tag of 'v1.9.1' is actually valid.  But I started using HEAD and now I am reliant
-    #  on a few of the features there.  Once CLI11 creates a new release I will update this
-    #  rely on that tag
-    #GIT_TAG         v1.9.1
+    GIT_TAG          v2.1.1
 )
 FetchContent_GetProperties(cli11)
 if (NOT cli11_POPULATED)
@@ -166,7 +163,7 @@ endif ()
 #                      5. ... and the non-trivial concept of seeding (i.e when, how, how often, etc.)
 FetchContent_Declare(random
     GIT_REPOSITORY   https://github.com/effolkronium/random.git
-    GIT_TAG          v1.3.1
+    GIT_TAG          v1.4.0
 )
 FetchContent_GetProperties(random)
 if (NOT random_POPULATED)

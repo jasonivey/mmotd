@@ -56,6 +56,6 @@ void to_json(nlohmann::json &root, const OutputTemplate &output_template);
 
 std::unique_ptr<OutputTemplate> MakeOutputTemplate(std::string file_name);
 std::unique_ptr<OutputTemplate> MakeOutputTemplateFromDefault();
-void WriteDefaultOutputTemplate(std::filesystem::path file_path);
+bool WriteDefaultOutputTemplate(std::filesystem::path file_path);
 
 } // namespace mmotd::results
