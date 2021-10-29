@@ -29,6 +29,7 @@ if (APPLE)
     find_library(LIBIBERTY_LIBRARY iberty PATHS /usr/local/opt/binutils/lib)
     find_library(FWCoreFoundation NAMES CoreFoundation REQUIRED)
     find_library(FWSecurity NAMES Security REQUIRED)
+    find_library(FWIOKit NAMES IOKit REQUIRED)
 endif ()
 
 # Component: date.  Howard Hinnant's Date library (author of the std::chrono library among others)

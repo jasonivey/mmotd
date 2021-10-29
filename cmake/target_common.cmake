@@ -219,6 +219,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
             PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++abi>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWCoreFoundation}>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWSecurity}>
+            PRIVATE $<$<PLATFORM_ID:Darwin>:${FWIOKit}>
             PRIVATE $<$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">:Catch2::Catch2>
             PRIVATE Threads::Threads
             PRIVATE ${CMAKE_DL_LIBS}
