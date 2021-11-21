@@ -164,7 +164,7 @@ void Frame::AddNamesValues(const Informations &informations) {
 //  iteration.
 template<typename T, typename It>
 static void IncrementRowNumberSentinalsForHeight(const T &container, It &iter, size_t row_height) {
-    while (--row_height > 0) {
+    while (--row_height != 0) {
         if (iter != end(container)) {
             ++iter;
         }

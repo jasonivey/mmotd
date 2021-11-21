@@ -53,7 +53,14 @@ void PrintMmotd() {
     PrintOutputTemplate(*output_template, informations);
 }
 
-void UpdateLogSeverity() {
+void UpdateLoggingFlushing() {
+    auto logging_flush_value = ConfigOptions::Instance().GetValueAsBoolean("logging_flush");
+    if (logging_flush_value.has_value()) {
+        mmotd::logging::SetFlushLogfileAfterEveryLine(logging_flush_value.value());
+    }
+}
+
+void UpdateLoggingSeverity() {
     const auto log_severity_raw = ConfigOptions::Instance().GetValueAsIntegerOr("log_severity", -1);
     if (log_severity_raw == -1) {
         return;
@@ -77,7 +84,9 @@ int main_impl(int argc, char **argv) {
         return error_exit ? EXIT_FAILURE : EXIT_SUCCESS;
     }
 
-    UpdateLogSeverity();
+    UpdateLoggingFlushing();
+    UpdateLoggingSeverity();
+
     PrintMmotd();
     return EXIT_SUCCESS;
 }

@@ -19,6 +19,8 @@ void SetSeverity(Severity severity,
 
 void InitializeLogging(const std::string &binary_name);
 
+void SetFlushLogfileAfterEveryLine(bool flush_logfile_after_every_line) noexcept;
+
 void LogInternal(const mmotd::source_location::SourceLocation &source_location,
                  Severity severity,
                  const fmt::string_view &format,

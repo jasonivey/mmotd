@@ -8,7 +8,7 @@
 namespace mmotd::error::ios_flags {
 
 inline std::string to_string(const std::ios &strm) {
-    return fmt::format(FMT_STRING("good()={}, eof()={}, fail()={}, bad()={}"),
+    return fmt::format(FMT_STRING("good={}, eof={}, fail={}, bad={}"),
                        strm.good(),
                        strm.eof(),
                        strm.fail(),

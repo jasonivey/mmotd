@@ -168,7 +168,6 @@ string ExpandEnvironmentVariables(string input) {
             index = static_cast<std::smatch::difference_type>(match.position() + size(match.str()));
         }
 
-        // output += match.format("[$&]");
         output += GetEnvironmentValue(match.str());
 
         if (std::distance(i, envvar_end) == 1) {
@@ -210,19 +209,27 @@ string GetDefaultLocationsStr() {
 }
 
 fs::path FindFileInDefaultLocations(string_view file_name) {
+    return FindFileInDefaultLocations(fs::path{file_name});
+}
+
+fs::path FindFileInDefaultLocations(string file_name) {
+    return FindFileInDefaultLocations(fs::path{file_name});
+}
+
+fs::path FindFileInDefaultLocations(fs::path input_file_path) {
     const auto &default_locations = GetDefaultLocations();
     for (const auto &dir_path : default_locations) {
-        auto file_path = dir_path / file_name;
+        auto file_path = dir_path / input_file_path;
         auto ec = error_code{};
         if (fs::exists(file_path, ec) && !ec) {
             if (auto file_path_abs = fs::canonical(file_path, ec); !ec) {
-                LOG_VERBOSE("found {} in {}", quoted(file_name), quoted(dir_path.string()));
+                LOG_VERBOSE("found {} in directory: {}", quoted(input_file_path.string()), quoted(dir_path.string()));
                 return file_path_abs;
             }
         }
-        LOG_VERBOSE("did NOT find {} in {}", quoted(file_name), quoted(dir_path.string()));
+        LOG_VERBOSE("unable to find {} in directory: {}", quoted(input_file_path.string()), quoted(dir_path.string()));
     }
-    LOG_VERBOSE("did NOT find {} in any default locations", quoted(file_name));
+    LOG_VERBOSE("unable to find {} in any default locations", quoted(input_file_path.string()));
     return fs::path{};
 }
 

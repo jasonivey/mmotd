@@ -16,6 +16,9 @@ public:
 
 protected:
     void FindInformation() override;
+
+private:
+    void AddFortune(const std::string &fortune_str);
 };
 
 } // namespace mmotd::information

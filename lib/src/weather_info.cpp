@@ -51,6 +51,11 @@ string CreateWeatherRequestUrl() {
     return format(FMT_STRING("/{}?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"), location);
 }
 
+bool IsWeatherResponseInvalid(const string &response) {
+    // An html response is an indicator that the response is invalid.
+    return boost::icontains(response, "<title>"s);
+}
+
 } // namespace
 
 namespace mmotd::information {
@@ -94,9 +99,9 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     using namespace mmotd::chrono::io;
     using namespace mmotd::networking;
 
-    auto http_request = HttpRequest(HttpProtocol::HTTP, "wttr.in");
+    auto http_request = HttpRequest(HttpProtocol::HTTPS, "wttr.in");
     auto http_response = http_request.MakeRequest(CreateWeatherRequestUrl());
-    if (!http_response) {
+    if (!http_response || IsWeatherResponseInvalid(*http_response)) {
         return make_tuple(string{}, string{}, string{}, string{});
     }
 

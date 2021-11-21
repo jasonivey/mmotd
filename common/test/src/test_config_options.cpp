@@ -111,7 +111,7 @@ color = true
     auto &config_options = ConfigOptions::Instance(true);
     config_options.ParseConfigFile(input_stream);
 
-    CATCH_CHECK(config_options.GetValueAsString("sub1.title") == "");
+    CATCH_CHECK(config_options.GetValueAsStringOr("sub1.title", "config value doesn't have a value") == "config value doesn't have a value");
 }
 
 CATCH_TEST_CASE("default ConfigOptions match", "[config options]") {
@@ -128,6 +128,20 @@ logging_flush=false
 
 # Replace the following with the location of where your "mmotd_template.json" exists
 # template_path="$HOME/.config/mmotd/mmotd_template.json"
+
+# fortune: the facility to print a random, hopefully interesting, adage
+#  the 'fortune_db_path' specifies the directory which has contains the file specified
+#  by 'fortune_file_name'.
+#
+# This is a valid example for these values on macOS after installing the 'fortune'
+#  application and also installing the 'softwareengineering' fortunes.
+# fortune_db_path="/usr/local/opt/fortune/share/games/fortunes"
+# fortune_file_name="softwareengineering"
+#
+# The following empty defaults will also use the fortune installation path and the
+#  'softwareengineering' fortunes.
+fortune_db_path=""
+fortune_file_name=""
 
 # This is the same value that is the last couple of segments of the file linked to /etc/localtime
 # /var/db/timezone/zoneinfo/America/Denver

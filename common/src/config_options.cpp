@@ -42,6 +42,20 @@ logging_flush=false
 # Replace the following with the location of where your "mmotd_template.json" exists
 # template_path="$HOME/.config/mmotd/mmotd_template.json"
 
+# fortune: the facility to print a random, hopefully interesting, adage
+#  the 'fortune_db_path' specifies the directory which has contains the file specified
+#  by 'fortune_file_name'.
+#
+# This is a valid example for these values on macOS after installing the 'fortune'
+#  application and also installing the 'softwareengineering' fortunes.
+# fortune_db_path="/usr/local/opt/fortune/share/games/fortunes"
+# fortune_file_name="softwareengineering"
+#
+# The following empty defaults will also use the fortune installation path and the
+#  'softwareengineering' fortunes.
+fortune_db_path=""
+fortune_file_name=""
+
 # This is the same value that is the last couple of segments of the file linked to /etc/localtime
 # /var/db/timezone/zoneinfo/America/Denver
 timezone="America/Denver"
@@ -138,7 +152,7 @@ double ConfigOptions::GetValueAsFloatingOr(const string &name, double default_va
 optional<string> ConfigOptions::GetValueAsString(const string &name) const noexcept {
     auto value = FindValue(name);
 
-    if (!value.is_uninitialized() && value.is_string()) {
+    if (!value.is_uninitialized() && value.is_string() && !empty(value.as_string().str)) {
         // carefull not to wrap a dissappearing object (string) -- create temporary
         // so it's lifetime will match that of the optional
         return make_optional(string{value.as_string().str});

@@ -20,6 +20,8 @@ std::vector<std::filesystem::path> GetDefaultLocations();
 std::string GetDefaultLocationsStr();
 
 std::filesystem::path FindFileInDefaultLocations(std::string_view file_name);
+std::filesystem::path FindFileInDefaultLocations(std::string file_name);
+std::filesystem::path FindFileInDefaultLocations(std::filesystem::path file_path);
 
 inline std::filesystem::path FindConfigInDefaultLocations() {
     return FindFileInDefaultLocations(CONFIG_FILENAME);

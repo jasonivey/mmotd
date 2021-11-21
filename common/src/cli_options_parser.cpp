@@ -223,13 +223,14 @@ pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
         cout << msg << endl;
     } catch (const CLI::ParseError &err) {
         if (err.get_exit_code() != 0) {
-            LOG_ERROR("error code {}: {}", err.get_exit_code(), err.what());
+            LOG_FATAL("CLI error {}: {}", err.get_exit_code(), err.what());
         }
         error_exit = true;
     }
     auto output_config_path = options_->GetOutputConfigPath();
     if (!output_config_path.empty()) {
         if (!WriteDefaultConfiguration(output_config_path)) {
+            LOG_FATAL("CLI error 204: unable to write default config to {}", quoted(output_config_path.string()));
             error_exit = true;
         }
         app_finished = true;
@@ -237,6 +238,7 @@ pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
     auto output_template_path = options_->GetOutputTemplatePath();
     if (!output_template_path.empty()) {
         if (!WriteDefaultTemplate(output_template_path)) {
+            LOG_FATAL("CLI error 205: unable to write default template to {}", quoted(output_template_path.string()));
             error_exit = true;
         }
         app_finished = true;

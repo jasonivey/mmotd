@@ -6,6 +6,7 @@
 #include "common/include/version.h"
 
 #include <algorithm>
+#include <atomic>
 #include <charconv>
 #include <chrono>
 #include <cstdint>
@@ -47,7 +48,7 @@ inline string GetBasename(string binary_name) {
 
 class FileLogger {
 public:
-    FileLogger() : file_stream_(), mutex_() {}
+    FileLogger() = default;
     ~FileLogger() { Close(); }
     FileLogger(const FileLogger &) = delete;
     FileLogger(const FileLogger &&) = delete;
@@ -62,8 +63,11 @@ public:
     mmotd::logging::Severity GetSeverity() const noexcept;
     void SetSeverity(mmotd::logging::Severity severity) noexcept;
 
+    void SetFlushLogfileAfterEveryLine(bool flush_immediately) noexcept;
+
 private:
     std::ofstream file_stream_;
+    std::atomic_flag flush_file_stream_;
     std::mutex mutex_;
     mmotd::logging::Severity severity_ = mmotd::logging::Severity::verbose;
 };
@@ -74,6 +78,14 @@ inline mmotd::logging::Severity FileLogger::GetSeverity() const noexcept {
 
 inline void FileLogger::SetSeverity(mmotd::logging::Severity severity) noexcept {
     severity_ = severity;
+}
+
+void FileLogger::SetFlushLogfileAfterEveryLine(bool flush_immediately) noexcept {
+    if (flush_immediately) {
+        flush_file_stream_.test_and_set();
+    } else {
+        flush_file_stream_.clear();
+    }
 }
 
 void FileLogger::Open(const fs::path &file_path) {
@@ -102,7 +114,10 @@ void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr
     auto lock = lock_guard<mutex>(mutex_);
     if (file_stream_ && file_stream_.is_open()) {
         fmt::print(file_stream_, FMT_STRING("{}"), string_view(data(input), size(input)));
-        if (ConfigOptions::Instance().GetValueAsBooleanOr("logging_flush", false)) {
+        // if (::atomic_flag_test(&flush_file_stream_)) {
+        //    file_stream_.flush();
+        //}
+        if (flush_file_stream_.test()) {
             file_stream_.flush();
         }
     }
@@ -303,6 +318,10 @@ void InitializeLogging(const string &binary_name) {
     auto logging_path = GetLoggingPath(binary_name);
     GetFileLogger().Open(logging_path);
     WriteLogHeader(binary_name);
+}
+
+void SetFlushLogfileAfterEveryLine(bool flush_logfile_after_every_line) noexcept {
+    GetFileLogger().SetFlushLogfileAfterEveryLine(flush_logfile_after_every_line);
 }
 
 void LogInternal(const SourceLocation &source_location,
