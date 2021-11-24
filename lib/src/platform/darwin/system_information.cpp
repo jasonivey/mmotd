@@ -36,11 +36,12 @@ string GetPlatformIdentifier(int major, int minor, const T &version_map) {
 }
 
 string GetPlatformNameVersion(int major, int minor) {
-    static constexpr std::array<std::tuple<int, int, const char *>, 3> PLATFORM_NAMES = {
+    static constexpr std::array<std::tuple<int, int, const char *>, 4> PLATFORM_NAMES = {
         make_tuple(10, 11, "Mac OS X"),
         make_tuple(10, 15, "macOS 10"),
-        make_tuple(11, numeric_limits<int>::max(), "macOS 11")};
-    static constexpr std::array<std::tuple<int, int, const char *>, 17> VERSION_NAMES = {
+        make_tuple(11, numeric_limits<int>::max(), "macOS"),
+        make_tuple(12, numeric_limits<int>::max(), "macOS")};
+    static constexpr std::array<std::tuple<int, int, const char *>, 18> VERSION_NAMES = {
         make_tuple(10, 0, "Cheetah"),
         make_tuple(10, 1, "Puma"),
         make_tuple(10, 2, "Jaguar"),
@@ -57,7 +58,8 @@ string GetPlatformNameVersion(int major, int minor) {
         make_tuple(10, 13, "High Sierra"),
         make_tuple(10, 14, "Mojave"),
         make_tuple(10, 15, "Catalina"),
-        make_tuple(11, numeric_limits<int>::max(), "Big Sur")};
+        make_tuple(11, numeric_limits<int>::max(), "Big Sur"),
+        make_tuple(12, numeric_limits<int>::max(), "Monterey")};
 
     auto platform_name = GetPlatformIdentifier(major, minor, PLATFORM_NAMES);
     auto version_name = GetPlatformIdentifier(major, minor, VERSION_NAMES);

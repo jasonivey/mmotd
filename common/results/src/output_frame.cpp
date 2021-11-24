@@ -176,6 +176,10 @@ void Frame::RemoveEmptyRows() {
     auto row_numbers = GetFirstLastRowNumbers();
     for (auto i = begin(row_numbers); i != end(row_numbers); ++i) {
         auto row_number = *i;
+        if (row_number >= *end(row_numbers)) {
+            LOG_ERROR("stepped over the end of the row sentinals: {}", row_numbers.to_string());
+            break;
+        }
         LOG_VERBOSE("inspecting row: {}, empty rows: {}", row_number, empty_row_count);
         auto row_ids = GetRowIds(row_number);
         if (empty(row_ids)) {
@@ -333,8 +337,10 @@ size_t Frame::GetRowHeight(int row_number) const {
 }
 
 Rows Frame::GetRows(int row_number) const {
+    PRECONDITIONS(row_number < 255, "row number should be less than 255");
     auto rows = Rows{};
-    for (auto index : GetColumnIndexes()) {
+    auto column_indexes = GetColumnIndexes();
+    for (auto index : column_indexes) {
         const auto &column = GetColumn(index);
         if (column.ContainsRow(row_number)) {
             rows.push_back(column.GetRow(row_number));
@@ -344,6 +350,7 @@ Rows Frame::GetRows(int row_number) const {
 }
 
 RowIds Frame::GetRowIds(int row_number) const {
+    PRECONDITIONS(row_number < 255, "row number should be less than 255");
     const auto &rows = GetRows(row_number);
     auto row_ids = RowIds{};
     transform(begin(rows), end(rows), back_inserter(row_ids), [](const auto &row) { return row.GetId(); });

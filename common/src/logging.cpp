@@ -67,7 +67,7 @@ public:
 
 private:
     std::ofstream file_stream_;
-    std::atomic_flag flush_file_stream_;
+    std::atomic_bool flush_file_stream_ = false;
     std::mutex mutex_;
     mmotd::logging::Severity severity_ = mmotd::logging::Severity::verbose;
 };
@@ -81,11 +81,7 @@ inline void FileLogger::SetSeverity(mmotd::logging::Severity severity) noexcept 
 }
 
 void FileLogger::SetFlushLogfileAfterEveryLine(bool flush_immediately) noexcept {
-    if (flush_immediately) {
-        flush_file_stream_.test_and_set();
-    } else {
-        flush_file_stream_.clear();
-    }
+    flush_file_stream_ = flush_immediately;
 }
 
 void FileLogger::Open(const fs::path &file_path) {
@@ -114,10 +110,7 @@ void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr
     auto lock = lock_guard<mutex>(mutex_);
     if (file_stream_ && file_stream_.is_open()) {
         fmt::print(file_stream_, FMT_STRING("{}"), string_view(data(input), size(input)));
-        // if (::atomic_flag_test(&flush_file_stream_)) {
-        //    file_stream_.flush();
-        //}
-        if (flush_file_stream_.test()) {
+        if (flush_file_stream_) {
             file_stream_.flush();
         }
     }
