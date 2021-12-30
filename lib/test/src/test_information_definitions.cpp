@@ -173,6 +173,10 @@ CATCH_TEST_CASE("information ids are correct", "[InformationId]") {
                 static_cast<InformationId>(MakeInformationId(CategoryId::ID_HARDWARE, 17007)));
     CATCH_CHECK(InformationId::ID_HARDWARE_MONITOR_RESOLUTION ==
                 static_cast<InformationId>(MakeInformationId(CategoryId::ID_HARDWARE, 17008)));
+    CATCH_CHECK(InformationId::ID_HARDWARE_CPU_TEMPERATURE ==
+                static_cast<InformationId>(MakeInformationId(CategoryId::ID_HARDWARE, 17009)));
+    CATCH_CHECK(InformationId::ID_HARDWARE_GPU_TEMPERATURE ==
+                static_cast<InformationId>(MakeInformationId(CategoryId::ID_HARDWARE, 17010)));
 }
 
 } // namespace mmotd::test

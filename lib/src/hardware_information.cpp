@@ -2,6 +2,7 @@
 #include "lib/include/computer_information.h"
 #include "lib/include/hardware_information.h"
 #include "lib/include/platform/hardware_information.h"
+#include "lib/include/platform/hardware_temperature.h"
 
 #include <optional>
 #include <tuple>
@@ -56,6 +57,14 @@ void HardwareInformation::CreateInformationObjects(const mmotd::platform::Hardwa
     auto monitor_resolution = GetInfoTemplate(InformationId::ID_HARDWARE_MONITOR_RESOLUTION);
     monitor_resolution.SetValueArgs(details.monitor_resolution);
     AddInformation(monitor_resolution);
+
+    auto cpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_CPU_TEMPERATURE);
+    cpu_temperature.SetValueArgs(details.cpu_temperature.to_string());
+    AddInformation(cpu_temperature);
+
+    auto gpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_GPU_TEMPERATURE);
+    gpu_temperature.SetValueArgs(details.gpu_temperature.to_string());
+    AddInformation(gpu_temperature);
 }
 
 } // namespace mmotd::information
