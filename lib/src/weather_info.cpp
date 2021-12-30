@@ -38,9 +38,9 @@ pair<string, string> ParseSunriseSunset(string sunrise_str, string sunset_str) {
 
 string GetLocation(string seperator) {
     using namespace mmotd::core;
-    auto city = ConfigOptions::Instance().GetValueAsStringOr("city"s, std::string{});
-    auto state = ConfigOptions::Instance().GetValueAsStringOr("state"s, std::string{});
-    auto country = ConfigOptions::Instance().GetValueAsStringOr("country"s, std::string{});
+    auto city = ConfigOptions::Instance().GetString("location.city"s, std::string{});
+    auto state = ConfigOptions::Instance().GetString("location.state"s, std::string{});
+    auto country = ConfigOptions::Instance().GetString("location.country"s, std::string{});
     return boost::join_if(vector{city, state, country}, seperator, [](const auto &str) { return !empty(str); });
 }
 
@@ -49,6 +49,11 @@ string CreateWeatherRequestUrl() {
     // "http://wttr.in/?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
     // "http://wttr.in/Albuquerque%20NM%20USA?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"
     return format(FMT_STRING("/{}?u&format=%l:+%t+%c+%C+%w+%m+%S+%s&lang=en"), location);
+}
+
+bool IsWeatherResponseInvalid(const string &response) {
+    // An html response is an indicator that the response is invalid.
+    return boost::icontains(response, "<title>"s);
 }
 
 } // namespace
@@ -94,9 +99,10 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     using namespace mmotd::chrono::io;
     using namespace mmotd::networking;
 
-    auto http_request = HttpRequest(HttpProtocol::HTTP, "wttr.in");
-    auto http_response = http_request.MakeRequest(CreateWeatherRequestUrl());
-    if (!http_response) {
+    auto http_request = HttpRequest(HttpProtocol::HTTPS, "wttr.in");
+    auto request_url = CreateWeatherRequestUrl();
+    auto http_response = http_request.MakeRequest(request_url, request_url);
+    if (!http_response || IsWeatherResponseInvalid(*http_response)) {
         return make_tuple(string{}, string{}, string{}, string{});
     }
 

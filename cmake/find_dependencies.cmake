@@ -1,9 +1,12 @@
 # cmake/find_dependencies.cmake
 include_guard (DIRECTORY)
-
-Include(message_quiet)
-
 cmake_minimum_required (VERSION 3.8)
+
+function (message)
+    if (NOT MESSAGE_QUIET)
+        _message (${ARGN})
+    endif ()
+endfunction ()
 
 set (CMAKE_WARN_DEPRECATED FALSE CACHE BOOL "Whether to issue warnings for deprecated functionality." FORCE)
 
@@ -29,6 +32,53 @@ if (APPLE)
     find_library(LIBIBERTY_LIBRARY iberty PATHS /usr/local/opt/binutils/lib)
     find_library(FWCoreFoundation NAMES CoreFoundation REQUIRED)
     find_library(FWSecurity NAMES Security REQUIRED)
+endif ()
+
+get_filename_component(DEPENDENT_CACHE_PATH ../_deps-cache ABSOLUTE CACHE)
+get_filename_component(DEPS_DIR_BACKWARD    ${DEPENDENT_CACHE_PATH}/backward    ABSOLUTE)
+get_filename_component(DEPS_DIR_CATCH2      ${DEPENDENT_CACHE_PATH}/catch2      ABSOLUTE)
+get_filename_component(DEPS_DIR_CERTIFY     ${DEPENDENT_CACHE_PATH}/certify     ABSOLUTE)
+get_filename_component(DEPS_DIR_CLI11       ${DEPENDENT_CACHE_PATH}/cli11       ABSOLUTE)
+get_filename_component(DEPS_DIR_DATE        ${DEPENDENT_CACHE_PATH}/date        ABSOLUTE)
+get_filename_component(DEPS_DIR_FMT         ${DEPENDENT_CACHE_PATH}/fmt         ABSOLUTE)
+get_filename_component(DEPS_DIR_FORT        ${DEPENDENT_CACHE_PATH}/fort        ABSOLUTE)
+get_filename_component(DEPS_DIR_JSON        ${DEPENDENT_CACHE_PATH}/json        ABSOLUTE)
+get_filename_component(DEPS_DIR_RANDOM      ${DEPENDENT_CACHE_PATH}/random      ABSOLUTE)
+get_filename_component(DEPS_DIR_SCOPE_GUARD ${DEPENDENT_CACHE_PATH}/scope_guard ABSOLUTE)
+get_filename_component(DEPS_DIR_TOML11      ${DEPENDENT_CACHE_PATH}/toml11      ABSOLUTE)
+
+if (IS_DIRECTORY "${DEPS_DIR_BACKWARD}")
+    set(FETCHCONTENT_SOURCE_DIR_BACKWARD    ${DEPS_DIR_BACKWARD}    CACHE PATH "Backward dependency cache"    FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_DATE}")
+    set(FETCHCONTENT_SOURCE_DIR_DATE        ${DEPS_DIR_DATE}        CACHE PATH "Date dependency cache"        FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_FORT}")
+    set(FETCHCONTENT_SOURCE_DIR_FORT        ${DEPS_DIR_FORT}        CACHE PATH "Fort dependency cache"        FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_CATCH2}")
+    set(FETCHCONTENT_SOURCE_DIR_CATCH2      ${DEPS_DIR_CATCH2}      CACHE PATH "Catch2 dependency cache"      FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_JSON}")
+    set(FETCHCONTENT_SOURCE_DIR_JSON        ${DEPS_DIR_JSON}        CACHE PATH "json dependency cache"        FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_CERTIFY}")
+    set(FETCHCONTENT_SOURCE_DIR_CERTIFY     ${DEPS_DIR_CERTIFY}     CACHE PATH "certify dependency cache"     FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_FMT}")
+    set(FETCHCONTENT_SOURCE_DIR_FMT         ${DEPS_DIR_FMT}         CACHE PATH "fmt dependency cache"         FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_TOML11}")
+    set(FETCHCONTENT_SOURCE_DIR_TOML11      ${DEPS_DIR_TOML11}      CACHE PATH "toml11 dependency cache"      FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_CLI11}")
+    set(FETCHCONTENT_SOURCE_DIR_CLI11       ${DEPS_DIR_CLI11}       CACHE PATH "cli11 dependency cache"       FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_SCOPE_GUARD}")
+    set(FETCHCONTENT_SOURCE_DIR_SCOPE_GUARD ${DEPS_DIR_SCOPE_GUARD} CACHE PATH "scope_guard dependency cache" FORCE)
+endif ()
+if (IS_DIRECTORY "${DEPS_DIR_RANDOM}")
+    set(FETCHCONTENT_SOURCE_DIR_RANDOM      ${DEPS_DIR_RANDOM}      CACHE PATH "random dependency cache"      FORCE)
 endif ()
 
 # Component: date.  Howard Hinnant's Date library (author of the std::chrono library among others)
@@ -73,7 +123,7 @@ FetchContent_MakeAvailable(catch2)
 
 # Component: json.  The lightweight repository of nlohmann/json which provides json support.
 FetchContent_Declare(json
-    GIT_REPOSITORY   https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+    GIT_REPOSITORY   https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent.git
     GIT_TAG          v3.10.4
 )
 FetchContent_GetProperties(json)

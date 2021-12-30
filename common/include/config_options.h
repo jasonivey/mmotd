@@ -5,10 +5,13 @@
 #include <cstdint>
 #include <filesystem>
 #include <iosfwd>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <string_view>
+#include <type_traits>
 
+// #include <toml/get.hpp>
 #include <toml/value.hpp>
 
 namespace mmotd::core {
@@ -26,21 +29,24 @@ public:
     void ParseConfigFile(std::istream &input);
 
     template<typename T>
-    void AddConfigOption(std::string name, T value);
+    void SetDefault(std::string name, T value, std::string section = std::string{"core"});
+
+    template<typename T>
+    void Override(std::string name, T value, std::string section = std::string{"core"});
 
     bool Contains(const std::string &name) const;
 
-    std::optional<bool> GetValueAsBoolean(const std::string &name) const noexcept;
-    bool GetValueAsBooleanOr(const std::string &name, bool default_value) const noexcept;
+    std::optional<bool> GetBoolean(const std::string &name) const noexcept;
+    bool GetBoolean(const std::string &name, bool default_value) const noexcept;
 
-    std::optional<std::int64_t> GetValueAsInteger(const std::string &name) const noexcept;
-    std::int64_t GetValueAsIntegerOr(const std::string &name, std::int64_t default_value) const noexcept;
+    std::optional<std::int64_t> GetInteger(const std::string &name) const noexcept;
+    std::int64_t GetInteger(const std::string &name, std::int64_t default_value) const noexcept;
 
-    std::optional<double> GetValueAsFloating(const std::string &name) const noexcept;
-    double GetValueAsFloatingOr(const std::string &name, double default_value) const noexcept;
+    std::optional<double> GetDouble(const std::string &name) const noexcept;
+    double GetDouble(const std::string &name, double default_value) const noexcept;
 
-    std::optional<std::string> GetValueAsString(const std::string &name) const noexcept;
-    std::string GetValueAsStringOr(const std::string &name, std::string default_value) const noexcept;
+    std::optional<std::string> GetString(const std::string &name) const noexcept;
+    std::string GetString(const std::string &name, std::string default_value) const noexcept;
 
     bool WriteDefaultConfigOptions(std::filesystem::path file_path) const;
     std::string to_string() const;
@@ -48,15 +54,42 @@ public:
 private:
     ConfigOptions();
 
+    template<typename T>
+    void Initialize(T &input);
+
     toml::value FindValue(std::string input_name) const;
 
     toml::value core_value_;
 };
 
 template<typename T>
-void ConfigOptions::AddConfigOption(std::string name, T value) {
-    if (core_value_.is_table()) {
+void ConfigOptions::Override(std::string name, T value, std::string section) {
+    if (!core_value_.is_table()) {
+        return;
+    } else if (std::empty(section)) {
         core_value_[name] = value;
+    } else if (!core_value_.contains(section)) {
+        core_value_[section] = toml::table{{name, value}};
+    } else {
+        core_value_[section][name] = value;
+    }
+}
+
+template<typename T>
+void ConfigOptions::SetDefault(std::string name, T value, std::string section) {
+    if (!core_value_.is_table()) {
+        return;
+    }
+    if (std::empty(section) && !core_value_.contains(name)) {
+        // Set the default value iff the name is not already set
+        core_value_[name] = value;
+    } else if (!std::empty(section)) {
+        // Set the default value iff the section exists and the name is not already set
+        if (core_value_.contains(section) && core_value_[section].is_table() && !core_value_[section].contains(name)) {
+            core_value_[section][name] = value;
+        } else if (!core_value_.contains(section)) {
+            core_value_[section] = toml::table{{name, value}};
+        }
     }
 }
 

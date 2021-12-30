@@ -3,12 +3,13 @@
 #include "common/include/information.h"
 #include "common/include/informations.h"
 #include "common/include/logging.h"
-#include "common/results/include/output_common.h"
+#include "common/include/string_utils.h"
 #include "common/results/include/output_position_index.h"
 #include "common/results/include/output_row.h"
 #include "common/results/include/template_string.h"
 
 #include <limits>
+#include <string>
 #include <utility>
 
 #include <boost/uuid/random_generator.hpp>
@@ -26,8 +27,7 @@ using namespace std;
 
 namespace mmotd::results {
 
-Row::Row(TemplateColumnItem item) : item_(std::move(item)) {
-}
+Row::Row(TemplateColumnItem item) : item_(std::move(item)) {}
 
 int Row::GetRowNumber() const noexcept {
     return item_.row_index;

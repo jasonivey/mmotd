@@ -321,7 +321,7 @@ fmt::text_style TemplateString::GetColorValue(string color_specification) {
 string TemplateString::ReplaceEmbeddedColorCodes(const string &text, fmt::text_style color_style) {
     auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
     auto formatted_str = template_substrings.to_string(&TemplateString::GetColorValue);
-    static const auto color_output = ConfigOptions::Instance().GetValueAsBooleanOr("color_output", false);
+    static const auto color_output = ConfigOptions::Instance().GetBoolean("core.output_color", true);
     return color_output ? format(color_style, FMT_STRING("{}"), formatted_str) : formatted_str;
 }
 

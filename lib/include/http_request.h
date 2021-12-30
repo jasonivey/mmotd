@@ -10,13 +10,15 @@ namespace mmotd::networking {
 
 enum class HttpProtocol { HTTP, HTTPS };
 
+std::string to_string(HttpProtocol protocol);
+
 class HttpRequest {
 public:
     DEFAULT_DESTRUCTOR_DELETE_CONSTRUCTORS_COPY_MOVE_OPERATORS(HttpRequest);
 
     HttpRequest(HttpProtocol protocol, std::string host, std::string port = std::string{});
 
-    std::optional<std::string> MakeRequest(std::string path);
+    std::optional<std::string> MakeRequest(std::string path, std::string path_w_o_auth);
 
 private:
     HttpProtocol protocol_ = HttpProtocol::HTTPS;

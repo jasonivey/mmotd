@@ -28,7 +28,6 @@ add_library (
     results/src/template_substring_range.cpp
     results/src/template_substrings.cpp
     src/cli_options_parser.cpp
-    src/coloring.cpp
     src/config_options.cpp
     src/information.cpp
     src/information_decls.cpp
@@ -41,6 +40,7 @@ add_library (
     src/source_location.cpp
     src/source_location_common.cpp
     src/special_files.cpp
+    src/string_utils.cpp
     src/system_command.cpp
     src/user_information.cpp
     src/version.cpp

@@ -68,8 +68,8 @@ CATCH_TEST_CASE("ConfigOptions test parsing stream", "[config options]") {
     auto &config_options = ConfigOptions::Instance(true);
     config_options.ParseConfigFile(input_stream);
 
-    CATCH_CHECK(config_options.GetValueAsString("title") == "this is TOML literal");
-    CATCH_CHECK(config_options.GetValueAsBoolean("color"));
+    CATCH_CHECK(config_options.GetString("title") == "this is TOML literal");
+    CATCH_CHECK(config_options.GetBoolean("color"));
 }
 
 CATCH_TEST_CASE("ConfigOptions test with two tables", "[config options]") {
@@ -87,14 +87,14 @@ color = true
     config_options.ParseConfigFile(input_stream);
 
     CATCH_CHECK(config_options.Contains("version"));
-    CATCH_CHECK(config_options.GetValueAsStringOr("version", "") == "0.99.88-alpha");
+    CATCH_CHECK(config_options.GetString("version", "") == "0.99.88-alpha");
     // CHECK(config_options.GetValueAt<int64_t>("nums", 0).value_or(-1) == 3);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 1).value_or(-1) == 1);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 2).value_or(-1) == 4);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 3).value_or(-1) == 1);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 4).value_or(-1) == 5);
-    CATCH_CHECK(config_options.GetValueAsStringOr("sub1.title", "") == "this is TOML literal");
-    CATCH_CHECK(config_options.GetValueAsBooleanOr("sub1.color", false));
+    CATCH_CHECK(config_options.GetString("sub1.title", "") == "this is TOML literal");
+    CATCH_CHECK(config_options.GetBoolean("sub1.color", false));
 }
 
 CATCH_TEST_CASE("ConfigOptions test with empty string", "[config options]") {
@@ -111,32 +111,65 @@ color = true
     auto &config_options = ConfigOptions::Instance(true);
     config_options.ParseConfigFile(input_stream);
 
-    CATCH_CHECK(config_options.GetValueAsString("sub1.title") == "");
+    CATCH_CHECK(config_options.GetString("sub1.title", "config value doesn't have a value") ==
+                "config value doesn't have a value");
 }
 
 CATCH_TEST_CASE("default ConfigOptions match", "[config options]") {
     using mmotd::core::ConfigOptions;
     const toml::value config_value1 = u8R"(
-#
 # modified message of the day
-#
+[core]
+output_color=true
 
-# Enabling this may cause a performance cost. Every write to the log file will be flushed
-#  when set to 'true'. This disables the natural file output caching of log file writes and
-#  may enable seeing more debug statements before a crash.
-logging_flush=false
-
-# Replace the following with the location of where your "mmotd_template.json" exists
+# The location of the output template, "mmotd_template.json", can be
+#  specified on the command line or with the following variable:
 # template_path="$HOME/.config/mmotd/mmotd_template.json"
 
+[fortune]
+# fortune: the facility to print a random, hopefully interesting, adage
+#  the 'fortune.db_directory' can specify a directory which contains the
+#  file specified by 'fortune.db_file'.  The 'fortune.db_directory'
+#  variables can be used specify a non-default directory where fortune
+#  files are located. In addition, the 'fortune.db_file' variable can
+#  be used to specify a non-default fortune file (whether it be a .dat)
+#  database file or a text file which contains a list of fortunes seperated
+#  by a line with only a '%' character.
+#
+# The default value for the 'fortune.db_directory' variable in macOS is:
+#  db_directory="/usr/local/opt/fortune/share/games/fortunes"
+# The default value for the 'fortune.db_directory' variable in Linux is:
+#  db_directory="/usr/share/games/fortunes"
+# The default value for 'fortune.file_name' variable is:
+#  file_name="softwareengineering"
+
+[location]
 # This is the same value that is the last couple of segments of the file linked to /etc/localtime
-# /var/db/timezone/zoneinfo/America/Denver
+#  i.e. /etc/localtime -> /var/db/timezone/zoneinfo/America/Denver
 timezone="America/Denver"
 
 # The following three values are used to look-up the local whether, http://wttr.in/Albuquerque%20NM%20USA
 city="Albuquerque"
 state="NM"
 country="USA"
+
+[logging]
+# Which log level (and below) to output:
+#  none, fatal, error, warning, info, debug, verbose
+#  The value can be specified as a string or as a number:
+#  "none" -> 0, "fatal" -> 1, "error" -> 2, "warning" -> 3, "info" -> 4, "debug" -> 5, "verbose" -> 6
+severity="verbose"
+# Control whether to output a colorized log file. This looks strange when
+#  opening the log file in a text editor, but it works well with the following
+#  command:
+#  cat /tmp/mmotd-00007ccf.log | less -RFX
+output_color=true
+# This is mainly used for debugging. This option will flush the contents of the
+#  log file after every line has been written. This provides the opportunity to
+#  see the live status of the application at any given moment. (Especially
+#  handy when debugging an application crash.) As a result though, enabling
+#  this option may have performance reprocussions.
+flush_on_write=false
 )"_toml;
     auto &config_options = ConfigOptions::Instance(true);
     auto config_options_str = config_options.to_string();

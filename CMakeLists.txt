@@ -8,6 +8,12 @@ project(mmotd_root)
 
 get_filename_component(ROOT_CMAKE_PROJECT_DIR . ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
 
+# if (DEFINED ENV{MMOTD_PROFILE})
+#     option(MMOTD_PROFILE_OPT "enable profiling using gprof" ON)
+# else ()
+#     option(MMOTD_PROFILE_OPT "enable profiling using gprof" OFF)
+# endif()
+
 define_property(
     GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR INHERITED
     BRIEF_DOCS "mmotd root directory" FULL_DOCS "root directory for the mmotd project"

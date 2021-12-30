@@ -1,15 +1,20 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/config_options.h"
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
+#include "common/include/special_files.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/fortune.h"
 
 #include <array>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <optional>
+#include <sstream>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -63,10 +68,7 @@ string GetPlatformFortunesPath() {
 #endif
 
 struct StrFileHeader {
-    explicit StrFileHeader() : version(0), count(0), longest_str(0), shortest_str(0), flags(Flags::None) {
-        DelimPadding.delim = 0;
-        DelimPadding.padding.fill(0);
-    }
+    StrFileHeader() = default;
 
     enum class Flags : strfile_type {
         None = 0x00,
@@ -84,12 +86,13 @@ struct StrFileHeader {
     strfile_type longest_str = 0;  // length of longest fortune
     strfile_type shortest_str = 0; // length of shortest shortest fortune
     Flags flags = Flags::None;     // flags
-    union {
+    union DelimPadding {
         char delim;                // delimeter between fortunes
         array<uint8_t, 4> padding; // padding
-    } DelimPadding;
+    };
+    DelimPadding delim_padding = {.padding = {0, 0, 0, 0}};
 
-    char get_delim() const { return DelimPadding.delim; }
+    char get_delim() const { return delim_padding.delim; }
 
     string flags_to_string() const {
         auto flags_str = vector<string>{};
@@ -128,10 +131,12 @@ struct StrFileHeader {
     }
 };
 
-optional<tuple<fs::path, fs::path>> GetFortuneFiles(const string &fortune_name) {
-    auto fortune_path = fs::path{fortune_name};
-    if (fortune_name.find('/') == string::npos) {
-        fortune_path = fs::path{GetPlatformFortunesPath()} / fortune_name;
+optional<tuple<fs::path, fs::path>> GetFortuneFiles(string fortune_filename, string fortune_db_dir) {
+    auto fortune_path = fs::path{};
+    if (empty(fortune_db_dir)) {
+        fortune_path = fs::path{fortune_filename};
+    } else {
+        fortune_path = fs::path{fortune_db_dir} / fs::path{fortune_filename};
     }
 
     auto ec = std::error_code{};
@@ -145,7 +150,8 @@ optional<tuple<fs::path, fs::path>> GetFortuneFiles(const string &fortune_name) 
         return nullopt;
     }
 
-    auto fortune_db_path = (fortune_path.parent_path() / fortune_path.stem()).replace_extension(".dat");
+    auto fortune_db_path = fortune_path;
+    fortune_db_path.replace_extension(".dat");
     if (fs::is_regular_file(fortune_db_path, ec) || fs::is_symlink(fortune_db_path, ec)) {
         LOG_VERBOSE("file exists: {}", fortune_db_path.string());
     } else if (ec) {
@@ -170,7 +176,7 @@ optional<uint32_t> ParseSingleFortuneDbData(const vector<uint8_t> &buffer) {
     auto network_offset_value = *reinterpret_cast<const uint32_t *>(buffer.data());
     auto host_offset_value = ntohl(network_offset_value);
 
-    if (STRFILE_ENTRY_CONTAINS_NULL_INT) {
+    if constexpr (STRFILE_ENTRY_CONTAINS_NULL_INT) {
         auto null_value = *reinterpret_cast<const uint32_t *>(buffer.data() + sizeof(uint32_t));
         if (null_value != 0) {
             LOG_ERROR("STRFILE appears corrupt, uint32_t value {} is not followed by NULL uint32_t (uint32_t={})",
@@ -197,7 +203,7 @@ ReadRandomFortuneOffset(const fs::path &fortune_db_path, std::ifstream &fortune_
     }
 
     auto buffer = vector<uint8_t>(STRFILE_ENTRY_SIZE, 0);
-    fortune_db_file.read(reinterpret_cast<char *>(buffer.data()), buffer.size());
+    fortune_db_file.read(reinterpret_cast<char *>(data(buffer)), static_cast<streamsize>(size(buffer)));
     if (fortune_db_file.fail() || fortune_db_file.bad()) {
         LOG_ERROR("unable to read {} bytes of STRFILE database {} at offset {}, {}",
                   STRFILE_ENTRY_SIZE,
@@ -296,7 +302,7 @@ optional<string> ReadFortune(const fs::path &fortune_path, uint32_t offset, uint
     }
 
     auto buffer = vector<char>(max_size, 0);
-    fortune_file.read(buffer.data(), buffer.size());
+    fortune_file.read(buffer.data(), static_cast<streamsize>(size(buffer)));
     if (fortune_file.fail() || fortune_file.bad()) {
         LOG_ERROR("unable to read {} bytes of the fortune file {} at offset {}, {}",
                   max_size,
@@ -315,8 +321,8 @@ optional<string> ReadFortune(const fs::path &fortune_path, uint32_t offset, uint
     return make_optional(trim_right_copy(fortune));
 }
 
-optional<string> GetRandomFortune(const string &fortune_name) {
-    auto fortune_files_holder = GetFortuneFiles(fortune_name);
+optional<string> GetRandomFortune(string fortune_filename, string fortune_db_dir) {
+    auto fortune_files_holder = GetFortuneFiles(fortune_filename, fortune_db_dir);
     if (!fortune_files_holder) {
         return nullopt;
     }
@@ -354,16 +360,97 @@ optional<string> GetRandomFortune(const string &fortune_name) {
     return ReadFortune(fortune_path, fortune_offset, max_fortune_size, fortune_delimeter);
 }
 
+struct TextFortune {
+    vector<string> text;
+    void append(string &&new_text) { text.emplace_back(new_text); }
+    void append(const string &new_text) { text.push_back(new_text); }
+    string to_string() const { return fmt::format(FMT_STRING("{}"), fmt::join(text, "\n")); }
+};
+
+using TextFortunes = vector<TextFortune>;
+
+TextFortunes ReadTextFortunes(fs::path fortune_path) {
+    auto fortune_file = ifstream{};
+    fortune_file.exceptions(std::ifstream::goodbit);
+    fortune_file.open(fortune_path, ios_base::in);
+
+    if (!fortune_file.is_open() || fortune_file.fail() || fortune_file.bad()) {
+        LOG_ERROR("unable to open {} for reading, {}",
+                  fortune_path.string(),
+                  mmotd::error::ios_flags::to_string(fortune_file));
+        return TextFortunes{};
+    }
+    LOG_DEBUG("found text fortunes and opened it for reading: {}", fortune_path.string());
+
+    auto text_fortunes = TextFortunes{1ull, TextFortune{}};
+    for (std::string line; std::getline(fortune_file, line);) {
+        if (boost::trim_copy(line) == "%") {
+            text_fortunes.emplace_back(TextFortune{});
+        } else {
+            text_fortunes.back().append(boost::trim_right_copy(line));
+        }
+    }
+    LOG_DEBUG("read {} text fortunes from file: ", size(text_fortunes), fortune_path.string());
+
+    return text_fortunes;
+}
+
+optional<string> ReadTextFortuneFile(fs::path fortune_path) {
+    auto text_fortunes = ReadTextFortunes(fortune_path);
+    if (empty(text_fortunes)) {
+        LOG_ERROR("no text fortunes were parsed from: {}", quoted(fortune_path.string()));
+        return nullopt;
+    }
+    auto index = effing_random::get<size_t>(0, size(text_fortunes));
+    LOG_DEBUG("choose random fortune {} from {} total fortunes in: ",
+              index,
+              size(text_fortunes),
+              fortune_path.string());
+
+    auto fortune_str = text_fortunes[index].to_string();
+    LOG_DEBUG("random fortune:\n{}", fortune_str);
+
+    return fortune_str;
+}
+
+optional<string> GetRandomFortune(string fortune_filename) {
+    using namespace mmotd::core::special_files;
+    auto fortune_path = fs::path{fortune_filename}.replace_extension(".txt");
+    fortune_path = FindFileInDefaultLocations(fortune_path);
+    if (empty(fortune_path)) {
+        LOG_ERROR("unable to find a text fortune file: {}", fortune_filename);
+        return nullopt;
+    }
+    LOG_DEBUG("found text fortunes path: {}", fortune_path.string());
+    return ReadTextFortuneFile(fortune_path);
+}
+
 } // namespace
 
 namespace mmotd::information {
 
 void Fortune::FindInformation() {
-    if (auto fortune_holder = GetRandomFortune("softwareengineering"); fortune_holder) {
-        auto fortune = GetInfoTemplate(InformationId::ID_FORTUNE_FORTUNE);
-        fortune.SetValueArgs(*fortune_holder);
-        AddInformation(fortune);
+    using namespace mmotd::core;
+    auto fortune_filename = ConfigOptions::Instance().GetString("fortune.file_name", "softwareengineering");
+    auto fortune_db_dir = ConfigOptions::Instance().GetString("fortune.db_directory", GetPlatformFortunesPath());
+
+    if (auto fortune_holder1 = GetRandomFortune(fortune_filename, fortune_db_dir); fortune_holder1) {
+        AddFortune(std::move(*fortune_holder1));
+    } else if (auto fortune_holder2 = GetRandomFortune(fortune_filename); fortune_holder2) {
+        AddFortune(std::move(*fortune_holder2));
+    } else {
+        LOG_ERROR("unable to find a fortune");
     }
+}
+
+void Fortune::AddFortune(const std::string &fortune_str) {
+    if (empty(fortune_str)) {
+        LOG_ERROR("unable to add an empty fortune");
+        return;
+    }
+    auto fortune = GetInfoTemplate(InformationId::ID_FORTUNE_FORTUNE);
+    fortune.SetValueArgs(fortune_str);
+    AddInformation(fortune);
 }
 
 } // namespace mmotd::information
