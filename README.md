@@ -26,4 +26,4 @@ I ran profilers on the code and found a number of bottle necks which I could and
 
 After deliberating my options for a few seconds I hastily decided that it would be a good exercise to start from scratch.
 
-Hence, `modified message of the day` or `mmotd`
+Hence, `modified message of the day` or `mmotd`.
