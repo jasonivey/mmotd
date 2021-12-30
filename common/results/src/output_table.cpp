@@ -1,8 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/assertion.h"
-// #include "common/include/config_options.h"
 #include "common/include/logging.h"
-#include "common/results/include/output_common.h"
+#include "common/include/string_utils.h"
 #include "common/results/include/output_row.h"
 #include "common/results/include/output_table.h"
 
@@ -13,7 +12,7 @@
 #include <fort.hpp>
 
 using fmt::format;
-using mmotd::results::common::RemoveAsciiEscapeCodes;
+using mmotd::string_utils::RemoveAsciiEscapeCodes;
 using namespace std;
 
 namespace {
@@ -281,8 +280,7 @@ void Table::TableImpl::WriteValue(const Row &row, size_t line_index, bool bump_c
 }
 
 Table::Table(string table_style_str, size_t column_count) :
-    table_(make_unique<TableImpl>(table_style_str, column_count)) {
-}
+    table_(make_unique<TableImpl>(table_style_str, column_count)) {}
 
 Table::~Table() = default;
 

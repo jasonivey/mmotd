@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <utility>
 
 namespace mmotd::information {
 
@@ -18,6 +19,8 @@ protected:
     void FindInformation() override;
 
 private:
+    std::pair<std::string, std::string> GetRequestUrl() const;
+
     void ParseJsonResponse(const std::string &response);
 };
 

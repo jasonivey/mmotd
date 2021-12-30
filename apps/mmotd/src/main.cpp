@@ -14,6 +14,7 @@
 #include <clocale>
 #include <cstdlib>
 #include <iostream>
+#include <iterator>
 #include <stdexcept>
 
 #include <backward.hpp>
@@ -22,6 +23,7 @@
 
 using namespace fmt;
 using namespace std;
+using namespace std::string_literals;
 using mmotd::algorithms::unused;
 using mmotd::core::CliOptionsParser;
 using mmotd::core::ConfigOptions;
@@ -32,8 +34,8 @@ void PrintMmotd() {
     using namespace mmotd::results;
     using mmotd::core::special_files::ExpandEnvironmentVariables;
 
-    const auto template_filename = ConfigOptions::Instance().GetValueAsStringOr("template_path", string{});
-    LOG_INFO("template file name: {}", quoted(template_filename));
+    auto template_filename = ConfigOptions::Instance().GetString("core.template_path", string{});
+    LOG_INFO("template file name: {}", quoted(empty(template_filename) ? "<builtin template>"s : template_filename));
     auto output_template = unique_ptr<OutputTemplate>{};
     if (!empty(template_filename)) {
         output_template = MakeOutputTemplate(ExpandEnvironmentVariables(template_filename));
@@ -53,16 +55,17 @@ void PrintMmotd() {
     PrintOutputTemplate(*output_template, informations);
 }
 
-void UpdateLoggingFlushing() {
-    auto logging_flush_value = ConfigOptions::Instance().GetValueAsBoolean("logging_flush");
-    if (logging_flush_value.has_value()) {
-        mmotd::logging::SetFlushLogfileAfterEveryLine(logging_flush_value.value());
+void UpdateLoggingDetails() {
+    auto output_color = ConfigOptions::Instance().GetBoolean("logging.output_color");
+    if (output_color.has_value()) {
+        mmotd::logging::SetColorOutput(*output_color);
     }
-}
-
-void UpdateLoggingSeverity() {
-    const auto log_severity_raw = ConfigOptions::Instance().GetValueAsIntegerOr("log_severity", -1);
-    if (log_severity_raw == -1) {
+    auto flush_on_write = ConfigOptions::Instance().GetBoolean("logging.flush_on_write");
+    if (flush_on_write.has_value()) {
+        mmotd::logging::SetFlushLogfileAfterEveryLine(*flush_on_write);
+    }
+    auto log_severity_raw = ConfigOptions::Instance().GetInteger("logging.severity", -1);
+     if (log_severity_raw == -1) {
         return;
     }
     auto new_severity = static_cast<mmotd::logging::Severity>(log_severity_raw);
@@ -84,8 +87,7 @@ int main_impl(int argc, char **argv) {
         return error_exit ? EXIT_FAILURE : EXIT_SUCCESS;
     }
 
-    UpdateLoggingFlushing();
-    UpdateLoggingSeverity();
+    UpdateLoggingDetails();
 
     PrintMmotd();
     return EXIT_SUCCESS;

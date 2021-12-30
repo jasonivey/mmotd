@@ -38,9 +38,9 @@ pair<string, string> ParseSunriseSunset(string sunrise_str, string sunset_str) {
 
 string GetLocation(string seperator) {
     using namespace mmotd::core;
-    auto city = ConfigOptions::Instance().GetValueAsStringOr("city"s, std::string{});
-    auto state = ConfigOptions::Instance().GetValueAsStringOr("state"s, std::string{});
-    auto country = ConfigOptions::Instance().GetValueAsStringOr("country"s, std::string{});
+    auto city = ConfigOptions::Instance().GetString("location.city"s, std::string{});
+    auto state = ConfigOptions::Instance().GetString("location.state"s, std::string{});
+    auto country = ConfigOptions::Instance().GetString("location.country"s, std::string{});
     return boost::join_if(vector{city, state, country}, seperator, [](const auto &str) { return !empty(str); });
 }
 
@@ -100,7 +100,8 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
     using namespace mmotd::networking;
 
     auto http_request = HttpRequest(HttpProtocol::HTTPS, "wttr.in");
-    auto http_response = http_request.MakeRequest(CreateWeatherRequestUrl());
+    auto request_url = CreateWeatherRequestUrl();
+    auto http_response = http_request.MakeRequest(request_url, request_url);
     if (!http_response || IsWeatherResponseInvalid(*http_response)) {
         return make_tuple(string{}, string{}, string{}, string{});
     }

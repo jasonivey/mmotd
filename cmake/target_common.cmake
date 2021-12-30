@@ -62,14 +62,17 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
 
     target_compile_definitions(
         ${MMOTD_TARGET_NAME}
-        # On 'Linux' like compilers this is needed
+        # On non-Windows C++ standard libraraies _GNU_SOURCE definition is required.
         PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:_GNU_SOURCE>
         # 'DEBUG', '_DEBUG' and 'NDEBUG' comes for free on MSVC compilers
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:DEBUG>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:_DEBUG>
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:NDEBUG>
-        # If this config identifier is defined then all CATCH macros are prefixed with CATCH_
-        # This enables the MMOTD project to define it's own version of 'CHECK'
+        # Windows specific options (strip platform headers to the bare minimum)
+        PRIVATE $<$<CXX_COMPILER_ID:MSVC>:WIN32_LEAN_AND_MEAN>
+        # If 'CATCH_CONFIG_PREFIX_ALL' is defined then all CATCH unit test macros are
+        #  prefixed with CATCH_. This is necessary since the MMOTD project defines
+        #  it's own version of 'CHECK' as a design by contract specifier.
         PRIVATE CATCH_CONFIG_PREFIX_ALL
         # When defined and compiler language is set to `-std=c++17` or higher,
         #  the lambda passed to scope_guard is required to be specified as `noexcept`.
@@ -79,6 +82,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE FMT_ENFORCE_COMPILE_STRING
         # Boost ASIO has not updated it's code for C++20 and the removal of `std::result_of`
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:BOOST_ASIO_HAS_STD_INVOKE_RESULT>
+        # By default, enable preserving comments within the toml library
+        PRIVATE TOML11_PRESERVE_COMMENTS_BY_DEFAULT
         # When defined the discovery of system properties will be done serially
         #PRIVATE MMOTD_ASYNC_DISABLED
         )
@@ -88,18 +93,24 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # If we are going to use clang and clang++ then we should also use,
         #  (but are not forced to) use libc++ instead of stdlibc++.
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-stdlib=libc++>
-        # Enable debug information for stack tracing purposes on all build types
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-g>
-        # Enable various debug build options on debug builds
-        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Og>
+        # Enable debug information for stack tracing purposes non-DEBUG builds
+        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-g>
+        # On DEBUG builds set '-g3' which enables features to ensure a quality debugging experience
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-g3>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-glldb>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-fdebug-macro>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-ggdb3>
-        # Enable optimizations on release builds
+        # Enables optimizations that do not interfere with debugging
+        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Og>
+        # Enable optimizations (speed & size) on release builds
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O2>
         # Enable C++ dialect options
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-felide-constructors>
+        # Enable char8_t on clang compilers
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-fchar8_t>
+        # Enable colorized output to always
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-fcolor-diagnostics>
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
         # Enable various warnings
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Werror>

@@ -3,6 +3,7 @@
 #include "common/include/config_options.h"
 #include "common/include/logging.h"
 #include "common/include/source_location.h"
+#include "common/include/string_utils.h"
 #include "common/include/version.h"
 
 #include <algorithm>
@@ -10,15 +11,18 @@
 #include <charconv>
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <iostream>
 #include <iterator>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 
+#include <boost/algorithm/string/predicate.hpp>
 #include <date/date.h>
 #include <date/tz.h>
 #include <fmt/color.h>
@@ -60,6 +64,8 @@ public:
 
     void WriteLog(const fmt::memory_buffer &input, bool append_to_stderr = false);
 
+    void SetColorOutput(bool output_color) noexcept { output_color_ = output_color; }
+
     mmotd::logging::Severity GetSeverity() const noexcept;
     void SetSeverity(mmotd::logging::Severity severity) noexcept;
 
@@ -68,6 +74,7 @@ public:
 private:
     std::ofstream file_stream_;
     std::atomic_bool flush_file_stream_ = false;
+    std::atomic_bool output_color_ = true;
     std::mutex mutex_;
     mmotd::logging::Severity severity_ = mmotd::logging::Severity::verbose;
 };
@@ -90,7 +97,8 @@ void FileLogger::Open(const fs::path &file_path) {
     file_stream_.open(file_path);
     if (!file_stream_.is_open()) {
         auto sys_error = fmt::system_error(errno, FMT_STRING("cannot open file '{}'"), file_path.string());
-        auto style = fmt::text_style(fmt::emphasis::bold) | fmt::fg(fmt::terminal_color::red);
+        auto style = output_color_ ? (fmt::text_style(fmt::emphasis::bold) | fmt::fg(fmt::terminal_color::red)) :
+                                     fmt::text_style{};
         fmt::print(stderr, style, FMT_STRING("{}: {}"), sys_error.code(), sys_error.what());
     }
 }
@@ -105,17 +113,21 @@ void FileLogger::Close() {
 }
 
 void FileLogger::WriteLog(const fmt::memory_buffer &input, bool append_to_stderr) {
-    using namespace mmotd::logging;
-    using mmotd::core::ConfigOptions;
-    auto lock = lock_guard<mutex>(mutex_);
-    if (file_stream_ && file_stream_.is_open()) {
-        fmt::print(file_stream_, FMT_STRING("{}"), string_view(data(input), size(input)));
-        if (flush_file_stream_) {
-            file_stream_.flush();
+    auto message = fmt::to_string(input);
+    if (!output_color_) {
+        message = mmotd::string_utils::RemoveMultibyteAndEmbeddedColors(message);
+    }
+    {
+        auto lock = lock_guard<mutex>(mutex_);
+        if (file_stream_ && file_stream_.is_open()) {
+            file_stream_ << message;
+            if (flush_file_stream_) {
+                file_stream_.flush();
+            }
         }
     }
     if (append_to_stderr) {
-        fmt::print(stderr, FMT_STRING("{}"), string_view(data(input), size(input)));
+        cerr << message;
     }
 }
 
@@ -289,6 +301,10 @@ void LogDirectInternalImpl(const SourceLocation &source_location,
 } // namespace
 
 namespace mmotd::logging {
+
+void SetColorOutput(bool output_color) noexcept {
+    GetFileLogger().SetColorOutput(output_color);
+}
 
 Severity GetSeverity() noexcept {
     return GetFileLogger().GetSeverity();

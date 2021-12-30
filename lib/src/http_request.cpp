@@ -33,7 +33,7 @@ namespace {
 class HttpClient {
 public:
     HttpClient() = default;
-    explicit HttpClient(HttpProtocol protocol, string host, string port, string path);
+    HttpClient(HttpProtocol protocol, string host, string port, string path, string path_no_auth);
 
     optional<string> MakeRequest();
 
@@ -56,16 +56,35 @@ private:
 
     template<typename T>
     http::response<http::string_body> Request(T &stream);
-    //http::response<http::string_body> Request(beast::tcp_stream &stream);
+    // http::response<http::string_body> Request(beast::tcp_stream &stream);
+
+    string to_string() const;
 
     HttpProtocol protocol_ = HttpProtocol::HTTP;
     string host_;
     string port_;
     string path_;
+    string path_no_auth_;
 };
 
-HttpClient::HttpClient(HttpProtocol protocol, string host, string port, string path) :
-    protocol_(protocol), host_(std::move(host)), port_(std::move(port)), path_(std::move(path)) {
+HttpClient::HttpClient(HttpProtocol protocol, string host, string port, string path, string path_no_auth) :
+    protocol_(protocol),
+    host_(std::move(host)),
+    port_(std::move(port)),
+    path_(std::move(path)),
+    path_no_auth_(std::move(path_no_auth)) {}
+
+string HttpClient::to_string() const {
+    auto protocol_str = mmotd::networking::to_string(protocol_);
+    auto port = empty(port_) ? IsHttps() ? "443" : "80" : port_;
+    auto path = path_no_auth_;
+    if (empty(path)) {
+        path = "/";
+    }
+    if (path.front() != '/') {
+        path = "/" + path;
+    }
+    return format("{}://{}:{}{}", protocol_str, host_, port, path);
 }
 
 tcp::resolver::results_type HttpClient::Resolve(asio::io_context &ctx) {
@@ -165,7 +184,7 @@ optional<string> HttpClient::MakeRequestImpl() {
     auto response = Request(*stream);
 
     auto response_str = response.body();
-    LOG_INFO("response from {}:{}{}\n{}", host_, port_, path_, response_str);
+    LOG_INFO("response from {}\n{}", to_string(), response_str);
     CloseStream(*stream);
 
     return make_optional(response_str);
@@ -183,14 +202,24 @@ optional<string> HttpClient::MakeRequest() {
 
 namespace mmotd::networking {
 
+string to_string(HttpProtocol protocol) {
+    switch (protocol) {
+        case HttpProtocol::HTTP:
+            return "http";
+        case HttpProtocol::HTTPS:
+            return "https";
+        default:
+            return "unknown";
+    }
+}
+
 HttpRequest::HttpRequest(HttpProtocol protocol, string host, string port) :
     protocol_(protocol),
     host_(std::move(host)),
-    port_(port.empty() ? (protocol_ == HttpProtocol::HTTPS ? "443" : "80") : port) {
-}
+    port_(port.empty() ? (protocol_ == HttpProtocol::HTTPS ? "443" : "80") : port) {}
 
-optional<string> HttpRequest::MakeRequest(string path) {
-    return HttpClient{protocol_, host_, port_, path}.MakeRequest();
+optional<string> HttpRequest::MakeRequest(string path, string path_no_auth) {
+    return HttpClient{protocol_, host_, port_, path, path_no_auth}.MakeRequest();
 }
 
 } // namespace mmotd::networking

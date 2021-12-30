@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/throw.h"
 #include "common/include/logging.h"
+#include "common/include/special_files.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/external_network.h"
 #include "lib/include/http_request.h"
@@ -9,6 +10,7 @@
 #include <string_view>
 #include <tuple>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -40,13 +42,24 @@ static void walk_ptree(const pt::ptree &tree, size_t indent) {
 #endif
 
 // const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
+pair<string, string> ExternalNetwork::GetRequestUrl() const {
+    if (auto api_key = mmotd::core::special_files::GetEnvironmentValue("$IPINFO_API_KEY"); !empty(api_key)) {
+        return make_pair("/json?token="s + api_key, "/json?token="s + string(size(api_key), '*'));
+    } else {
+        return make_pair("/json"s, "/json"s);
+    }
+}
+
 void ExternalNetwork::FindInformation() {
+    using boost::ifind_first;
     using mmotd::networking::HttpRequest, mmotd::networking::HttpProtocol;
 
-    if (const auto response = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"}.MakeRequest("/json"); response) {
+    auto [request_url, request_url_no_auth] = GetRequestUrl();
+    const auto response = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"}.MakeRequest(request_url, request_url_no_auth);
+    if (response.has_value()) {
         ParseJsonResponse(*response);
     } else {
-        LOG_ERROR("querying 'http://ipinfo.io/json' failed");
+        LOG_ERROR("querying 'http://ipinfo.io{}' failed", request_url_no_auth);
     }
 }
 

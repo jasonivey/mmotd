@@ -431,8 +431,8 @@ namespace mmotd::information {
 
 void Fortune::FindInformation() {
     using namespace mmotd::core;
-    auto fortune_filename = ConfigOptions::Instance().GetValueAsStringOr("fortune_file_name", "softwareengineering");
-    auto fortune_db_dir = ConfigOptions::Instance().GetValueAsStringOr("fortune_db_path", GetPlatformFortunesPath());
+    auto fortune_filename = ConfigOptions::Instance().GetString("fortune.file_name", "softwareengineering");
+    auto fortune_db_dir = ConfigOptions::Instance().GetString("fortune.db_directory", GetPlatformFortunesPath());
 
     if (auto fortune_holder1 = GetRandomFortune(fortune_filename, fortune_db_dir); fortune_holder1) {
         AddFortune(std::move(*fortune_holder1));

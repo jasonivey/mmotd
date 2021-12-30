@@ -5,13 +5,16 @@
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
+#include <filesystem>
 #include <locale>
 #include <optional>
 #include <sstream>
 #include <string>
 
+#include <boost/algorithm/string/replace.hpp>
 #include <date/date.h>
 #include <date/tz.h>
+#include <fmt/format.h>
 #include <fmt/ostream.h>
 
 namespace mmotd::chrono::io {
@@ -22,16 +25,18 @@ inline std::string GetTimeZoneStr() {
     using namespace mmotd::core;
     static auto time_zone_str = std::string{};
     if (std::empty(time_zone_str)) {
-        time_zone_str = ConfigOptions::Instance().GetValueAsStringOr("timezone", std::string{});
+        time_zone_str = ConfigOptions::Instance().GetString("location.timezone", std::string{});
     }
     return time_zone_str;
 }
 
 inline const date::time_zone *GetTimeZone() {
-    auto time_zone_str = GetTimeZoneStr();
-    const date::time_zone *tz = nullptr;
-    if (!std::empty(time_zone_str)) {
-        tz = date::locate_zone(time_zone_str);
+    static const date::time_zone *tz = nullptr;
+    if (tz == nullptr) {
+        static const auto time_zone_str = GetTimeZoneStr();
+        if (!std::empty(time_zone_str)) {
+            tz = date::locate_zone(time_zone_str);
+        }
     }
     if (tz == nullptr) {
         tz = date::current_zone();
@@ -39,33 +44,28 @@ inline const date::time_zone *GetTimeZone() {
     return tz;
 }
 
+inline std::string lower_case_merīdiem(std::string input) {
+    using boost::algorithm::replace_all_copy;
+    static constexpr const std::string_view ANTE_MERIDIEM = "AM";
+    static constexpr const std::string_view ANTE_MERIDIEM_LOWER = "am";
+    static constexpr const std::string_view POST_MERIDIEM = "PM";
+    static constexpr const std::string_view POST_MERIDIEM_LOWER = "pm";
+    return replace_all_copy(replace_all_copy(input, ANTE_MERIDIEM, ANTE_MERIDIEM_LOWER),
+                            POST_MERIDIEM,
+                            POST_MERIDIEM_LOWER);
+}
+
 inline std::string to_string(date::time_of_day<std::chrono::seconds> tod, const char *chrono_format) {
     auto fields = date::fields{tod};
     auto result = date::format(chrono_format, fields);
-    if (auto am_index = result.rfind("AM"); am_index != std::string::npos) {
-        result[am_index] = 'a';
-        result[am_index + 1] = 'm';
-    }
-    if (auto pm_index = result.rfind("PM"); pm_index != std::string::npos) {
-        result[pm_index] = 'p';
-        result[pm_index + 1] = 'm';
-    }
-    return result;
+    return lower_case_merīdiem(result);
 }
 
 template<class Clock, class Duration>
 inline std::string to_string(std::chrono::time_point<Clock, Duration> time_point, const char *chrono_format) {
     auto time_point_zoned = date::make_zoned(GetTimeZone(), time_point);
     auto result = date::format(chrono_format, time_point_zoned);
-    if (auto am_index = result.rfind("AM"); am_index != std::string::npos) {
-        result[am_index] = 'a';
-        result[am_index + 1] = 'm';
-    }
-    if (auto pm_index = result.rfind("PM"); pm_index != std::string::npos) {
-        result[pm_index] = 'p';
-        result[pm_index + 1] = 'm';
-    }
-    return result;
+    return lower_case_merīdiem(result);
 }
 
 inline auto from_string(std::string input, const char *chrono_format) {
