@@ -26,7 +26,7 @@ Temperature::Temperature(double value, Units units) :
     value_(units == Units::Fahrenheit ? ConvertToCelcius(value) : value) {}
 
 bool Temperature::empty() const noexcept {
-    return std::fpclassify(value_) == FP_ZERO;
+    return !value_;
 }
 
 string Temperature::to_string() const {
@@ -37,7 +37,13 @@ string Temperature::to_string() const {
 }
 
 double Temperature::GetTemperature(Units units) const noexcept {
-    return units == Units::Fahrenheit ? ConvertToFahrenheit(value_) : value_;
+    if (!value_) {
+        return 0.0;
+    } else if (units == Units::Fahrenheit) {
+        return ConvertToFahrenheit(*value_);
+    } else {
+        return *value_;
+    }
 }
 
 string Temperature::GetTemperatureIcon() const noexcept {

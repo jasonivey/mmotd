@@ -58,13 +58,17 @@ void HardwareInformation::CreateInformationObjects(const mmotd::platform::Hardwa
     monitor_resolution.SetValueArgs(details.monitor_resolution);
     AddInformation(monitor_resolution);
 
-    auto cpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_CPU_TEMPERATURE);
-    cpu_temperature.SetValueArgs(details.cpu_temperature.to_string());
-    AddInformation(cpu_temperature);
+    if (!details.cpu_temperature.empty()) {
+        auto cpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_CPU_TEMPERATURE);
+        cpu_temperature.SetValueArgs(details.cpu_temperature.to_string());
+        AddInformation(cpu_temperature);
+    }
 
-    auto gpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_GPU_TEMPERATURE);
-    gpu_temperature.SetValueArgs(details.gpu_temperature.to_string());
-    AddInformation(gpu_temperature);
+    if (!details.gpu_temperature.empty()) {
+        auto gpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_GPU_TEMPERATURE);
+        gpu_temperature.SetValueArgs(details.gpu_temperature.to_string());
+        AddInformation(gpu_temperature);
+    }
 }
 
 } // namespace mmotd::information

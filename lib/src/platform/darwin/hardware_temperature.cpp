@@ -168,7 +168,7 @@ SystemManagementController::~SystemManagementController() {
 
 void SystemManagementController::Open() {
     mach_port_t master_port = 0;
-    IOMasterPort(MACH_PORT_NULL, &master_port);
+    IOMainPort(MACH_PORT_NULL, &master_port);
 
     CFMutableDictionaryRef matching_dict = IOServiceMatching("AppleSMC");
 
@@ -306,12 +306,20 @@ namespace mmotd::platform {
 
 Temperature GetCpuTemperature() {
     auto [cpu_temperature, _] = GetCpuGpuTemperatures();
-    return Temperature{cpu_temperature.value_or(0.0), Temperature::Units::Celsius};
+    if (!cpu_temperature) {
+        return Temperature{};
+    } else {
+        return Temperature{*cpu_temperature, Temperature::Units::Celsius};
+    }
 }
 
 Temperature GetGpuTemperature() {
     auto [_, gpu_temperature] = GetCpuGpuTemperatures();
-    return Temperature{gpu_temperature.value_or(0.0), Temperature::Units::Celsius};
+    if (!gpu_temperature) {
+        return Temperature{};
+    } else {
+        return Temperature{*gpu_temperature, Temperature::Units::Celsius};
+    }
 }
 
 } // namespace mmotd::platform

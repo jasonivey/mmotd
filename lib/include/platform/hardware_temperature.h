@@ -4,12 +4,13 @@
 #include <cstdint>
 #include <iterator>
 #include <string>
+#include <optional>
 
 namespace mmotd::platform {
 
 class Temperature {
 public:
-    enum Units { Celsius, Fahrenheit };
+    enum Units { Unknown, Celsius, Fahrenheit };
 
     explicit Temperature(double value, Units units = Units::Celsius);
     Temperature() = default;
@@ -30,7 +31,7 @@ private:
 
     Scale GetScale() const noexcept;
 
-    double value_ = 0.0;
+    std::optional<double> value_;
 };
 
 Temperature GetCpuTemperature();

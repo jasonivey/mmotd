@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
+#include <optional>
 #include <regex>
 #include <string>
 #include <string_view>
@@ -31,7 +32,7 @@ public:
     Acpi();
     ~Acpi() = default;
 
-    double GetCpuTemperature();
+    optional<double> GetCpuTemperature();
 
 private:
     bool DiscoverCpuTemperatureFilename();
@@ -112,9 +113,9 @@ bool Acpi::DiscoverCpuTemperatureFilename() {
     return false;
 }
 
-double Acpi::GetCpuTemperature() {
+optional<double> Acpi::GetCpuTemperature() {
     if (!input_stream_.is_open()) {
-        return 0.0;
+        return nullopt;
     }
 
     auto lines = vector<string>{};
@@ -122,17 +123,17 @@ double Acpi::GetCpuTemperature() {
         if (input_stream_.fail() || input_stream_.bad()) {
             auto input_stream_err = mmotd::error::ios_flags::to_string(input_stream_);
             LOG_ERROR("error reading {}, {}", temperature_path_, input_stream_err);
-            return 0.0;
+            return nullopt;
         }
         lines.push_back(line);
     }
     if (empty(lines)) {
         LOG_ERROR("nothing read from temperature file {}", temperature_path_);
-        return 0.0;
+        return nullopt;
     }
     double cpu_temperature = 0.0;
     sscanf(data(lines.front()), "%lf", &cpu_temperature);
-    return cpu_temperature / 1000;
+    return {cpu_temperature / 1000.0};
 }
 
 } // namespace
@@ -141,7 +142,12 @@ namespace mmotd::platform {
 
 Temperature GetCpuTemperature() {
     auto acpi = Acpi{};
-    return Temperature{acpi.GetCpuTemperature()};
+    auto cpu_temperature = acpi.GetCpuTemperature();
+    if (!cpu_temperature) {
+        return Temperature{};
+    } else {
+        return Temperature{*cpu_temperature, Temperature::Units::Celsius};
+    }
 }
 
 Temperature GetGpuTemperature() {
