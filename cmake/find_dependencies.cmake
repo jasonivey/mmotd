@@ -32,6 +32,7 @@ if (APPLE)
     find_library(LIBIBERTY_LIBRARY iberty PATHS /usr/local/opt/binutils/lib)
     find_library(FWCoreFoundation NAMES CoreFoundation REQUIRED)
     find_library(FWSecurity NAMES Security REQUIRED)
+    find_library(FWIOKit NAMES IOKit REQUIRED)
 endif ()
 
 get_filename_component(DEPENDENT_CACHE_PATH ../_deps-cache ABSOLUTE CACHE)

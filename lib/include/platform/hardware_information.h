@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iterator>
 #include <string>
+#include "lib/include/platform/hardware_temperature.h"
 
 namespace mmotd::platform {
 
@@ -22,7 +23,9 @@ struct HardwareDetails {
     std::int32_t cpu_core_count = 0;
     std::string cpu_name;
     EndianType byte_order = EndianType::unknown;
+    Temperature cpu_temperature;
     std::string gpu_name;
+    Temperature gpu_temperature;
     std::string monitor_name;
     std::string monitor_resolution;
 

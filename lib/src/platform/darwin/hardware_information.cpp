@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "lib/include/platform/hardware_temperature.h"
 #if defined(__APPLE__)
 #include "common/assertion/include/precondition.h"
 #include "common/include/logging.h"
@@ -281,6 +282,8 @@ HardwareDetails GetHardwareInformationDetails() {
     details.cpu_core_count = GetCpuCount().value_or(0);
     details.cpu_name = GetCpuName();
     details.byte_order = GetByteOrder();
+    details.cpu_temperature = GetCpuTemperature();
+    details.gpu_temperature = GetGpuTemperature();
 
     auto gpu_information_holder = GpuInformation::QueryGpuInformation();
     if (!gpu_information_holder || gpu_information_holder.value().empty()) {

@@ -25,6 +25,7 @@ add_library (${MMOTD_TARGET_NAME} STATIC
     src/package_management.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/boot_time.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/hardware_information.cpp
+    src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/hardware_temperature.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/lastlog.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/load_average.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/memory.cpp
@@ -35,6 +36,7 @@ add_library (${MMOTD_TARGET_NAME} STATIC
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/system_information.cpp
     src/platform/$<LOWER_CASE:$<PLATFORM_ID>>/user_accounting_database.cpp
     src/platform/hardware_information.cpp
+    src/platform/hardware_temperature.cpp
     src/platform/system_information.cpp
     src/processes.cpp
     src/swap.cpp

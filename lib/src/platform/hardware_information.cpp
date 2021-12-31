@@ -34,7 +34,7 @@ EndianType from_endian_string(string endian_str) {
 }
 
 bool HardwareDetails::empty() const noexcept {
-    return std::empty(machine_type) && std::empty(machine_model) && std::empty(cpu_name) &&
+    return std::empty(machine_type) && std::empty(machine_model) && cpu_core_count == 0 && std::empty(cpu_name) &&
            byte_order == EndianType::unknown && std::empty(gpu_name) && std::empty(monitor_name) &&
            std::empty(monitor_resolution);
 }

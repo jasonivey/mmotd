@@ -210,8 +210,10 @@ HardwareDetails GetHardwareInformationDetails() {
     details.machine_model = GetMachineModel();
     details.cpu_core_count = cpu_count;
     details.cpu_name = cpu_name;
+    details.cpu_temperature = GetCpuTemperature();
     details.byte_order = byte_order;
     details.gpu_name = GetGraphicsModelName();
+    details.gpu_temperature = GetGpuTemperature();
     details.monitor_name = GetMonitorName();
     details.monitor_resolution = GetMonitorResolution();
 
