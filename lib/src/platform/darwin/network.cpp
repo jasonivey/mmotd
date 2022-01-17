@@ -58,7 +58,7 @@ bool IsInterfaceActive(const string &name, sa_family_t address_family, const str
     memset(&ifmr, 0, sizeof(ifmr));
     memcpy(ifmr.ifm_name, data(name), min(size(name), static_cast<size_t>(IFNAMSIZ - 1)));
 
-    if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
+    if (ioctl(sock, SIOCGIFMEDIA, &ifmr) < 0) {
         LOG_DEBUG("iterface does not support SIOCGIFMEDIA for {} in {}, details: {}",
                   name,
                   family_name,
@@ -72,9 +72,9 @@ bool IsInterfaceActive(const string &name, sa_family_t address_family, const str
     }
 
     auto media_list = vector<int>(static_cast<size_t>(ifmr.ifm_count));
-    ifmr.ifm_ulist = media_list.data();
+    ifmr.ifm_ulist = data(media_list);
 
-    if (ioctl(sock, SIOCGIFMEDIA, reinterpret_cast<caddr_t>(&ifmr)) < 0) {
+    if (ioctl(sock, SIOCGIFMEDIA, &ifmr) < 0) {
         LOG_ERROR("ioctl SIOCGIFMEDIA failed for {} in {}, details: {}",
                   name,
                   family_name,
@@ -104,16 +104,17 @@ void AddMacAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddr
     PRECONDITIONS(ifaddrs_ptr != nullptr, "input ifaddrs must be valid");
 
     const auto interface_name = string{ifaddrs_ptr->ifa_name};
-    const auto *sock_addr = reinterpret_cast<const struct sockaddr_dl *>(ifaddrs_ptr->ifa_addr);
-    const auto ntoa_str = string(link_ntoa(sock_addr));
-    const auto index = ntoa_str.find(':');
+    auto ll_sockaddr_value = sockaddr_dl{};
+    memcpy(&ll_sockaddr_value, ifaddrs_ptr->ifa_addr, min(sizeof(sockaddr_dl), sizeof(sockaddr)));
+    const auto mac_addr_str = string(link_ntoa(&ll_sockaddr_value));
+    const auto index = mac_addr_str.find(':');
     if (index == string::npos) {
         LOG_DEBUG("{} found mac address {} which is not of the form interface:xx.xx.xx.xx.xx.xx",
                   interface_name,
-                  ntoa_str);
+                  mac_addr_str);
         return;
     }
-    auto mac_address = ntoa_str.substr(index + 1);
+    auto mac_address = mac_addr_str.substr(index + 1);
     network_devices.AddMacAddress(interface_name, MacAddress::from_string(mac_address));
 }
 
@@ -179,13 +180,15 @@ void AddIpAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddrs
 
     auto ip_str = string{};
     if (address_family == AF_INET) {
-        const auto *sock_addr = reinterpret_cast<struct sockaddr_in *>(ifaddrs_ptr->ifa_addr);
-        if (inet_ntop(AF_INET, &sock_addr->sin_addr, data(buffer), INET_ADDRSTRLEN)) {
+        auto sock_addr = sockaddr_in{};
+        memcpy(&sock_addr, ifaddrs_ptr->ifa_addr, min(sizeof(struct sockaddr_in), sizeof(struct sockaddr)));
+        if (inet_ntop(AF_INET, &sock_addr.sin_addr, data(buffer), INET_ADDRSTRLEN)) {
             ip_str = string(data(buffer));
         }
     } else {
-        const auto *sock_addr = reinterpret_cast<struct sockaddr_in6 *>(ifaddrs_ptr->ifa_addr);
-        if (inet_ntop(AF_INET6, &sock_addr->sin6_addr, data(buffer), INET6_ADDRSTRLEN)) {
+        auto sock_addr = sockaddr_in6{};
+        memcpy(&sock_addr, ifaddrs_ptr->ifa_addr, min(sizeof(struct sockaddr_in6), sizeof(struct sockaddr)));
+        if (inet_ntop(AF_INET6, &sock_addr.sin6_addr, data(buffer), INET6_ADDRSTRLEN)) {
             ip_str = string(data(buffer));
         }
     }

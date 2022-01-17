@@ -19,18 +19,24 @@ namespace {
 
 optional<vector<int32_t>> GetProcessesInfo() {
     auto mib = array<int, 3>{CTL_KERN, KERN_PROC, KERN_PROC_ALL};
-    static constexpr int count = 8; // arbitrary retry count
-    for (int i = 0; i != count; ++i) {
+    static constexpr int RETRY_COUNT = 8; // arbitrary retry count
+    auto process_infos = vector<kinfo_proc>{};
+    for (int i = 0; i != RETRY_COUNT && empty(process_infos); ++i) {
         LOG_VERBOSE("attempt #{} to get process list", i + 1);
-        auto size = size_t{0};
-        if (sysctl(std::data(mib), 3, nullptr, &size, nullptr, 0) == -1) {
+        auto buffer_size = size_t{0};
+        // get the size of the buffer
+        if (sysctl(std::data(mib), 3, nullptr, &buffer_size, nullptr, 0) == -1) {
             LOG_ERROR("sysctl(KERN_PROC_ALL) failed, details: {}", mmotd::error::posix_error::to_string());
-            break;
+            return nullopt;
+        } else {
+            LOG_INFO("attempt #{}: buffer size: {}", i + 1, buffer_size);
         }
 
-        size += size + (size >> 3); // add some
-        auto buffer = vector<uint8_t>(size, 0);
-        if (sysctl(std::data(mib), 3, std::data(buffer), &size, nullptr, 0) == -1) {
+        // since time passes between these calls, double buffer size and add a little extra space for safety
+        buffer_size += buffer_size + (buffer_size >> 3);
+        LOG_INFO("attempt #{}: buffer size adjusted to: {}", i + 1, buffer_size);
+        auto buffer = vector<uint8_t>(buffer_size, 0);
+        if (sysctl(data(mib), 3, data(buffer), &buffer_size, nullptr, 0) == -1) {
             if (errno == ENOMEM) {
                 LOG_ERROR("attempt #{} failed, sysctl(KERN_PROC_ALL) == ENOMEM, attempting larger allocation", i + 1);
                 continue;
@@ -38,26 +44,29 @@ optional<vector<int32_t>> GetProcessesInfo() {
             LOG_ERROR("attempt #{} failed, sysctl(KERN_PROC_ALL) failed, details: {}",
                       i + 1,
                       mmotd::error::posix_error::to_string());
-            break;
+            return nullopt;
+        } else {
+            const auto proc_count = buffer_size / sizeof(kinfo_proc);
+            LOG_INFO("attempt #{}: buffer size now: {}, process count: {}", i + 1, buffer_size, proc_count);
         }
 
-        const auto *proc_list = reinterpret_cast<const kinfo_proc *>(buffer.data());
-        auto proc_count = static_cast<size_t>(size / sizeof(kinfo_proc));
-        LOG_INFO("sysctl(KERN_PROC_ALL) discovered {} processes", proc_count);
-        if (proc_count == 0) {
-            LOG_ERROR("sysctl(KERN_PROC_ALL) no PID's were returned");
-            break;
-        }
-
-        auto pids = vector<int32_t>{};
-        const kinfo_proc *current = proc_list;
-        for (auto j = size_t{0}; j < proc_count && current != nullptr; ++j, ++current) {
-            pids.push_back(current->kp_proc.p_pid);
-        }
-        return {pids};
+        // process the buffer
+        const auto process_count = buffer_size / sizeof(kinfo_proc);
+        process_infos.resize(process_count, kinfo_proc{});
+        memcpy(data(process_infos), data(buffer), process_count * sizeof(kinfo_proc));
     }
 
-    return nullopt;
+    if (empty(process_infos)) {
+        LOG_ERROR("failed to get process list");
+        return nullopt;
+    }
+
+    auto pids = vector<int32_t>{};
+    for (const auto &process_info : process_infos) {
+        pids.push_back(process_info.kp_proc.p_pid);
+    }
+
+    return pids;
 }
 
 } // namespace

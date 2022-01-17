@@ -34,7 +34,7 @@ void PrintMmotd() {
     using namespace mmotd::results;
     using mmotd::core::special_files::ExpandEnvironmentVariables;
 
-    auto template_filename = ConfigOptions::Instance().GetString("core.template_path", string{});
+    auto template_filename = ConfigOptions::Instance().GetString("core.template_path"sv, ""sv);
     LOG_INFO("template file name: {}", quoted(empty(template_filename) ? "<builtin template>"s : template_filename));
     auto output_template = unique_ptr<OutputTemplate>{};
     if (!empty(template_filename)) {
@@ -56,15 +56,15 @@ void PrintMmotd() {
 }
 
 void UpdateLoggingDetails() {
-    auto output_color = ConfigOptions::Instance().GetBoolean("logging.output_color");
+    auto output_color = ConfigOptions::Instance().GetBoolean("logging.output_color"sv);
     if (output_color.has_value()) {
         mmotd::logging::SetColorOutput(*output_color);
     }
-    auto flush_on_write = ConfigOptions::Instance().GetBoolean("logging.flush_on_write");
+    auto flush_on_write = ConfigOptions::Instance().GetBoolean("logging.flush_on_write"sv);
     if (flush_on_write.has_value()) {
         mmotd::logging::SetFlushLogfileAfterEveryLine(*flush_on_write);
     }
-    auto log_severity_raw = ConfigOptions::Instance().GetInteger("logging.severity", -1);
+    auto log_severity_raw = ConfigOptions::Instance().GetInteger("logging.severity"sv, -1);
      if (log_severity_raw == -1) {
         return;
     }

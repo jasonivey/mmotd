@@ -7,6 +7,7 @@
 #include "lib/include/fortune.h"
 
 #include <array>
+#include <bit>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
@@ -44,33 +45,33 @@ namespace {
 #if defined(__APPLE__)
 
 static constexpr const uint32_t STRFILE_VERSION = 1;
-static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(uint64_t);
-static constexpr const size_t STRFILE_HEADER_PADDING = sizeof(uint64_t);
+using StrFileIntType = uint64_t;
+static constexpr const size_t STRFILE_HEADER_PADDING = sizeof(StrFileIntType);
 static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = true;
-using strfile_type = uint64_t;
 
-string GetPlatformFortunesPath() {
-    return string{"/usr/local/opt/fortune/share/games/fortunes"};
+string_view GetPlatformFortunesPath() {
+    return "/usr/local/opt/fortune/share/games/fortunes";
 }
 
 #elif defined(__linux__)
 
 static constexpr const uint32_t STRFILE_VERSION = 2;
-static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(uint32_t);
+using StrFileIntType = uint32_t;
 static constexpr const size_t STRFILE_HEADER_PADDING = 0;
 static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = false;
-using strfile_type = uint32_t;
 
-string GetPlatformFortunesPath() {
-    return string{"/usr/share/games/fortunes"};
+string_view GetPlatformFortunesPath() {
+    return "/usr/share/games/fortunes";
 }
 
 #endif
 
+static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(StrFileIntType);
+
 struct StrFileHeader {
     StrFileHeader() = default;
 
-    enum class Flags : strfile_type {
+    enum class Flags : StrFileIntType {
         None = 0x00,
         Random = 0x01,  // randomized pointers
         Ordered = 0x02, // ordered pointers
@@ -78,14 +79,14 @@ struct StrFileHeader {
     };
 
     friend constexpr Flags operator&(Flags a, Flags b) {
-        return static_cast<Flags>(static_cast<strfile_type>(a) & static_cast<strfile_type>(b));
+        return static_cast<Flags>(static_cast<StrFileIntType>(a) & static_cast<StrFileIntType>(b));
     }
 
-    strfile_type version = 0;      // version number
-    strfile_type count = 0;        // count of strings in the fortune file
-    strfile_type longest_str = 0;  // length of longest fortune
-    strfile_type shortest_str = 0; // length of shortest shortest fortune
-    Flags flags = Flags::None;     // flags
+    StrFileIntType version = 0;      // version number
+    StrFileIntType count = 0;        // count of strings in the fortune file
+    StrFileIntType longest_str = 0;  // length of longest fortune
+    StrFileIntType shortest_str = 0; // length of shortest shortest fortune
+    Flags flags = Flags::None;       // flags
     union DelimPadding {
         char delim;                // delimeter between fortunes
         array<uint8_t, 4> padding; // padding
@@ -126,7 +127,7 @@ struct StrFileHeader {
         count = ntohl(count);
         longest_str = ntohl(longest_str);
         shortest_str = ntohl(shortest_str);
-        flags = static_cast<Flags>(ntohl(static_cast<strfile_type>(flags)));
+        flags = static_cast<Flags>(ntohl(static_cast<StrFileIntType>(flags)));
         LOG_VERBOSE("STRFILE: {}", to_string());
     }
 };
@@ -165,19 +166,14 @@ optional<tuple<fs::path, fs::path>> GetFortuneFiles(string fortune_filename, str
     return make_optional(make_tuple(fortune_path, fortune_db_path));
 }
 
-optional<uint32_t> ParseSingleFortuneDbData(const vector<uint8_t> &buffer) {
-    if (size(buffer) != STRFILE_ENTRY_SIZE) {
-        LOG_ERROR("unable to parse STRFILE when the input buffer is {} and should be {}",
-                  size(buffer),
-                  STRFILE_ENTRY_SIZE);
-        return nullopt;
-    }
-
-    auto network_offset_value = *reinterpret_cast<const uint32_t *>(buffer.data());
+optional<uint32_t> ParseSingleFortuneDbData(const array<char, STRFILE_ENTRY_SIZE> &buffer) {
+    uint32_t network_offset_value = 0;
+    memcpy(&network_offset_value, data(buffer), std::min(sizeof(uint32_t), size(buffer)));
     auto host_offset_value = ntohl(network_offset_value);
 
     if constexpr (STRFILE_ENTRY_CONTAINS_NULL_INT) {
-        auto null_value = *reinterpret_cast<const uint32_t *>(buffer.data() + sizeof(uint32_t));
+        uint32_t null_value = 0;
+        memcpy(&null_value, data(buffer) + sizeof(uint32_t), sizeof(uint32_t));
         if (null_value != 0) {
             LOG_ERROR("STRFILE appears corrupt, uint32_t value {} is not followed by NULL uint32_t (uint32_t={})",
                       host_offset_value,
@@ -202,8 +198,8 @@ ReadRandomFortuneOffset(const fs::path &fortune_db_path, std::ifstream &fortune_
         return nullopt;
     }
 
-    auto buffer = vector<uint8_t>(STRFILE_ENTRY_SIZE, 0);
-    fortune_db_file.read(reinterpret_cast<char *>(data(buffer)), static_cast<streamsize>(size(buffer)));
+    auto buffer = array<char, STRFILE_ENTRY_SIZE>{};
+    fortune_db_file.read(data(buffer), static_cast<streamsize>(size(buffer)));
     if (fortune_db_file.fail() || fortune_db_file.bad()) {
         LOG_ERROR("unable to read {} bytes of STRFILE database {} at offset {}, {}",
                   STRFILE_ENTRY_SIZE,
@@ -243,8 +239,8 @@ optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path 
         return nullopt;
     }
 
-    auto strfile_header = StrFileHeader{};
-    fortune_db_file.read(reinterpret_cast<char *>(&strfile_header), sizeof(StrFileHeader));
+    auto strfile_header_buffer = array<char, sizeof(StrFileHeader)>{};
+    fortune_db_file.read(data(strfile_header_buffer), size(strfile_header_buffer));
     if (fortune_db_file.fail() || fortune_db_file.bad()) {
         LOG_ERROR("unable to read STRFILE database header {}, {}",
                   fortune_db_path.string(),
@@ -252,7 +248,10 @@ optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path 
         return nullopt;
     }
 
+    auto strfile_header = StrFileHeader{};
+    memcpy(&strfile_header, data(strfile_header_buffer), size(strfile_header_buffer));
     strfile_header.update();
+
     if (strfile_header.version != STRFILE_VERSION) {
         LOG_ERROR("STRFILE database header is version {} not the expected version {}",
                   strfile_header.version,
@@ -401,15 +400,18 @@ optional<string> ReadTextFortuneFile(fs::path fortune_path) {
         LOG_ERROR("no text fortunes were parsed from: {}", quoted(fortune_path.string()));
         return nullopt;
     }
-    auto index = effing_random::get<size_t>(0, size(text_fortunes));
+    auto iter = effing_random::get(text_fortunes);
+    if (iter == end(text_fortunes)) {
+        LOG_ERROR("unable to select a random fortune from: {}", quoted(fortune_path.string()));
+        return nullopt;
+    }
     LOG_DEBUG("choose random fortune {} from {} total fortunes in: ",
-              index,
+              std::distance(begin(text_fortunes), iter),
               size(text_fortunes),
               fortune_path.string());
-
-    auto fortune_str = text_fortunes[index].to_string();
+    const auto &fortune = *iter;
+    const auto &fortune_str = fortune.to_string();
     LOG_DEBUG("random fortune:\n{}", fortune_str);
-
     return fortune_str;
 }
 
@@ -431,8 +433,8 @@ namespace mmotd::information {
 
 void Fortune::FindInformation() {
     using namespace mmotd::core;
-    auto fortune_filename = ConfigOptions::Instance().GetString("fortune.file_name", "softwareengineering");
-    auto fortune_db_dir = ConfigOptions::Instance().GetString("fortune.db_directory", GetPlatformFortunesPath());
+    auto fortune_filename = ConfigOptions::Instance().GetString("fortune.file_name"sv, "softwareengineering"sv);
+    auto fortune_db_dir = ConfigOptions::Instance().GetString("fortune.db_directory"sv, GetPlatformFortunesPath());
 
     if (auto fortune_holder1 = GetRandomFortune(fortune_filename, fortune_db_dir); fortune_holder1) {
         AddFortune(std::move(*fortune_holder1));

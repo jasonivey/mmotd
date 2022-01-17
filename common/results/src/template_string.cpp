@@ -15,6 +15,8 @@
 #include <iterator>
 #include <optional>
 #include <regex>
+#include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 
@@ -23,6 +25,7 @@
 #include <fmt/ostream.h>
 
 using namespace std;
+using namespace std::string_literals;
 using fmt::format;
 using mmotd::algorithms::collect_if;
 using mmotd::core::ConfigOptions;
@@ -321,7 +324,7 @@ fmt::text_style TemplateString::GetColorValue(string color_specification) {
 string TemplateString::ReplaceEmbeddedColorCodes(const string &text, fmt::text_style color_style) {
     auto template_substrings = TemplateString::GenerateTemplateSubstrings(text);
     auto formatted_str = template_substrings.to_string(&TemplateString::GetColorValue);
-    static const auto color_output = ConfigOptions::Instance().GetBoolean("core.output_color", true);
+    static const auto color_output = ConfigOptions::Instance().GetBoolean("core.output_color"sv, true);
     return color_output ? format(color_style, FMT_STRING("{}"), formatted_str) : formatted_str;
 }
 

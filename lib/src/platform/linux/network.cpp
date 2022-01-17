@@ -82,8 +82,9 @@ void AddMacAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddr
     PRECONDITIONS(ifaddrs_ptr != nullptr, "input ifaddrs must be valid");
 
     const auto interface_name = string{ifaddrs_ptr->ifa_name};
-    const auto *sock_addr = reinterpret_cast<const struct sockaddr_ll *>(ifaddrs_ptr->ifa_addr);
-    auto mac_address = MacAddress{sock_addr->sll_addr, sock_addr->sll_halen};
+    auto sock_addr = sockaddr_ll{};
+    memcpy(&sock_addr, ifaddrs_ptr->ifa_addr, min(sizeof(sockaddr_ll), sizeof(sockaddr)));
+    auto mac_address = MacAddress{sock_addr.sll_addr, sock_addr.sll_halen};
     LOG_VERBOSE("{} found mac address {}", interface_name, mac_address.to_string());
     network_devices.AddMacAddress(interface_name, mac_address);
 }
@@ -128,13 +129,15 @@ void AddIpAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddrs
 
     auto ip_str = string{};
     if (address_family == AF_INET) {
-        const auto *sock_addr = reinterpret_cast<struct sockaddr_in *>(ifaddrs_ptr->ifa_addr);
-        if (inet_ntop(AF_INET, &sock_addr->sin_addr, buffer.data(), INET_ADDRSTRLEN)) {
+        auto sock_addr = sockaddr_in{};
+        memcpy(&sock_addr, ifaddrs_ptr->ifa_addr, min(sizeof(struct sockaddr_in), sizeof(struct sockaddr)));
+        if (inet_ntop(AF_INET, &sock_addr.sin_addr, buffer.data(), INET_ADDRSTRLEN)) {
             ip_str = string(buffer.data());
         }
     } else {
-        const auto *sock_addr = reinterpret_cast<struct sockaddr_in6 *>(ifaddrs_ptr->ifa_addr);
-        if (inet_ntop(AF_INET6, &sock_addr->sin6_addr, buffer.data(), INET6_ADDRSTRLEN)) {
+        auto sock_addr = sockaddr_in6{};
+        memcpy(&sock_addr, ifaddrs_ptr->ifa_addr, min(sizeof(struct sockaddr_in6), sizeof(struct sockaddr)));
+        if (inet_ntop(AF_INET6, &sock_addr.sin6_addr, buffer.data(), INET6_ADDRSTRLEN)) {
             ip_str = string(buffer.data());
         }
     }

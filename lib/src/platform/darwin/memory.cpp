@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/assertion/include/assertion.h"
 #if defined(__APPLE__)
 #include "common/include/human_size.h"
 #include "common/include/information_definitions.h"
@@ -27,19 +28,24 @@ using mmotd::algorithm::string::to_human_size;
 
 namespace {
 
-bool GetVmStat(vm_statistics_data_t *vmstat) {
-    mach_msg_type_number_t count = sizeof(*vmstat) / sizeof(integer_t);
+bool GetVmStat(vm_statistics64_t vmstat) {
+    PRECONDITIONS(vmstat != nullptr, "vmstat is null");
     auto mach_port = mach_host_self();
     // auto deallocate the mach port
     auto mach_port_deallocator =
         sg::make_scope_guard([&mach_port]() noexcept { mach_port_deallocate(mach_task_self(), mach_port); });
 
-    auto retval = host_statistics(mach_port, HOST_VM_INFO, reinterpret_cast<host_info_t>(vmstat), &count);
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    auto buffer = array<integer_t, HOST_VM_INFO64_COUNT>{};
+    auto retval = host_statistics64(mach_port, HOST_VM_INFO64, data(buffer), &count);
     if (retval != KERN_SUCCESS) {
-        LOG_ERROR("when calling host_statistics, details: {}", mach_error_string(retval));
+        LOG_ERROR("when calling host_statistics64, details: {}", mach_error_string(retval));
         return false;
     }
 
+    static_assert(sizeof(vm_statistics64_data_t) == size(buffer) * sizeof(integer_t),
+                  "vm_statistics64 size is not equal to data size");
+    memcpy(vmstat, data(buffer), size(buffer));
     return true;
 }
 
@@ -65,31 +71,27 @@ optional<mmotd::platform::MemoryDetails> GetMemoryUsage() {
     }
     auto total = *total_memory_holder;
 
-    auto vm_statistics_data = vm_statistics_data_t{};
-    if (!GetVmStat(&vm_statistics_data)) {
+    auto vm_statistics = vm_statistics64_data_t{};
+    if (!GetVmStat(&vm_statistics)) {
         return nullopt;
     }
 
     const auto pagesize = getpagesize();
 
     LOG_VERBOSE("pagesize: {}", pagesize);
-    LOG_VERBOSE("active count: {}, {}",
-                to_human_size(vm_statistics_data.active_count),
-                vm_statistics_data.active_count);
-    LOG_VERBOSE("inactive count: {}, {}",
-                to_human_size(vm_statistics_data.inactive_count),
-                vm_statistics_data.inactive_count);
-    LOG_VERBOSE("wire count: {}, {}", to_human_size(vm_statistics_data.wire_count), vm_statistics_data.wire_count);
-    LOG_VERBOSE("free count: {}, {}", to_human_size(vm_statistics_data.free_count), vm_statistics_data.free_count);
+    LOG_VERBOSE("active count: {}, {}", to_human_size(vm_statistics.active_count), vm_statistics.active_count);
+    LOG_VERBOSE("inactive count: {}, {}", to_human_size(vm_statistics.inactive_count), vm_statistics.inactive_count);
+    LOG_VERBOSE("wire count: {}, {}", to_human_size(vm_statistics.wire_count), vm_statistics.wire_count);
+    LOG_VERBOSE("free count: {}, {}", to_human_size(vm_statistics.free_count), vm_statistics.free_count);
     LOG_VERBOSE("speculative count: {}, {}",
-                to_human_size(vm_statistics_data.speculative_count),
-                vm_statistics_data.speculative_count);
+                to_human_size(vm_statistics.speculative_count),
+                vm_statistics.speculative_count);
 
-    auto active = static_cast<uint64_t>(vm_statistics_data.active_count) * pagesize;
-    auto inactive = static_cast<uint64_t>(vm_statistics_data.inactive_count) * pagesize;
-    auto wired = static_cast<uint64_t>(vm_statistics_data.wire_count) * pagesize;
-    auto free = static_cast<uint64_t>(vm_statistics_data.free_count) * pagesize;
-    auto speculative = static_cast<uint64_t>(vm_statistics_data.speculative_count) * pagesize;
+    auto active = static_cast<uint64_t>(vm_statistics.active_count) * pagesize;
+    auto inactive = static_cast<uint64_t>(vm_statistics.inactive_count) * pagesize;
+    auto wired = static_cast<uint64_t>(vm_statistics.wire_count) * pagesize;
+    auto free = static_cast<uint64_t>(vm_statistics.free_count) * pagesize;
+    auto speculative = static_cast<uint64_t>(vm_statistics.speculative_count) * pagesize;
     LOG_VERBOSE("active: {}, {}", to_human_size(active), active);
     LOG_VERBOSE("inactive: {}, {}", to_human_size(inactive), inactive);
     LOG_VERBOSE("wired: {}, {}", to_human_size(wired), wired);

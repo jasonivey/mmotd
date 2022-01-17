@@ -6,6 +6,8 @@
 
 #include <istream>
 #include <sstream>
+#include <string>
+#include <string_view>
 #include <stdexcept>
 
 #include <boost/algorithm/string/split.hpp>
@@ -16,6 +18,7 @@
 using namespace Catch;
 using namespace Catch::Matchers;
 using namespace std;
+using namespace std::string_literals;
 namespace fs = std::filesystem;
 using namespace toml::literals::toml_literals;
 
@@ -68,8 +71,8 @@ CATCH_TEST_CASE("ConfigOptions test parsing stream", "[config options]") {
     auto &config_options = ConfigOptions::Instance(true);
     config_options.ParseConfigFile(input_stream);
 
-    CATCH_CHECK(config_options.GetString("title") == "this is TOML literal");
-    CATCH_CHECK(config_options.GetBoolean("color"));
+    CATCH_CHECK(config_options.GetString("title"sv) == "this is TOML literal");
+    CATCH_CHECK(config_options.GetBoolean("color"sv));
 }
 
 CATCH_TEST_CASE("ConfigOptions test with two tables", "[config options]") {
@@ -86,15 +89,15 @@ color = true
     auto &config_options = ConfigOptions::Instance(true);
     config_options.ParseConfigFile(input_stream);
 
-    CATCH_CHECK(config_options.Contains("version"));
-    CATCH_CHECK(config_options.GetString("version", "") == "0.99.88-alpha");
+    CATCH_CHECK(config_options.Contains("version"sv));
+    CATCH_CHECK(config_options.GetString("version"sv, ""sv) == "0.99.88-alpha");
     // CHECK(config_options.GetValueAt<int64_t>("nums", 0).value_or(-1) == 3);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 1).value_or(-1) == 1);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 2).value_or(-1) == 4);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 3).value_or(-1) == 1);
     // CHECK(config_options.GetValueAt<int64_t>("nums", 4).value_or(-1) == 5);
-    CATCH_CHECK(config_options.GetString("sub1.title", "") == "this is TOML literal");
-    CATCH_CHECK(config_options.GetBoolean("sub1.color", false));
+    CATCH_CHECK(config_options.GetString("sub1.title"sv, ""sv) == "this is TOML literal");
+    CATCH_CHECK(config_options.GetBoolean("sub1.color"sv, false));
 }
 
 CATCH_TEST_CASE("ConfigOptions test with empty string", "[config options]") {
@@ -111,7 +114,7 @@ color = true
     auto &config_options = ConfigOptions::Instance(true);
     config_options.ParseConfigFile(input_stream);
 
-    CATCH_CHECK(config_options.GetString("sub1.title", "config value doesn't have a value") ==
+    CATCH_CHECK(config_options.GetString("sub1.title"sv, "config value doesn't have a value"sv) ==
                 "config value doesn't have a value");
 }
 
