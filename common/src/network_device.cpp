@@ -53,12 +53,12 @@ void NetworkDevices::AddIpAddress(const string &interface_name, const IpAddress 
     network_device.ip_addresses.push_back(ip);
 }
 
-bool NetworkDevices::HasActiveBeenTested(const string &interface_name) const {
+bool NetworkDevices::HasActiveBeenTested(const string &interface_name) {
     auto &network_device = CreateOrFindInterface(interface_name);
     return network_device.HasActiveBeenTested();
 }
 
-bool NetworkDevices::IsActive(const string &interface_name) const {
+bool NetworkDevices::IsActive(const string &interface_name) {
     auto &network_device = CreateOrFindInterface(interface_name);
     return network_device.IsActive();
 }
@@ -101,22 +101,6 @@ NetworkDevice &NetworkDevices::CreateOrFindInterface(const string &interface_nam
     if (i == std::end(devices_)) {
         devices_.emplace_back(interface_name);
         return devices_.back();
-    } else {
-        auto &device = *i;
-        return device;
-    }
-}
-
-const NetworkDevice &NetworkDevices::CreateOrFindInterface(const string &interface_name) const {
-    auto i = find_if(std::cbegin(devices_), std::cend(devices_), [&interface_name](auto &device) {
-        return interface_name == device.interface_name;
-    });
-    if (i == std::cend(devices_)) {
-        // WARNING: this is only to avoid throwing an exception when item is not found.
-        //  If the app happens to run on read-only memory this could cause irreparable damage... app will die!
-        auto *non_const_devices = const_cast<vector<NetworkDevice> *>(&devices_);
-        non_const_devices->push_back(NetworkDevice{interface_name});
-        return non_const_devices->back();
     } else {
         auto &device = *i;
         return device;

@@ -34,18 +34,43 @@ public:
     template<typename T>
     void Override(std::string name, T value, std::string section = std::string{"core"});
 
+    bool Contains(const std::string_view &name) const { return Contains(std::string(name)); }
     bool Contains(const std::string &name) const;
 
+    std::optional<bool> GetBoolean(const std::string_view &name) const noexcept {
+        return GetBoolean(std::string(name));
+    }
     std::optional<bool> GetBoolean(const std::string &name) const noexcept;
+    bool GetBoolean(const std::string_view &name, bool default_value) const noexcept {
+        return GetBoolean(std::string(name), default_value);
+    }
     bool GetBoolean(const std::string &name, bool default_value) const noexcept;
 
+    std::optional<std::int64_t> GetInteger(const std::string_view &name) const noexcept {
+        return GetInteger(std::string(name));
+    }
     std::optional<std::int64_t> GetInteger(const std::string &name) const noexcept;
+    std::int64_t GetInteger(const std::string_view &name, std::int64_t default_value) const noexcept {
+        return GetInteger(std::string(name), default_value);
+    }
     std::int64_t GetInteger(const std::string &name, std::int64_t default_value) const noexcept;
 
+    std::optional<double> GetDouble(const std::string_view &name) const noexcept {
+        return GetDouble(std::string(name));
+    }
     std::optional<double> GetDouble(const std::string &name) const noexcept;
+    double GetDouble(const std::string_view &name, double default_value) const noexcept {
+        return GetDouble(std::string(name), default_value);
+    }
     double GetDouble(const std::string &name, double default_value) const noexcept;
 
+    std::optional<std::string> GetString(const std::string_view &name) const noexcept {
+        return GetString(std::string(name));
+    }
     std::optional<std::string> GetString(const std::string &name) const noexcept;
+    std::string GetString(const std::string_view &name, std::string_view default_value) const noexcept {
+        return GetString(std::string(name), std::string(default_value));
+    }
     std::string GetString(const std::string &name, std::string default_value) const noexcept;
 
     bool WriteDefaultConfigOptions(std::filesystem::path file_path) const;

@@ -5,6 +5,7 @@
 #include "lib/include/platform/hardware_temperature.h"
 
 #include <array>
+#include <cstring>
 #include <optional>
 #include <stdexcept>
 #include <string>
@@ -249,8 +250,10 @@ kern_return_t SystemManagementController::ReadKey(const KeyBuffer &key, Value &v
 
 double SystemManagementController::GetSP78Value(const Value &value) const {
     if (strcmp(data(value.data_type), DATATYPE_SP78) == 0 && value.data_size == 2) {
-        const auto *bytes = reinterpret_cast<const uint16_t *>(data(value.bytes));
-        return static_cast<int16_t>(ntohs(*bytes)) / 256.0;
+        auto network_sp78_value = uint16_t{0};
+        memcpy(&network_sp78_value, data(value.bytes), sizeof(uint16_t));
+        auto host_sp78_value = ntohs(network_sp78_value);
+        return static_cast<double>(host_sp78_value) / 256.0;
     } else {
         LOG_ERROR("attempting to convert a value which is not SP78 but ({})", quoted(string(data(value.data_type))));
         return 0.0;

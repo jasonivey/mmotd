@@ -39,8 +39,8 @@ public:
     void AddInterface(const std::string &interface_name);
     void AddMacAddress(const std::string &interface_name, const MacAddress &mac_address);
     void AddIpAddress(const std::string &interface_name, const IpAddress &ip);
-    bool HasActiveBeenTested(const std::string &interface_name) const;
-    bool IsActive(const std::string &interface_name) const;
+    bool HasActiveBeenTested(const std::string &interface_name);
+    bool IsActive(const std::string &interface_name);
     void SetActive(const std::string &interface_name, bool value);
 
     void FilterWorthless();
@@ -52,7 +52,6 @@ public:
 
 private:
     NetworkDevice &CreateOrFindInterface(const std::string &interface_name);
-    const NetworkDevice &CreateOrFindInterface(const std::string &interface_name) const;
 
     mutable std::vector<NetworkDevice> devices_;
 };

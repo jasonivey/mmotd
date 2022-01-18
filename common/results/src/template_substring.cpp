@@ -17,6 +17,7 @@
 
 using fmt::format;
 using namespace std;
+using namespace std::string_literals;
 using mmotd::core::ConfigOptions;
 
 namespace mmotd::results {
@@ -134,7 +135,7 @@ string TemplateSubstring::to_string(function<fmt::text_style(string)> convert_co
                 color_definitions_to_string(GetColorDefinitions()),
                 GetSubstring(),
                 GetSuffix());
-    static const auto color_output = ConfigOptions::Instance().GetBoolean("core.output_color", true);
+    static const auto color_output = ConfigOptions::Instance().GetBoolean("core.output_color"sv, true);
 
     if (!color_output) {
         return RemoveMultibyteAndEmbeddedColors(GetPrefix() + GetSubstring() + GetSuffix());

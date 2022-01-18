@@ -1,5 +1,5 @@
 ---
-Checks: '-*,modernize*,-modernize-use-nodiscard,-modernize-use-trailing-return-type,cppcoreguidelines*,-cppcoreguidelines-pro-type-reinterpret-cast'
+Checks: '-*,modernize*,-modernize-use-nodiscard,-modernize-use-trailing-return-type,cppcoreguidelines*,-cppcoreguidelines-pro-bounds-pointer-arithmetic'
 HeaderFilterRegex: '^(build\/_deps\/|\.vsbuild\/_deps\/|\/usr\/local\/|\/Library\/Developer\/|\/Applications\/Xcode\.app\/Contents\/Developer\/Platforms\/).*$'
 FormatStyle: file
 CheckOptions:

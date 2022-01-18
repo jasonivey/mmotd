@@ -78,10 +78,10 @@ bool IsRawStringValid(const char *beg, const char *end) {
 
 int GetStringWidth(const void *vbeg, const void *vend, size_t *width) {
     static auto width_cache = vector<pair<string, size_t>>{};
-    if (!IsRawStringValid(reinterpret_cast<const char *>(vbeg), reinterpret_cast<const char *>(vend))) {
+    if (!IsRawStringValid(static_cast<const char *>(vbeg), static_cast<const char *>(vend))) {
         return 1;
     }
-    auto input = string(reinterpret_cast<const char *>(vbeg), reinterpret_cast<const char *>(vend));
+    auto input = string(static_cast<const char *>(vbeg), static_cast<const char *>(vend));
     auto i = find_if(begin(width_cache), end(width_cache), [&input](const auto &cache_item) {
         const auto &[cache_str, _] = cache_item;
         return input == cache_str;
