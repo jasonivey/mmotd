@@ -46,10 +46,10 @@ inline const date::time_zone *GetTimeZone() {
 
 inline std::string lower_case_merīdiem(std::string input) {
     using boost::algorithm::replace_all_copy;
-    static constexpr const std::string_view ANTE_MERIDIEM = "AM";
-    static constexpr const std::string_view ANTE_MERIDIEM_LOWER = "am";
-    static constexpr const std::string_view POST_MERIDIEM = "PM";
-    static constexpr const std::string_view POST_MERIDIEM_LOWER = "pm";
+    static constexpr std::string_view ANTE_MERIDIEM = "AM";
+    static constexpr std::string_view ANTE_MERIDIEM_LOWER = "am";
+    static constexpr std::string_view POST_MERIDIEM = "PM";
+    static constexpr std::string_view POST_MERIDIEM_LOWER = "pm";
     return replace_all_copy(replace_all_copy(input, ANTE_MERIDIEM, ANTE_MERIDIEM_LOWER),
                             POST_MERIDIEM,
                             POST_MERIDIEM_LOWER);

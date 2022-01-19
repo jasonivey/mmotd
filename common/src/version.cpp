@@ -113,7 +113,7 @@ string version::to_string() const {
 namespace mmotd::version {
 
 const Version &Version::Instance() {
-    static auto version = Version(string_view{mmotd::version::MMOTD_VERSION});
+    static auto version = Version(mmotd::version::detail::MMOTD_VERSION);
     return version;
 }
 

@@ -171,6 +171,8 @@ void SetActiveDevice(NetworkDevices &network_devices,
 
 void AddIpAddress(NetworkDevices &network_devices, const struct ifaddrs *ifaddrs_ptr) {
     PRECONDITIONS(ifaddrs_ptr != nullptr, "input ifaddrs must be valid");
+    PRECONDITIONS(ifaddrs_ptr->ifa_addr != nullptr, "input ifa_addr must be valid");
+    PRECONDITIONS(ifaddrs_ptr->ifa_name != nullptr, "input ifa_name must be valid");
 
     static constexpr size_t BUFFER_SIZE = max(INET_ADDRSTRLEN, INET6_ADDRSTRLEN) + 1;
     auto buffer = array<char, BUFFER_SIZE>{0};

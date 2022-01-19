@@ -62,12 +62,12 @@ public:
     string GetLocalDateTime() const;
 
 private:
-    static constexpr const auto MORNING_EMOJIS =
+    static constexpr auto MORNING_EMOJIS =
         {"🌤"sv, "⛅"sv, "🌦️"sv, "🌤️"sv, "🌥️"sv, "🌈"sv, "🌦"sv};
-    static constexpr const auto AFTERNOON_EMOJIS = {"🌎"sv, "🌎"sv, "🌍"sv, "🌏"sv, "⛱"sv, "🏖"sv};
-    static constexpr const auto EVENING_EMOJIS =
+    static constexpr auto AFTERNOON_EMOJIS = {"🌎"sv, "🌎"sv, "🌍"sv, "🌏"sv, "⛱"sv, "🏖"sv};
+    static constexpr auto EVENING_EMOJIS =
         {"🌙"sv, "🌖"sv, "🌕"sv, "🌓"sv, "🌛"sv, "🌝"sv, "🌗"sv, "🌜"sv, "🌑"sv, "🌚"sv, "🌘"sv, "🌒"sv, "🌔"sv};
-    static constexpr const auto NIGHT_EMOJIS = {"⭐"sv, "💫"sv, "🌟"sv, "☄"sv};
+    static constexpr auto NIGHT_EMOJIS = {"⭐"sv, "💫"sv, "🌟"sv, "☄"sv};
 
     // Morning from 5am - 12pm
     const Greeting MORNING_GREETING = Greeting{"Morning"sv, HourType{5}, HourType{12}, MORNING_EMOJIS};

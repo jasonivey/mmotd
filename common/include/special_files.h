@@ -13,8 +13,8 @@ std::string ExpandEnvironmentVariables(std::string input);
 
 bool IsStdoutTty();
 
-constexpr const std::string_view CONFIG_FILENAME = "mmotd_config.toml";
-constexpr const std::string_view TEMPLATE_FILENAME = "mmotd_template.json";
+constexpr std::string_view CONFIG_FILENAME = "mmotd_config.toml";
+constexpr std::string_view TEMPLATE_FILENAME = "mmotd_template.json";
 
 std::vector<std::filesystem::path> GetDefaultLocations();
 std::string GetDefaultLocationsStr();
