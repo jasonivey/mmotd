@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include <iterator>
 #if defined(__APPLE__)
 #include "common/assertion/include/assertion.h"
 #include "common/include/logging.h"
@@ -23,12 +24,12 @@ using namespace std;
 
 namespace {
 
-constexpr const int KERNEL_INDEX = 2;
+constexpr int KERNEL_INDEX = 2;
 
-constexpr const char READ_BYTES_CMD = 5;
-constexpr const char READ_KEYINFO_CMD = 9;
+constexpr char READ_BYTES_CMD = 5;
+constexpr char READ_KEYINFO_CMD = 9;
 
-static const char *const DATATYPE_SP78 = "sp78";
+static constexpr string_view DATATYPE_SP78 = "sp78";
 
 struct KeyDataVersion {
     char major = 0;
@@ -249,7 +250,7 @@ kern_return_t SystemManagementController::ReadKey(const KeyBuffer &key, Value &v
 }
 
 double SystemManagementController::GetSP78Value(const Value &value) const {
-    if (strcmp(data(value.data_type), DATATYPE_SP78) == 0 && value.data_size == 2) {
+    if (strncmp(data(value.data_type), data(DATATYPE_SP78), size(DATATYPE_SP78)) == 0 && value.data_size == 2) {
         auto network_sp78_value = uint16_t{0};
         memcpy(&network_sp78_value, data(value.bytes), sizeof(uint16_t));
         auto host_sp78_value = ntohs(network_sp78_value);
@@ -261,7 +262,7 @@ double SystemManagementController::GetSP78Value(const Value &value) const {
 }
 
 bool SystemManagementController::ReadCpuTemperature() {
-    static constexpr const array<char, 5> CPU_TEMPERATURE_KEY{"TC0P"};
+    static constexpr array<char, 5> CPU_TEMPERATURE_KEY{"TC0P"};
     Value value;
     auto result = ReadKey(CPU_TEMPERATURE_KEY, value);
     if (result == kIOReturnSuccess) {
@@ -275,7 +276,7 @@ bool SystemManagementController::ReadCpuTemperature() {
 }
 
 bool SystemManagementController::ReadGpuTemperature() {
-    static constexpr const array<char, 5> GPU_TEMPERATURE_KEY{"TG0P"};
+    static constexpr array<char, 5> GPU_TEMPERATURE_KEY{"TG0P"};
     Value value;
     auto result = ReadKey(GPU_TEMPERATURE_KEY, value);
     if (result == kIOReturnSuccess) {

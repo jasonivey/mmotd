@@ -28,9 +28,9 @@ using mmotd::results::data::TemplateItemSettings;
 
 namespace {
 
-static constexpr const auto TerminalColors =
+static constexpr auto TerminalColors =
     array<const char *, 8>{"black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"};
-static constexpr const auto TerminalColorIndexes = array<fmt::terminal_color, 16>{fmt::terminal_color::black,
+static constexpr auto TerminalColorIndexes = array<fmt::terminal_color, 16>{fmt::terminal_color::black,
                                                                                   fmt::terminal_color::red,
                                                                                   fmt::terminal_color::green,
                                                                                   fmt::terminal_color::yellow,

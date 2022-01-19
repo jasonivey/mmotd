@@ -58,7 +58,7 @@ optional<mmotd::system::KernelDetails> GetKernelDetails() {
     return make_optional(kernel_details);
 }
 
-constexpr static const char *OS_RELEASE = "/etc/os-release";
+static constexpr string_view OS_RELEASE = "/etc/os-release";
 
 vector<string> GetOsVersionFile() {
     auto os_release_path = fs::path(OS_RELEASE);

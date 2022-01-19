@@ -44,10 +44,10 @@ namespace {
 
 #if defined(__APPLE__)
 
-static constexpr const uint32_t STRFILE_VERSION = 1;
+static constexpr uint32_t STRFILE_VERSION = 1;
 using StrFileIntType = uint64_t;
-static constexpr const size_t STRFILE_HEADER_PADDING = sizeof(StrFileIntType);
-static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = true;
+static constexpr size_t STRFILE_HEADER_PADDING = sizeof(StrFileIntType);
+static constexpr bool STRFILE_ENTRY_CONTAINS_NULL_INT = true;
 
 string_view GetPlatformFortunesPath() {
     return "/usr/local/opt/fortune/share/games/fortunes";
@@ -55,10 +55,10 @@ string_view GetPlatformFortunesPath() {
 
 #elif defined(__linux__)
 
-static constexpr const uint32_t STRFILE_VERSION = 2;
+static constexpr uint32_t STRFILE_VERSION = 2;
 using StrFileIntType = uint32_t;
-static constexpr const size_t STRFILE_HEADER_PADDING = 0;
-static constexpr const bool STRFILE_ENTRY_CONTAINS_NULL_INT = false;
+static constexpr size_t STRFILE_HEADER_PADDING = 0;
+static constexpr bool STRFILE_ENTRY_CONTAINS_NULL_INT = false;
 
 string_view GetPlatformFortunesPath() {
     return "/usr/share/games/fortunes";
@@ -66,7 +66,7 @@ string_view GetPlatformFortunesPath() {
 
 #endif
 
-static constexpr const size_t STRFILE_ENTRY_SIZE = sizeof(StrFileIntType);
+static constexpr size_t STRFILE_ENTRY_SIZE = sizeof(StrFileIntType);
 
 struct StrFileHeader {
     StrFileHeader() = default;

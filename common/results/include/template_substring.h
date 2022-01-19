@@ -55,7 +55,7 @@ private:
     ColorDefinitions color_definitions_;
     SubstringRange suffix_;
 
-    inline static constexpr const std::string_view COLOR_RESET = "color:reset()";
+    inline static constexpr std::string_view COLOR_RESET = "color:reset()";
 };
 
 } // namespace mmotd::results

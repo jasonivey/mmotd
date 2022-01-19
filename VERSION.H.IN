@@ -1,12 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
+#include <string_view>
 //
 // BUILD GENERATED FILE -- DO NOT MODIFY
 //   MODIFICATIONS WILL BE OVERWRITTEN
 //
-namespace mmotd::version {
+namespace mmotd::version::detail {
 
-inline constexpr const char *MMOTD_VERSION = "@MMOTD_VERSION@+@MMOTD_GIT_REVISION@";
+inline constexpr std::string_view MMOTD_VERSION = "@MMOTD_VERSION@+@MMOTD_GIT_REVISION@";
 
-} // namespace mmotd::version
-
+} // namespace mmotd::version::detail

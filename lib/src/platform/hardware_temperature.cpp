@@ -69,8 +69,8 @@ string Temperature::GetTemperatureIcon() const noexcept {
 }
 
 Temperature::Scale Temperature::GetScale() const noexcept {
-    static constexpr const auto MEDIUM_TEMPERATURE = 75.0;
-    static constexpr const auto HIGH_TEMPERATURE = 90.0;
+    static constexpr auto MEDIUM_TEMPERATURE = 75.0;
+    static constexpr auto HIGH_TEMPERATURE = 90.0;
     if (value_ < MEDIUM_TEMPERATURE) {
         return Scale::Low;
     } else if (value_ < HIGH_TEMPERATURE) {
