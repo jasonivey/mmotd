@@ -15,6 +15,7 @@ set_default_policies()
 
 if (APPLE)
     set (ZLIB_ROOT /usr/local/opt/zlib)
+    set (OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 endif ()
 
 find_package(Threads REQUIRED)
@@ -30,6 +31,7 @@ if (APPLE)
     find_path(LIBDL_INCLUDE_DIR NAMES "dlfcn.h" PATHS ${CMAKE_OSX_SYSROOT}/usr/include)
     find_library(LIBBFD_LIBRARY bfd PATHS /usr/local/opt/binutils/lib)
     find_library(LIBIBERTY_LIBRARY iberty PATHS /usr/local/opt/binutils/lib)
+    add_single_definition(CMAKE_EXE_LINKER_FLAGS "-L/usr/local/opt/binutils/lib")
     find_library(FWCoreFoundation NAMES CoreFoundation REQUIRED)
     find_library(FWSecurity NAMES Security REQUIRED)
     find_library(FWIOKit NAMES IOKit REQUIRED)
@@ -82,24 +84,36 @@ if (IS_DIRECTORY "${DEPS_DIR_RANDOM}")
     set(FETCHCONTENT_SOURCE_DIR_RANDOM      ${DEPS_DIR_RANDOM}      CACHE PATH "random dependency cache"      FORCE)
 endif ()
 
+# Note: no longer using FetchContent_MakeAvailable on the components which
+#  support it because there is no way to pass `EXCLUDE_FROM_ALL` to the
+#  `add_subdirectory` call which it makes.
+
 # Component: date.  Howard Hinnant's Date library (author of the std::chrono library among others)
 option (BUILD_TZ_LIB "build/install of TZ library" ON)
 FetchContent_Declare(date
     GIT_REPOSITORY   https://github.com/HowardHinnant/date.git
     GIT_TAG          v3.0.1
 )
-set(MESSAGE_QUIET ON)
-FetchContent_MakeAvailable(date)
-unset(MESSAGE_QUIET)
+FetchContent_GetProperties(date)
+if (NOT date_POPULATED)
+    FetchContent_Populate(date)
+    set(MESSAGE_QUIET ON)
+    add_subdirectory(${date_SOURCE_DIR} ${date_BINARY_DIR} EXCLUDE_FROM_ALL)
+    unset(MESSAGE_QUIET)
+endif ()
 
 # Component: Backward.  Stack trace library
-FetchContent_Declare(Backward
+FetchContent_Declare(backward
     GIT_REPOSITORY   https://github.com/bombela/backward-cpp.git
     GIT_TAG          v1.6
 )
-set(MESSAGE_QUIET ON)
-FetchContent_MakeAvailable(Backward)
-unset(MESSAGE_QUIET)
+FetchContent_GetProperties(backward)
+if (NOT backward_POPULATED)
+    FetchContent_Populate(backward)
+    set(MESSAGE_QUIET ON)
+    add_subdirectory(${backward_SOURCE_DIR} ${backward_BINARY_DIR} EXCLUDE_FROM_ALL)
+    unset(MESSAGE_QUIET)
+endif ()
 
 # Component: libfort (Library to create FORmatted Tables)
 set(FORT_ENABLE_TESTING OFF CACHE INTERNAL "")
@@ -120,7 +134,11 @@ FetchContent_Declare(catch2
     GIT_REPOSITORY   https://github.com/catchorg/Catch2.git
     GIT_TAG          v2.13.7
 )
-FetchContent_MakeAvailable(catch2)
+FetchContent_GetProperties(catch2)
+if (NOT catch2_POPULATED)
+    FetchContent_Populate(catch2)
+    add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif ()
 
 # Component: json.  The lightweight repository of nlohmann/json which provides json support.
 FetchContent_Declare(json

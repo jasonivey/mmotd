@@ -51,20 +51,23 @@ size_t GetColumnWidth(const mmotd::information::Informations &informations) {
 void PrintMmotdRaw() {
     auto &computer_information = mmotd::information::ComputerInformation::Instance();
     const auto &informations = computer_information.GetAllInformation();
+    auto output_lines = vector<string>{};
     const auto width = GetColumnWidth(informations);
     for (const auto &information : informations) {
         auto name = GetInformationNameString(information);
         auto value = GetInformationValueString(information);
         if (!empty(name) && !empty(value)) {
             if (width > 0) {
-                print(FMT_STRING("  {:<{}} {}\n"), name, width, value);
+                output_lines.push_back(format(FMT_STRING("  {:<{}} {}\n"), name, width, value));
             } else {
-                print(FMT_STRING("  {}{}\n"), name, value);
+                output_lines.push_back(format(FMT_STRING("  {}{}\n"), name, value));
             }
         } else if (!empty(value)) {
-            print(FMT_STRING("{}\n"), value);
+            output_lines.push_back(format(FMT_STRING("{}\n"), value));
         }
     }
+    sort(begin(output_lines), end(output_lines));
+    copy(begin(output_lines), end(output_lines), ostream_iterator<string>(cout));
 }
 
 int main_impl(int, char **argv) {

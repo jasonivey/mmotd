@@ -10,53 +10,69 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          #- {
-          #    name: "Windows Latest - MSVC",
-          #    artifact: "windows-msvc.tar.xz",
-          #    os: windows-latest,
-          #    cc: "cl",
-          #    cxx: "cl",
-          #  }
-          # - {
-          #     name: "Windows Latest - MinGW", artifact: "windows-mingw.tar.xz",
-          #     os: windows-latest,
-          #     cc: "gcc", cxx: "g++"
-          #   }
           - {
-              name: "Ubuntu 20.04 - GCC-10 debug",
-              artifact: "linux-gcc10-debug.tar.xz",
+              name: "Ubuntu Latest: gcc-10 debug",
+              artifact: "mmotd-ubuntu-x86_64-gcc-10-debug-${{ github.sha }}.tar.gz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "gcc-10",
-              cxx: "g++-10",
-              cxx_standard: 17
+              cxx: "g++-10"
             }
           - {
-              name: "Ubuntu 20.04 - GCC-10 release",
-              artifact: "linux-gcc10-release.tar.xz",
+              name: "Ubuntu Latest: gcc-10 release",
+              artifact: "mmotd-ubuntu-x86_64gcc-10-release-${{ github.sha }}.tar.gz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "gcc-10",
-              cxx: "g++-10",
-              cxx_standard: 17
+              cxx: "g++-10"
             }
           - {
-              name: "Ubuntu 20.04 - clang-11 debug",
-              artifact: "linux-clang11-debug.tar.xz",
+              name: "Ubuntu Latest: gcc-11 debug",
+              artifact: "mmotd-ubuntu-x86_64-gcc-11-debug-${{ github.sha }}.tar.gz",
               os: ubuntu-latest,
               build_type: Debug,
-              cc: "clang-11",
-              cxx: "clang++-11",
-              cxx_standard: 17
+              cc: "gcc-11",
+              cxx: "g++-11"
             }
           - {
-              name: "Ubuntu 20.04 - clang-11 release",
-              artifact: "linux-clang11-release.tar.xz",
+              name: "Ubuntu Latest: gcc-11 release",
+              artifact: "mmotd-ubuntu-x86_64-gcc-11-release-${{ github.sha }}.tar.gz",
               os: ubuntu-latest,
               build_type: Release,
-              cc: "clang-11",
-              cxx: "clang++-11",
-              cxx_standard: 17
+              cc: "gcc-11",
+              cxx: "g++-11"
+            }
+          - {
+              name: "Ubuntu Latest: clang-12 debug",
+              artifact: "mmotd-ubuntu-x86_64-clang-12-debug-${{ github.sha }}.tar.gz",
+              os: ubuntu-latest,
+              build_type: Debug,
+              cc: "clang-12",
+              cxx: "clang++-12"
+            }
+          - {
+              name: "Ubuntu Latest: clang-12 release",
+              artifact: "mmotd-ubuntu-x86_64-clang-12-release-${{ github.sha }}.tar.gz",
+              os: ubuntu-latest,
+              build_type: Release,
+              cc: "clang-12",
+              cxx: "clang++-12"
+            }
+          - {
+              name: "Ubuntu Latest: clang-13 debug",
+              artifact: "mmotd-ubuntu-x86_64-clang-13-debug-${{ github.sha }}.tar.gz",
+              os: ubuntu-latest,
+              build_type: Debug,
+              cc: "clang-13",
+              cxx: "clang++-13"
+            }
+          - {
+              name: "Ubuntu Latest: clang-13 release",
+              artifact: "mmotd-ubuntu-x86_64-clang-13-release-${{ github.sha }}.tar.gz",
+              os: ubuntu-latest,
+              build_type: Release,
+              cc: "clang-13",
+              cxx: "clang++-13"
             }
     steps:
       - uses: actions/checkout@v2
@@ -64,34 +80,8 @@ jobs:
           fetch-depth: 0
       - uses: seanmiddleditch/gha-setup-ninja@master
 
-      #- name: Set Windows ENV
-      #  if: runner.os == 'Windows'
-      #  uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install Linux Clang-11 Dependencies
-        if: runner.os == 'Linux' && matrix.config.cxx == 'clang++-11'
-        shell: bash
-        run: |
-          sudo apt-get update -y && sudo apt-get install -y apt-utils software-properties-common \
-            curl libcurl4 libcurl4-openssl-dev pkg-config wget gnupg
-          wget -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
-          sudo APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add /tmp/llvm-snapshot.gpg.key
-          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
-          echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
-          sudo apt-get update -y && sudo apt-get install -y build-essential git ca-certificates cmake ninja-build autoconf \
-            automake libtool flex bison binutils binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev gdbserver gettext \
-            gnu-standards libboost-dev libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump elfutils \
-            libelf1 libelf-dev libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev tar unzip zip libcrypt1 \
-            libcrypt-dev openssl libssl-dev libllvm11 llvm-11 llvm-11-dev llvm-11-runtime clang-11 clang-tools-11 \
-            libclang-common-11-dev libclang-11-dev libclang1-11 clang-format-11 clangd-11 libfuzzer-11-dev lldb-11 lld-11 \
-            libc++-11-dev libc++abi-11-dev libomp-11-dev
-          sudo apt-get autoclean
-          sudo apt-get autoremove
-          sudo apt-get clean
-          sudo rm -rf /var/lib/apt/lists/*
-
-      - name: Install Linux GCC-10 Dependencies
-        if: runner.os == 'Linux' && matrix.config.cxx == 'g++-10'
+      - name: Install Linux Base Packages
+        if: runner.os == 'Linux'
         shell: bash
         run: |
           sudo apt-get update -y && sudo apt-get install -y apt-utils software-properties-common curl libcurl4 \
@@ -99,7 +89,61 @@ jobs:
             autoconf automake libtool flex bison binutils binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev \
             gdbserver gettext gnu-standards libboost-dev libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump \
             elfutils libelf1 libelf-dev libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev \
-            tar unzip zip libcrypt1 libcrypt-dev openssl libssl-dev cpp-10 gcc-10 g++-10
+            tar unzip zip libcrypt1 libcrypt-dev openssl libssl-dev
+          sudo apt-get autoclean
+          sudo apt-get autoremove
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Linux gcc-10
+        if: runner.os == 'Linux' && matrix.config.cxx == 'g++-10'
+        shell: bash
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update -y && sudo apt-get install -y cpp-10 gcc-10 g++-10
+          sudo apt-get autoclean
+          sudo apt-get autoremove
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Linux gcc-11
+        if: runner.os == 'Linux' && matrix.config.cxx == 'g++-11'
+        shell: bash
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update -y && sudo apt-get install -y cpp-11 gcc-11 g++-11
+          sudo apt-get autoclean
+          sudo apt-get autoremove
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Linux clang-12
+        if: runner.os == 'Linux' && matrix.config.cxx == 'clang++-12'
+        shell: bash
+        run: |
+          wget -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+          sudo APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add /tmp/llvm-snapshot.gpg.key
+          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-12 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update -y && sudo apt-get install -y libllvm12 llvm-12 llvm-12-dev llvm-12-runtime clang-12 \
+            clang-tools-12 libclang-common-12-dev libclang-12-dev libclang1-12 clang-format-12 clangd-12 \
+            libfuzzer-12-dev libunwind-12 libunwind-12-dev lldb-12 lld-12 libc++-12-dev libc++abi-12-dev libomp-12-dev
+          sudo apt-get autoclean
+          sudo apt-get autoremove
+          sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Linux clang-13
+        if: runner.os == 'Linux' && matrix.config.cxx == 'clang++-13'
+        shell: bash
+        run: |
+          wget -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+          sudo APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add /tmp/llvm-snapshot.gpg.key
+          echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          sudo apt-get update -y && sudo apt-get install -y libllvm13 llvm-13 llvm-13-dev llvm-13-runtime clang-13 \
+            clang-tools-13 libclang-common-13-dev libclang-13-dev libclang1-13 clang-format-13 clangd-13 \
+            libfuzzer-13-dev libunwind-13 libunwind-13-dev lldb-13 lld-13 libc++-13-dev libc++abi-13-dev libomp-13-dev
           sudo apt-get autoclean
           sudo apt-get autoremove
           sudo apt-get clean
@@ -108,8 +152,11 @@ jobs:
       - name: Configure
         shell: bash
         run: |
-          mkdir build
-          CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} -GNinja -DCMAKE_C_COMPILER=${{ matrix.config.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }}
+          mkdir -p build
+          CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} cmake -S . -B build -GNinja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -DCMAKE_C_COMPILER=${{ matrix.config.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }}
 
       - name: Build
         shell: bash
@@ -117,4 +164,20 @@ jobs:
 
       - name: Test
         shell: bash
-        run: cd build && ctest --verbose --output-on-failure
+        run: cd build && ctest --output-on-failure
+
+      - name: Install
+        shell: bash
+        run: cmake --install build --prefix build/install_dir
+
+      - name: Package install
+        shell: bash
+        run: tar -C build/install_dir -czf ${{ matrix.config.artifact }} .
+
+      - name: Upload artifact
+        # If this is being run locally then DO NOT attempt to upload the artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.config.artifact }}
+          path: ${{ github.workspace }}

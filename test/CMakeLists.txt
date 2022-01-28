@@ -34,3 +34,7 @@ include(CTest)
 include(ParseAndAddCatchTests)
 
 ParseAndAddCatchTests(${MMOTD_TARGET_NAME})
+
+install(TARGETS "${MMOTD_TARGET_NAME}"
+        CONFIGURATIONS "${CMAKE_BUILD_TYPE}"
+        RUNTIME DESTINATION "${CMAKE_BUILD_TYPE}/bin")

@@ -39,10 +39,10 @@ INFO_DEF(LOCATION_INFO, ZIP_CODE, "zip code", "{}", 4004)
 INFO_DEF(LOCATION_INFO, STATE, "state", "{}", 4005)
 INFO_DEF(LOCATION_INFO, TIMEZONE, "timezone", "{}", 4006)
 
-INFO_DEF(FILE_SYSTEM, PERCENT_USED, "percent used", "{:.01f}%", 5001)
-INFO_DEF(FILE_SYSTEM, TOTAL, "total", "{}", 5002)
-INFO_DEF(FILE_SYSTEM, FREE, "free", "{}", 5003)
-INFO_DEF(FILE_SYSTEM, SUMMARY, "summary", "{}", 5004)
+INFO_DEF(FILE_SYSTEM, PERCENT_USED, "disk percent used", "{:.01f}%", 5001)
+INFO_DEF(FILE_SYSTEM, TOTAL, "disk total", "{}", 5002)
+INFO_DEF(FILE_SYSTEM, FREE, "disk free", "{}", 5003)
+INFO_DEF(FILE_SYSTEM, SUMMARY, "disk summary", "{}", 5004)
 
 INFO_DEF(FORTUNE, FORTUNE, "", "{}", 6001)
 
@@ -52,18 +52,18 @@ INFO_DEF(LAST_LOGIN, LOGOUT_TIME, "logout time", "{}", 7003)
 
 INFO_DEF(LOAD_AVERAGE, LOAD_AVERAGE, "load average", "{:.02f}", 9001)
 
-INFO_DEF(MEMORY_USAGE, TOTAL, "total", "{}", 10001)
-INFO_DEF(MEMORY_USAGE, PERCENT_USED, "percent used", "{:.01f}%", 10002)
-INFO_DEF(MEMORY_USAGE, FREE, "free", "{}", 10003)
-INFO_DEF(MEMORY_USAGE, SUMMARY, "summary", "{}", 10004)
+INFO_DEF(MEMORY_USAGE, TOTAL, "memory total", "{}", 10001)
+INFO_DEF(MEMORY_USAGE, PERCENT_USED, "memory percent used", "{:.01f}%", 10002)
+INFO_DEF(MEMORY_USAGE, FREE, "memory free", "{}", 10003)
+INFO_DEF(MEMORY_USAGE, SUMMARY, "memory summary", "{}", 10004)
 
 INFO_DEF(PROCESSES, PROCESS_COUNT, "process count", "{}", 11001)
 
-INFO_DEF(SWAP_USAGE, TOTAL, "total", "{}", 12001)
-INFO_DEF(SWAP_USAGE, PERCENT_USED, "precent used", "{:.01f}%", 12002)
-INFO_DEF(SWAP_USAGE, FREE, "free", "{}", 12003)
-INFO_DEF(SWAP_USAGE, ENCRYPTED, "encrypted", "{}", 12004)
-INFO_DEF(SWAP_USAGE, SUMMARY, "summary", "{}", 12005)
+INFO_DEF(SWAP_USAGE, TOTAL, "swap total", "{}", 12001)
+INFO_DEF(SWAP_USAGE, PERCENT_USED, "swap precent used", "{:.01f}%", 12002)
+INFO_DEF(SWAP_USAGE, FREE, "swap free", "{}", 12003)
+INFO_DEF(SWAP_USAGE, ENCRYPTED, "swap encrypted", "{}", 12004)
+INFO_DEF(SWAP_USAGE, SUMMARY, "swap summary", "{}", 12005)
 
 INFO_DEF(SYSTEM_INFORMATION, HOST_NAME, "hostname", "{}", 13001)
 INFO_DEF(SYSTEM_INFORMATION, COMPUTER_NAME, "computer name", "{}", 13002)
@@ -77,7 +77,7 @@ INFO_DEF(SYSTEM_INFORMATION, PLATFORM_NAME, "platform name", "{}", 13008)
 INFO_DEF(LOGGED_IN, USER_LOGGED_IN, "users logged in", "{}", 14001)
 
 INFO_DEF(WEATHER, WEATHER, "weather", "{}", 15001)
-INFO_DEF(WEATHER, LOCATION, "location", "{}", 15002)
+INFO_DEF(WEATHER, LOCATION, "weather location", "{}", 15002)
 INFO_DEF(WEATHER, SUNRISE, "sunrise", "{}", 15003)
 INFO_DEF(WEATHER, SUNSET, "sunset", "{}", 15004)
 

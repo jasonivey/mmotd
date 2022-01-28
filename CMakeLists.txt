@@ -35,3 +35,6 @@ enable_testing()
 add_subdirectory(test)
 
 include(copy_compile_commands)
+
+install(FILES config/mmotd_config.toml config/mmotd_template.json config/softwareengineering.txt
+        DESTINATION ".config/mmotd")
