@@ -11,8 +11,16 @@ jobs:
       matrix:
         config:
           - {
+              name: "macOS Latest: apple-clang release",
+              artifact: "macos-apple-clang-release-${GITHUB_SHA::8}.tar.xz",
+              os: macos-latest,
+              build_type: Release,
+              cc: "/usr/bin/clang",
+              cxx: "/usr/bin/clang++"
+            }
+          - {
               name: "Ubuntu Latest: gcc-10 debug",
-              artifact: "mmotd-ubuntu-x86_64-gcc-10-debug-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-10-debug-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "gcc-10",
@@ -20,7 +28,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: gcc-10 release",
-              artifact: "mmotd-ubuntu-x86_64gcc-10-release-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-10-release-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "gcc-10",
@@ -28,7 +36,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: gcc-11 debug",
-              artifact: "mmotd-ubuntu-x86_64-gcc-11-debug-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-11-debug-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "gcc-11",
@@ -36,7 +44,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: gcc-11 release",
-              artifact: "mmotd-ubuntu-x86_64-gcc-11-release-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-11-release-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "gcc-11",
@@ -44,7 +52,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-12 debug",
-              artifact: "mmotd-ubuntu-x86_64-clang-12-debug-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-clang-12-debug-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "clang-12",
@@ -52,7 +60,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-12 release",
-              artifact: "mmotd-ubuntu-x86_64-clang-12-release-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-clang-12-release-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "clang-12",
@@ -60,7 +68,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-13 debug",
-              artifact: "mmotd-ubuntu-x86_64-clang-13-debug-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-clang-13-debug-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "clang-13",
@@ -68,7 +76,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-13 release",
-              artifact: "mmotd-ubuntu-x86_64-clang-13-release-${{ github.sha }}.tar.gz",
+              artifact: "mmotd-ubuntu-x86_64-clang-13-release-${GITHUB_SHA::8}.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "clang-13",
@@ -149,6 +157,16 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
+      - name: Install macOS clang-13
+        if: runner.os == 'macOS' && matrix.config.cxx == '/usr/bin/clang++'
+        shell: bash
+        run: |
+          brew install binutils boost cmake coreutils git libtool m4 make ninja openssl@1.1 readline zlib
+          sed -i '' -e 's%\"--with-system-zlib\",%\"--with-system-zlib\",\"--enable-install-libiberty\",%g' `brew edit --print-path binutils`
+          brew reinstall -s binutils
+          echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
+          echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
+
       - name: Configure
         shell: bash
         run: |
@@ -172,7 +190,7 @@ jobs:
 
       - name: Package install
         shell: bash
-        run: tar -C build/install_dir -czf ${{ matrix.config.artifact }} .
+        run: tar -C build/install_dir -cJf ${{ matrix.config.artifact }} .
 
       - name: Upload artifact
         # If this is being run locally then DO NOT attempt to upload the artifacts
@@ -180,4 +198,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.config.artifact }}
-          path: ${{ github.workspace }}
+          path: ${{ matrix.config.artifact }}
