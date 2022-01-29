@@ -6,13 +6,14 @@ jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
+    # -${{ GITHUB_SHA::8 }}
     strategy:
       fail-fast: false
       matrix:
         config:
           - {
               name: "macOS Latest: apple-clang release",
-              artifact: "macos-apple-clang-release-${GITHUB_SHA::8}.tar.xz",
+              artifact: "macos-apple-clang-release.tar.xz",
               os: macos-latest,
               build_type: Release,
               cc: "/usr/bin/clang",
@@ -20,7 +21,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: gcc-10 debug",
-              artifact: "mmotd-ubuntu-x86_64-gcc-10-debug-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-10-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "gcc-10",
@@ -28,7 +29,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: gcc-10 release",
-              artifact: "mmotd-ubuntu-x86_64-gcc-10-release-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-10-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "gcc-10",
@@ -36,7 +37,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: gcc-11 debug",
-              artifact: "mmotd-ubuntu-x86_64-gcc-11-debug-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-11-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "gcc-11",
@@ -44,7 +45,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: gcc-11 release",
-              artifact: "mmotd-ubuntu-x86_64-gcc-11-release-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-gcc-11-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "gcc-11",
@@ -52,7 +53,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-12 debug",
-              artifact: "mmotd-ubuntu-x86_64-clang-12-debug-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-clang-12-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "clang-12",
@@ -60,7 +61,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-12 release",
-              artifact: "mmotd-ubuntu-x86_64-clang-12-release-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-clang-12-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "clang-12",
@@ -68,7 +69,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-13 debug",
-              artifact: "mmotd-ubuntu-x86_64-clang-13-debug-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-clang-13-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
               cc: "clang-13",
@@ -76,7 +77,7 @@ jobs:
             }
           - {
               name: "Ubuntu Latest: clang-13 release",
-              artifact: "mmotd-ubuntu-x86_64-clang-13-release-${GITHUB_SHA::8}.tar.xz",
+              artifact: "mmotd-ubuntu-x86_64-clang-13-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
               cc: "clang-13",

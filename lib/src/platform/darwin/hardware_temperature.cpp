@@ -173,7 +173,13 @@ SystemManagementController::~SystemManagementController() {
 
 void SystemManagementController::Open() {
     mach_port_t master_port = 0;
+
+#if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) &&                                                          \
+    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= MAC_OS_VERSION_12_0
     IOMainPort(MACH_PORT_NULL, &master_port);
+#else
+    IOMasterPort(MACH_PORT_NULL, &master_port);
+#endif
 
     CFMutableDictionaryRef matching_dict = IOServiceMatching("AppleSMC");
 
