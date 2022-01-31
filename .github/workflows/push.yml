@@ -44,6 +44,22 @@ jobs:
               cxx: "/usr/local/opt/llvm@12/bin/clang++"
             }
           - {
+              name: "macOS Latest: clang-13 release",
+              artifact: "macos-clang-13-release.tar.xz",
+              os: macos-latest,
+              build_type: Release,
+              cc: "/usr/local/opt/llvm@13/bin/clang-13",
+              cxx: "/usr/local/opt/llvm@13/bin/clang++"
+            }
+          - {
+              name: "macOS Latest: clang-13 debug",
+              artifact: "macos-clang-13-debug.tar.xz",
+              os: macos-latest,
+              build_type: Debug,
+              cc: "/usr/local/opt/llvm@13/bin/clang-13",
+              cxx: "/usr/local/opt/llvm@13/bin/clang++"
+            }
+          - {
               name: "Ubuntu Latest: gcc-10 debug",
               artifact: "mmotd-ubuntu-x86_64-gcc-10-debug.tar.xz",
               os: ubuntu-latest,
@@ -128,7 +144,7 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install Linux gcc-10
+      - name: Install Linux gcc-10 Compiler
         if: runner.os == 'Linux' && matrix.config.cxx == 'g++-10'
         shell: bash
         run: |
@@ -139,7 +155,7 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install Linux gcc-11
+      - name: Install Linux gcc-11 Compiler
         if: runner.os == 'Linux' && matrix.config.cxx == 'g++-11'
         shell: bash
         run: |
@@ -150,7 +166,7 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install Linux clang-12
+      - name: Install Linux clang-12 Compiler
         if: runner.os == 'Linux' && matrix.config.cxx == 'clang++-12'
         shell: bash
         run: |
@@ -166,7 +182,7 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install Linux clang-13
+      - name: Install Linux clang-13 Compiler
         if: runner.os == 'Linux' && matrix.config.cxx == 'clang++-13'
         shell: bash
         run: |
@@ -182,7 +198,7 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Setup macOS apple-clang
+      - name: Install macOS apple-clang Compiler
         if: runner.os == 'macOS' && matrix.config.cxx == '/usr/bin/clang++'
         shell: bash
         run: |
@@ -192,7 +208,7 @@ jobs:
           echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
           echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
 
-      - name: Setup macOS clang-12
+      - name: Install macOS clang-12 Compiler
         if: runner.os == 'macOS' && matrix.config.cxx == '/usr/local/opt/llvm@12/bin/clang++'
         shell: bash
         run: |
@@ -202,6 +218,17 @@ jobs:
           echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/llvm@12/lib -Wl,-rpath,/usr/local/opt/llvm@12/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
           echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/llvm@12/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
           echo PATH="/usr/local/opt/llvm@12/bin:$PATH" >> $GITHUB_ENV
+
+      - name: Setup macOS clang-13 Compiler
+        if: runner.os == 'macOS' && matrix.config.cxx == '/usr/local/opt/llvm@13/bin/clang++'
+        shell: bash
+        run: |
+          brew install binutils boost cmake coreutils git libtool m4 make ninja openssl@1.1 readline zlib llvm@13
+          sed -i '' -e 's%\"--with-system-zlib\",%\"--with-system-zlib\",\"--enable-install-libiberty\",%g' `brew edit --print-path binutils`
+          brew reinstall -s binutils
+          echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/llvm@13/lib -Wl,-rpath,/usr/local/opt/llvm@13/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
+          echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/llvm@13/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
+          echo PATH="/usr/local/opt/llvm@13/bin:$PATH" >> $GITHUB_ENV
 
       - name: Configure
         shell: bash
