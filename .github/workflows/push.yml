@@ -20,6 +20,30 @@ jobs:
               cxx: "/usr/bin/clang++"
             }
           - {
+              name: "macOS Latest: apple-clang debug",
+              artifact: "macos-apple-clang-debug.tar.xz",
+              os: macos-latest,
+              build_type: Debug,
+              cc: "/usr/bin/clang",
+              cxx: "/usr/bin/clang++"
+            }
+          - {
+              name: "macOS Latest: clang-12 release",
+              artifact: "macos-clang-12-release.tar.xz",
+              os: macos-latest,
+              build_type: Release,
+              cc: "/usr/local/opt/llvm@12/bin/clang-12",
+              cxx: "/usr/local/opt/llvm@12/bin/clang++"
+            }
+          - {
+              name: "macOS Latest: clang-12 debug",
+              artifact: "macos-clang-12-debug.tar.xz",
+              os: macos-latest,
+              build_type: Debug,
+              cc: "/usr/local/opt/llvm@12/bin/clang-12",
+              cxx: "/usr/local/opt/llvm@12/bin/clang++"
+            }
+          - {
               name: "Ubuntu Latest: gcc-10 debug",
               artifact: "mmotd-ubuntu-x86_64-gcc-10-debug.tar.xz",
               os: ubuntu-latest,
@@ -158,7 +182,7 @@ jobs:
           sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
-      - name: Install macOS clang-13
+      - name: Setup macOS apple-clang
         if: runner.os == 'macOS' && matrix.config.cxx == '/usr/bin/clang++'
         shell: bash
         run: |
@@ -167,6 +191,17 @@ jobs:
           brew reinstall -s binutils
           echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
           echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
+
+      - name: Setup macOS clang-12
+        if: runner.os == 'macOS' && matrix.config.cxx == '/usr/local/opt/llvm@12/bin/clang++'
+        shell: bash
+        run: |
+          brew install binutils boost cmake coreutils git libtool m4 make ninja openssl@1.1 readline zlib llvm@12
+          sed -i '' -e 's%\"--with-system-zlib\",%\"--with-system-zlib\",\"--enable-install-libiberty\",%g' `brew edit --print-path binutils`
+          brew reinstall -s binutils
+          echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/llvm@12/lib -Wl,-rpath,/usr/local/opt/llvm@12/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
+          echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/llvm@12/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
+          echo PATH="/usr/local/opt/llvm@12/bin:$PATH" >> $GITHUB_ENV
 
       - name: Configure
         shell: bash
