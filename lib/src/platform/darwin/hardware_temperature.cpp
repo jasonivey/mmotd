@@ -137,24 +137,28 @@ public:
     SystemManagementController &operator=(const SystemManagementController &) = delete;
     SystemManagementController &operator=(SystemManagementController &&) = delete;
 
-    double GetCpuTemperature() const noexcept { return cpu_temperature_; }
-    double GetGpuTemperature() const noexcept { return gpu_temperature_; }
+    optional<double> GetCpuTemperature() const noexcept { return cpu_temperature_; }
+    optional<double> GetGpuTemperature() const noexcept { return gpu_temperature_; }
 
-    bool ReadCpuTemperature();
-    bool ReadGpuTemperature();
+    void ReadTemperatures();
 
 private:
     void Open();
     void Close();
 
+    void ReadCpuTemperature();
+    void ReadGpuTemperature();
+
     kern_return_t ConnectCall(int index, const KeyData &input, KeyData &output);
     kern_return_t GetKeyInfo(uint32_t key, KeyInfo &key_info);
     kern_return_t ReadKey(const KeyBuffer &key, Value &value);
-    double GetSP78Value(const Value &value) const;
+    optional<double> GetSP78Value(const Value &value) const;
 
     io_connect_t service_handle_ = 0;
-    double cpu_temperature_ = 0.0;
-    double gpu_temperature_ = 0.0;
+    optional<double> cpu_temperature_;
+    bool cpu_temperature_initialized_ = false;
+    optional<double> gpu_temperature_;
+    bool gpu_temperature_initialized_ = false;
 };
 
 SystemManagementController::SystemManagementController() {
@@ -170,7 +174,13 @@ SystemManagementController::~SystemManagementController() {
 
 void SystemManagementController::Open() {
     mach_port_t master_port = 0;
+
+#if defined(__ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__) &&                                                          \
+    __ENVIRONMENT_MAC_OS_X_VERSION_MIN_REQUIRED__ >= MAC_OS_VERSION_12_0
     IOMainPort(MACH_PORT_NULL, &master_port);
+#else
+    IOMasterPort(MACH_PORT_NULL, &master_port);
+#endif
 
     CFMutableDictionaryRef matching_dict = IOServiceMatching("AppleSMC");
 
@@ -249,59 +259,71 @@ kern_return_t SystemManagementController::ReadKey(const KeyBuffer &key, Value &v
     return kIOReturnSuccess;
 }
 
-double SystemManagementController::GetSP78Value(const Value &value) const {
+optional<double> SystemManagementController::GetSP78Value(const Value &value) const {
     if (strncmp(data(value.data_type), data(DATATYPE_SP78), size(DATATYPE_SP78)) == 0 && value.data_size == 2) {
         auto network_sp78_value = uint16_t{0};
         memcpy(&network_sp78_value, data(value.bytes), sizeof(uint16_t));
         auto host_sp78_value = ntohs(network_sp78_value);
         return static_cast<double>(host_sp78_value) / 256.0;
     } else {
-        LOG_ERROR("attempting to convert a value which is not SP78 but ({})", quoted(string(data(value.data_type))));
-        return 0.0;
+        LOG_ERROR("input value is not SP78, type: {}, length: {}",
+                  quoted(string(data(value.data_type))),
+                  value.data_size);
+        return nullopt;
     }
 }
 
-bool SystemManagementController::ReadCpuTemperature() {
+void SystemManagementController::ReadTemperatures() {
+    if (!cpu_temperature_initialized_) {
+        cpu_temperature_initialized_ = true;
+        ReadCpuTemperature();
+    }
+    if (!gpu_temperature_initialized_) {
+        gpu_temperature_initialized_ = true;
+        ReadGpuTemperature();
+    }
+}
+
+void SystemManagementController::ReadCpuTemperature() {
     static constexpr array<char, 5> CPU_TEMPERATURE_KEY{"TC0P"};
     Value value;
     auto result = ReadKey(CPU_TEMPERATURE_KEY, value);
-    if (result == kIOReturnSuccess) {
-        cpu_temperature_ = GetSP78Value(value);
-        LOG_DEBUG("cpu temperature: {:.1f}°C", cpu_temperature_);
-        return true;
-    } else {
+    if (result != kIOReturnSuccess) {
         LOG_ERROR("calling ReadKey returned {:08x}", result);
-        return false;
+        return;
     }
+    auto cpu_temperature_holder = GetSP78Value(value);
+    if (!cpu_temperature_holder) {
+        LOG_ERROR("error while getting SP78 value", result);
+        return;
+    }
+    cpu_temperature_ = cpu_temperature_holder;
+    LOG_DEBUG("cpu temperature: {:.1f}°C", *cpu_temperature_);
+    return;
 }
 
-bool SystemManagementController::ReadGpuTemperature() {
+void SystemManagementController::ReadGpuTemperature() {
     static constexpr array<char, 5> GPU_TEMPERATURE_KEY{"TG0P"};
     Value value;
     auto result = ReadKey(GPU_TEMPERATURE_KEY, value);
-    if (result == kIOReturnSuccess) {
-        gpu_temperature_ = GetSP78Value(value);
-        LOG_DEBUG("gpu temperature: {:.1f}°C", gpu_temperature_);
-        return true;
-    } else {
+    if (result != kIOReturnSuccess) {
         LOG_ERROR("calling ReadKey returned {:08x}", result);
-        return false;
+        return;
     }
+    auto gpu_temperature_holder = GetSP78Value(value);
+    if (!gpu_temperature_holder) {
+        LOG_ERROR("error while getting SP78 value", result);
+        return;
+    }
+    gpu_temperature_ = gpu_temperature_holder;
+    LOG_DEBUG("gpu temperature: {:.1f}°C", *gpu_temperature_);
+    return;
 }
 
 pair<optional<double>, optional<double>> GetCpuGpuTemperatures() {
-    static optional<double> cpu_temperature;
-    static optional<double> gpu_temperature;
-    if (!cpu_temperature || !gpu_temperature) {
-        auto smc = SystemManagementController{};
-        if (smc.ReadCpuTemperature()) {
-            cpu_temperature = smc.GetCpuTemperature();
-        }
-        if (smc.ReadGpuTemperature()) {
-            gpu_temperature = smc.GetGpuTemperature();
-        }
-    }
-    return make_pair(cpu_temperature, gpu_temperature);
+    static auto smc = SystemManagementController{};
+    smc.ReadTemperatures();
+    return make_pair(smc.GetCpuTemperature(), smc.GetGpuTemperature());
 }
 
 } // namespace
