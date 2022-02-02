@@ -76,20 +76,6 @@ struct Value {
     ByteBuffer bytes = {0};
 };
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wold-style-cast"
-uint32_t _strtoul(const char *str, int size, int base) {
-    uint32_t total = 0;
-    for (int i = 0; i < size; i++) {
-        if (base == 16)
-            total += str[i] << (size - 1 - i) * 8;
-        else
-            total += ((unsigned char)(str[i]) << (size - 1 - i) * 8);
-    }
-    return total;
-}
-#pragma GCC diagnostic pop
-
 uint32_t BufferToNum(const KeyBuffer &buffer, int base) {
     uint32_t total = 0;
     auto buf_size = size(buffer) - 1;
@@ -100,18 +86,7 @@ uint32_t BufferToNum(const KeyBuffer &buffer, int base) {
             total += (static_cast<unsigned char>(buffer[i]) << (buf_size - 1 - i) * 8);
         }
     }
-    CHECKS(total == _strtoul(data(buffer), static_cast<int>(buf_size), base), "this better work");
     return total;
-}
-
-void _ultostr(KeyBuffer &str, uint32_t val) {
-    str[0] = '\0';
-    sprintf(data(str),
-            "%c%c%c%c",
-            static_cast<unsigned int>(val) >> 24,
-            static_cast<unsigned int>(val) >> 16,
-            static_cast<unsigned int>(val) >> 8,
-            static_cast<unsigned int>(val));
 }
 
 KeyBuffer NumToBuffer(uint32_t value) {
@@ -122,9 +97,6 @@ KeyBuffer NumToBuffer(uint32_t value) {
                            static_cast<uint32_t>(value));
     auto buffer = KeyBuffer{};
     copy(begin(str), end(str), begin(buffer));
-    auto new_buffer = KeyBuffer{};
-    _ultostr(new_buffer, value);
-    CHECKS(buffer == new_buffer, "NumToBuffer");
     return buffer;
 }
 
