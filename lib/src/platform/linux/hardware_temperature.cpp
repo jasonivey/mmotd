@@ -43,7 +43,7 @@ private:
 
 // Acpi::Acpi(string parent_directory) {
 Acpi::Acpi() {
-    static constexpr const string_view DEFAULT_PATH = "/sys/class/thermal/thermal_zone0/temp";
+    static constexpr string_view DEFAULT_PATH = "/sys/class/thermal/thermal_zone0/temp";
 
     if (!DiscoverCpuTemperatureFilename() || empty(temperature_path_)) {
         LOG_ERROR("unable to find cpu temperature file -- running a virtual machine? (check {})", quoted(DEFAULT_PATH));
@@ -61,9 +61,9 @@ Acpi::Acpi() {
 }
 
 bool Acpi::DiscoverCpuTemperatureFilename() {
-    static constexpr const string_view ROOT_DIR = "/sys/class/thermal/";
-    static constexpr const string_view THERMAL_ZONE_FILENAME = "temp";
-    static constexpr const string_view THERMAL_ZONE_PATTERN = R"(thermal_zone[\d]+)";
+    static constexpr string_view ROOT_DIR = "/sys/class/thermal/";
+    static constexpr string_view THERMAL_ZONE_FILENAME = "temp";
+    static constexpr string_view THERMAL_ZONE_PATTERN = R"(thermal_zone[\d]+)";
 
     auto root_dir_path = fs::path{ROOT_DIR};
     auto ec = error_code{};

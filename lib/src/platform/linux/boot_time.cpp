@@ -8,13 +8,14 @@
 #include <fstream>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include <fmt/format.h>
 
 using namespace std;
 using fmt::format;
 
-constexpr static const char *UPTIME_FILENAME = "/proc/uptime";
+static constexpr string_view UPTIME_FILENAME = "/proc/uptime";
 
 namespace mmotd::platform {
 
@@ -23,7 +24,7 @@ optional<std::chrono::system_clock::time_point> GetBootTime() {
 
     auto uptime_file = ifstream{};
     uptime_file.exceptions(std::ifstream::goodbit);
-    uptime_file.open(UPTIME_FILENAME, ios_base::in);
+    uptime_file.open(data(UPTIME_FILENAME), ios_base::in);
 
     if (!uptime_file.is_open() || uptime_file.fail() || uptime_file.bad()) {
         LOG_ERROR("unable to open {} for reading, {}",

@@ -22,8 +22,8 @@ namespace mmotd::results::data {
 
 struct TemplateConfig;
 
-static constexpr const int ENTIRE_LINE = std::numeric_limits<int>::max() - 1;
-static constexpr const std::string_view ENTIRE_LINE_REPR = std::string_view{"ENTIRE_LINE"};
+static constexpr int ENTIRE_LINE = std::numeric_limits<int>::max() - 1;
+static constexpr std::string_view ENTIRE_LINE_REPR = "ENTIRE_LINE";
 
 struct TemplateItemSettings {
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(TemplateItemSettings);

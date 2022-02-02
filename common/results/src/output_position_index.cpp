@@ -137,9 +137,9 @@ bool PositionIndex::IsPositionValid(bool include_invalid) const noexcept {
 }
 
 bool PositionIndex::IsPositionValid(Position position, bool include_invalid) noexcept {
-    static constexpr const auto positions =
+    static constexpr auto positions =
         array<Position, 4>{Position::First, Position::Middle, Position::Last, Position::FirstAndLast};
-    static constexpr const auto all_positions = array<Position, 5>{Position::Invalid,
+    static constexpr auto all_positions = array<Position, 5>{Position::Invalid,
                                                                    Position::First,
                                                                    Position::Middle,
                                                                    Position::Last,

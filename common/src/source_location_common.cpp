@@ -11,8 +11,8 @@ using namespace std;
 
 namespace {
 
-static constexpr const char *UNKNOWN_FILE = "<file>";
-static constexpr const char *UNKNOWN_FUNCTION = "<...>";
+static constexpr std::string_view UNKNOWN_FILE = "<file>";
+static constexpr std::string_view UNKNOWN_FUNCTION = "<...>";
 
 size_t GetAnonymousNamespaceIndexEnd(string function) noexcept {
     static constexpr auto anonymous_ns1 = "(anonymous namespace)::"sv;

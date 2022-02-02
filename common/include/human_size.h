@@ -20,7 +20,7 @@ inline std::string to_human_size(T number) {
 
     auto bytes = number;
     auto floating_point_bytes = static_cast<double>(bytes);
-    constexpr const auto KILO_BYTE = T{1024};
+    constexpr auto KILO_BYTE = T{1024};
 
     auto suffix = suffixes.front();
     for (auto i : suffixes) {

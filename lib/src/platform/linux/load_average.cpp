@@ -11,6 +11,7 @@
 #include <iterator>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
@@ -19,7 +20,7 @@
 using namespace std;
 using fmt::format;
 
-constexpr static const char *LOAD_AVERAGE_FILENAME = "/proc/loadavg";
+static constexpr string_view LOAD_AVERAGE_FILENAME = "/proc/loadavg";
 
 namespace {
 
@@ -46,7 +47,7 @@ optional<double> ParseLoadAverage(const string &line) {
 optional<double> GetSystemLoadAverage() {
     auto load_average_file = ifstream{};
     load_average_file.exceptions(std::ifstream::goodbit);
-    load_average_file.open(LOAD_AVERAGE_FILENAME, ios_base::in);
+    load_average_file.open(data(LOAD_AVERAGE_FILENAME), ios_base::in);
 
     if (!load_average_file.is_open() || load_average_file.fail() || load_average_file.bad()) {
         LOG_ERROR("unable to open {} for reading, {}",

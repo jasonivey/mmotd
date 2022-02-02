@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <string_view>
 
 #include <boost/algorithm/string.hpp>
 #include <fmt/format.h>
@@ -16,12 +17,12 @@ namespace fs = std::filesystem;
 using namespace std;
 using fmt::format;
 
-constexpr static const char *UPDATES_AVAILABLE_FILE = "/var/lib/update-notifier/updates-available";
-constexpr static const char *REBOOT_REQUIRED_FILE = "/var/run/reboot-required";
+static constexpr string_view UPDATES_AVAILABLE_FILE = "/var/lib/update-notifier/updates-available";
+static constexpr string_view REBOOT_REQUIRED_FILE = "/var/run/reboot-required";
 
 namespace {
 
-string ReadFile(const char *path_str) {
+string ReadFile(string_view path_str) {
     LOG_VERBOSE("reading file {}", path_str);
     auto path = fs::path(path_str);
     std::error_code ec;

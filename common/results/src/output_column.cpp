@@ -18,7 +18,7 @@ using mmotd::results::data::TemplateColumnItem;
 
 using namespace std;
 
-static constexpr const int INVALID_ROW = std::numeric_limits<int>::max();
+static constexpr int INVALID_ROW = std::numeric_limits<int>::max();
 
 namespace mmotd::results {
 

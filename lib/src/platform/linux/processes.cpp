@@ -9,6 +9,7 @@
 #include <iterator>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
@@ -21,7 +22,7 @@ using fmt::format;
 
 namespace {
 
-constexpr static const char *PROC_DIRECTORY = "/proc";
+static constexpr string_view PROC_DIRECTORY = "/proc";
 
 vector<string> GetProcessDirectories() {
     auto process_subdirs = vector<string>{};

@@ -64,7 +64,7 @@ bool IsRawStringValid(const char *beg, const char *end) {
         return false;
     } else {
         auto raw_length = end - beg;
-        static constexpr const auto MAX_RAW_STRING_LENGTH = ptrdiff_t{8 * 1024};
+        static constexpr auto MAX_RAW_STRING_LENGTH = ptrdiff_t{8 * 1024};
         if (raw_length > MAX_RAW_STRING_LENGTH) {
             LOG_ERROR("string width error, end - begin > 8K (b:{}, e:{}, length: {})",
                       fmt::ptr(beg),

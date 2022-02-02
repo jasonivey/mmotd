@@ -22,12 +22,12 @@ using namespace std;
 
 namespace {
 
-static constexpr const size_t CLANG_DEBUG_LEVELS_TO_SKIP = size_t{5};
-static constexpr const size_t CLANG_RELEASE_LEVELS_TO_SKIP = size_t{1};
-static constexpr const size_t GCC_DEBUG_LEVELS_TO_SKIP = size_t{5};
-static constexpr const size_t GCC_RELEASE_LEVELS_TO_SKIP = size_t{1};
-static constexpr const size_t GENERIC_DEBUG_LEVELS_TO_SKIP = size_t{0};
-static constexpr const size_t GENERIC_RELEASE_LEVELS_TO_SKIP = size_t{0};
+constexpr size_t CLANG_DEBUG_LEVELS_TO_SKIP = size_t{5};
+constexpr size_t CLANG_RELEASE_LEVELS_TO_SKIP = size_t{1};
+constexpr size_t GCC_DEBUG_LEVELS_TO_SKIP = size_t{5};
+constexpr size_t GCC_RELEASE_LEVELS_TO_SKIP = size_t{1};
+constexpr size_t GENERIC_DEBUG_LEVELS_TO_SKIP = size_t{0};
+constexpr size_t GENERIC_RELEASE_LEVELS_TO_SKIP = size_t{0};
 
 inline constexpr size_t GetLevelsToSkip() noexcept {
     unused(GENERIC_DEBUG_LEVELS_TO_SKIP,

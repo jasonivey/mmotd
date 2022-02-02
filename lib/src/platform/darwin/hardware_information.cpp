@@ -28,7 +28,7 @@ using namespace mmotd::system;
 
 namespace {
 
-constexpr const int SYSTEM_PROFILER_TIMEOUT = 2; // anything more than 2 seconds and this application is useless!
+constexpr int SYSTEM_PROFILER_TIMEOUT = 2; // anything more than 2 seconds and this application is useless!
 optional<string> RunSystemProfiler(string system_profiler_type);
 
 struct MachineInformation {
