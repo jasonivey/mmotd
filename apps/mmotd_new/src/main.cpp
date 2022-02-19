@@ -10,7 +10,6 @@
 #include "common/results/include/output_template.h"
 #include "common/results/include/output_template_printer.h"
 #include "lib/include/computer_information.h"
-#include "output/include/output.h"
 
 #include <clocale>
 #include <cstdlib>
@@ -54,9 +53,6 @@ void PrintMmotd() {
     const auto &informations = computer_information.GetAllInformation();
 
     PrintOutputTemplate(*output_template, informations);
-
-    auto output = mmotd::output::Output{};
-    fmt::print("{}\n", output.to_string(*output_template, informations));
 }
 
 void UpdateLoggingDetails() {
@@ -69,7 +65,7 @@ void UpdateLoggingDetails() {
         mmotd::logging::SetFlushLogfileAfterEveryLine(*flush_on_write);
     }
     auto log_severity_raw = ConfigOptions::Instance().GetInteger("logging.severity"sv, -1);
-    if (log_severity_raw == -1) {
+     if (log_severity_raw == -1) {
         return;
     }
     auto new_severity = static_cast<mmotd::logging::Severity>(log_severity_raw);

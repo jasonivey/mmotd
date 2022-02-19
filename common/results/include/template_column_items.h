@@ -13,7 +13,7 @@
 
 namespace mmotd::results::color {
 
-fmt::text_style from_color_string(std::string input);
+fmt::text_style from_color_string(std::string_view input);
 std::string to_string(fmt::text_style txt_style);
 
 } // namespace mmotd::results::color
@@ -27,6 +27,7 @@ static constexpr std::string_view ENTIRE_LINE_REPR = "ENTIRE_LINE";
 
 struct TemplateItemSettings {
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(TemplateItemSettings);
+    friend bool operator==(const TemplateItemSettings &lhs, const TemplateItemSettings &rhs) = default;
 
     int indent_size = 2;
     int row_index = -1;
@@ -41,11 +42,12 @@ struct TemplateItemSettings {
     std::vector<std::string> value;
     std::vector<fmt::text_style> value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white)};
 
-    fmt::text_style GetNameColor(size_t index) const noexcept;
-    fmt::text_style GetValueColor(size_t index) const noexcept;
+    fmt::text_style GetNameColor(size_t index = 0ull) const noexcept;
+    fmt::text_style GetValueColor(size_t index = 0ull) const noexcept;
 
     std::string to_string() const;
     bool is_valid(const TemplateConfig &default_settings);
+    bool IsEntireLine() const noexcept;
 
     void from_json(const nlohmann::json &root, const TemplateItemSettings *default_settings);
     void to_json(nlohmann::json &root, const TemplateItemSettings &default_settings) const;
@@ -61,7 +63,7 @@ struct OutputSettings {
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(OutputSettings);
 
     bool collapse_column_rows = true;
-    std::string table_type = std::string{"PLAIN_STYLE"};
+    std::string table_type = "PLAIN_STYLE";
 
     std::string to_string() const;
 

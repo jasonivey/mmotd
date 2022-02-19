@@ -23,6 +23,7 @@ add_executable(${MMOTD_TARGET_NAME}
                ../common/test/src/test_special_files.cpp
                ../common/test/src/test_template_string.cpp
                ../lib/test/src/test_information_definitions.cpp
+               ../output/test/src/test_output.cpp
                src/main.cpp
               )
 

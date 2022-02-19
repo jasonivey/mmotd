@@ -27,8 +27,10 @@ include(target_common)
 include(git_version)
 
 add_subdirectory(common)
+add_subdirectory(output)
 add_subdirectory(lib)
 add_subdirectory(apps/mmotd)
+add_subdirectory(apps/mmotd_new)
 add_subdirectory(apps/mmotd_raw)
 
 enable_testing()

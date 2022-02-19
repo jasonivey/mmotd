@@ -16,8 +16,6 @@ namespace mmotd::results {
 
 class OutputTemplate {
 public:
-    using TemplateColumnItems = std::vector<mmotd::results::data::TemplateColumnItem>;
-
     OutputTemplate();
     NO_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(OutputTemplate);
 
@@ -29,16 +27,10 @@ public:
     const std::vector<int> &GetColumns() const;
 
     // Get the items which is displayed on each row of the column
-    const TemplateColumnItems &GetColumnItems() const;
+    const mmotd::results::data::TemplateColumnItems &GetColumnItems() const;
 
     // Get the output settings
     const mmotd::results::data::OutputSettings &GetOutputSettings() const;
-
-    // Internal setters
-    // void SetTemplateConfig(mmotd::results::data::TemplateConfig config);
-    // const mmotd::results::data::TemplateConfig &GetTemplateConfig() const;
-    // void AddColumnItem(mmotd::results::data::TemplateColumnItem item);
-    // void SetColumnItems(mmotd::results::data::TemplateColumnItems items);
 
     // Serialization to/from JSON
     void from_json(const nlohmann::json &root);

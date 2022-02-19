@@ -1,5 +1,4 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-// #include "common/include/app_options.h"
 #include "common/include/config_options.h"
 #include "common/include/logging.h"
 #include "common/include/string_utils.h"

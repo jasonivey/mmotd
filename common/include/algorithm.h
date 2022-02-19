@@ -233,6 +233,22 @@ inline OutIter collect_if(InIter first, InIter last, OutIter out, Pred pred, Fun
     return out;
 }
 
+// A quick and dirty split algorithm for std::string_view
+inline std::vector<std::string_view> split(std::string_view str, std::string_view delims = " ") {
+    auto output = std::vector<std::string_view>{};
+    auto start = data(str);
+    auto end = start + size(str);
+    auto delim_ptr = data(str);
+    while (delim_ptr != end && start != end) {
+        delim_ptr = std::find_first_of(start, end, cbegin(delims), cend(delims));
+        if (start != delim_ptr) {
+            output.emplace_back(start, delim_ptr - start);
+        }
+        start = delim_ptr + 1;
+    }
+    return output;
+}
+
 #if !defined(__cpp_lib_integer_comparison_functions)
 template<class T, class U>
 constexpr bool cmp_less(T t, U u) noexcept {

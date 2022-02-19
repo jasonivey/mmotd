@@ -44,17 +44,20 @@ inline constexpr std::size_t MakeInformationId(CategoryId category, std::size_t 
 
 enum class InformationId : std::size_t {
     ID_INVALID_INVALID_INFORMATION = MakeInformationId(CategoryId::ID_INVALID, 1ull),
-#define INFO_DEF(cat, id_descriptor, name, fmttr, id)                      \
-    BOOST_PP_CAT(ID_, BOOST_PP_CAT(cat, BOOST_PP_CAT(_, id_descriptor))) = \
-        MakeInformationId(BOOST_PP_CAT(CategoryId::ID_, cat), id),
+#define INFO_DEF(cat, id_descriptor, name, fmttr, id)                                                                  \
+    BOOST_PP_CAT(ID_, BOOST_PP_CAT(cat, BOOST_PP_CAT(_, id_descriptor))) =                                                       \
+                                  MakeInformationId(BOOST_PP_CAT(CategoryId::ID_, cat), id),
 #define CATEGORY_INFO_DEF(name, description, value)
 #include "common/include/information_defs.h"
 };
 
 class Informations;
-Informations CreateInformations();
+const Informations &GetInformations();
+class Information;
+InformationId from_string(std::string id_str);
+std::string to_string(InformationId id);
 
 using CategoryIds = std::vector<std::pair<CategoryId, std::string>>;
-CategoryIds CreateCategoryIds();
+const CategoryIds &GetCategoryIds();
 
 } // namespace mmotd::information

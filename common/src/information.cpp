@@ -4,6 +4,7 @@
 #include "common/include/logging.h"
 
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include <fmt/format.h>
@@ -11,6 +12,8 @@
 
 using fmt::format;
 using namespace std;
+
+static constexpr auto INFORMATION_ID_PREFIX = string_view{"InformationId::"};
 
 namespace mmotd::information {
 
@@ -22,6 +25,8 @@ Information::Information(CategoryId category,
     category_(category),
     information_id_(information_id),
     id_str_(std::move(id_str)),
+    id_str_no_namespace_(
+        id_str_.substr(id_str_.starts_with(INFORMATION_ID_PREFIX) ? INFORMATION_ID_PREFIX.size() : 0ull)),
     name_(std::move(name)),
     format_str_(std::move(format_str)),
     value_() {

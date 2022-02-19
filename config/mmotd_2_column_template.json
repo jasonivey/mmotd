@@ -245,10 +245,18 @@
         "IP %ID_NETWORK_INFO_INTERFACE_NAME%:",
         "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"
       ],
+      "name_color": [
+        "bold_bright_cyan",
+        "bold_bright_cyan"
+      ],
       "row_index": 19,
       "value": [
         "%ID_NETWORK_INFO_IP%",
         "%ID_NETWORK_INFO_MAC%"
+      ],
+      "value_color": [
+        "bold_bright_white",
+        "bold_bright_white"
       ]
     },
     {
@@ -273,6 +281,7 @@
     },
     {
       "column": "ENTIRE_LINE",
+      "is_optional": true,
       "indent_size": 0,
       "prepend_newlines": 1,
       "row_index": 22,
@@ -285,6 +294,7 @@
     },
     {
       "column": "ENTIRE_LINE",
+      "is_optional": true,
       "indent_size": 0,
       "prepend_newlines": 1,
       "row_index": 23,
@@ -297,6 +307,7 @@
     },
     {
       "column": "ENTIRE_LINE",
+      "is_optional": true,
       "indent_size": 0,
       "prepend_newlines": 1,
       "row_index": 24,

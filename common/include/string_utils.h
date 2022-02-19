@@ -7,6 +7,8 @@ namespace mmotd::string_utils {
 
 std::string RemoveAsciiEscapeCodes(std::string input);
 
+std::size_t GetAsciiEscapeCodesSize(std::string input);
+
 std::string RemoveMultibyteCharacters(std::string input);
 
 inline std::string RemoveMultibyteAndEmbeddedColors(std::string input) {

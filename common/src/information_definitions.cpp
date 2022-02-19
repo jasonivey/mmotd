@@ -23,7 +23,7 @@ InformationDefinitions::InformationDefinitions(CategoryIds categories, Informati
     informations_(std::move(informations)) {}
 
 const InformationDefinitions &InformationDefinitions::Instance() {
-    static const auto information_definitions = InformationDefinitions{CreateCategoryIds(), CreateInformations()};
+    static const auto information_definitions = InformationDefinitions{GetCategoryIds(), GetInformations()};
     return information_definitions;
 }
 

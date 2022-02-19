@@ -100,10 +100,13 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-glldb>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-fdebug-macro>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-ggdb3>
+        # Reduce compilation time and make debugging produce the expected results
+        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O0>
         # Enables optimizations that do not interfere with debugging
-        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Og>
+        # Note: -Og was causing variables to be optimized out in the debug build so going back to -O0
+        # PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Og>
         # Enable optimizations (speed & size) on release builds
-        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O2>
+        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O3>
         # Enable C++ dialect options
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-felide-constructors>
         # Enable char8_t on clang compilers
@@ -206,6 +209,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE ${scope_guard_SOURCE_DIR}
         PRIVATE ${OPENSSL_INCLUDE_DIR}
         PRIVATE ${toml11_SOURCE_DIR}
+        PRIVATE ${utfcpp_SOURCE_DIR}/source
         PRIVATE ${cli11_SOURCE_DIR}/include
         PRIVATE $<$<AND:$<STREQUAL:"${target_type}","executable">,$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">>:${catch2_SOURCE_DIR}/single_include>
         )
@@ -215,10 +219,12 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
             ${MMOTD_TARGET_NAME}
             PRIVATE mmotd_lib
             PRIVATE mmotd_common
+            PRIVATE mmotd_output
             )
         target_link_libraries(
             ${MMOTD_TARGET_NAME}
             PRIVATE fort
+            INTERFACE utfcpp
             PRIVATE nlohmann_json::nlohmann_json
             PRIVATE fmt::fmt
             PRIVATE date-tz

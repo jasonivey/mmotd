@@ -56,7 +56,7 @@ const vector<int> &OutputTemplate::GetColumns() const {
     return template_config_.columns;
 }
 
-const OutputTemplate::TemplateColumnItems &OutputTemplate::GetColumnItems() const {
+const data::TemplateColumnItems &OutputTemplate::GetColumnItems() const {
     return column_items_;
 }
 
@@ -75,7 +75,7 @@ void OutputTemplate::from_json(const json &root) {
                   quoted("array"));
 
     auto template_config = root.at("config").get<data::TemplateConfig>();
-    auto items = TemplateColumnItems{};
+    auto items = data::TemplateColumnItems{};
 
     for (auto &root_item : root.at("column_items")) {
         auto column_item = data::TemplateItemSettings{};
@@ -98,9 +98,9 @@ void OutputTemplate::to_json(json &root) const {
     root = json{{"config", template_config_}, {"column_items", column_items}};
 }
 
-mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
+data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     using namespace mmotd::results::data;
-    auto items = TemplateColumnItems{};
+    auto items = data::TemplateColumnItems{};
     {
         auto item = TemplateColumnItem{};
         item.indent_size = 0;
@@ -292,7 +292,11 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         item.is_repeatable = true;
         item.is_optional = true;
         item.name = {"IP %ID_NETWORK_INFO_INTERFACE_NAME%:", "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"};
+        item.name_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan),
+                           fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan)};
         item.value = {"%ID_NETWORK_INFO_IP%", "%ID_NETWORK_INFO_MAC%"};
+        item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white),
+                            fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white)};
         items.emplace_back(item);
     }
     // Whether the package manager is annoying us with updates
@@ -300,6 +304,7 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 26;
         item.indent_size = 0;
+        item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_yellow)};
         item.value = {"%ID_PACKAGE_MANAGEMENT_UPDATE_DETAILS%"};
         item.append_newlines = 1;
@@ -311,6 +316,7 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 27;
         item.indent_size = 0;
+        item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan)};
         item.value = {"%ID_FORTUNE_FORTUNE%"};
         item.append_newlines = 1;
@@ -322,6 +328,7 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 28;
         item.indent_size = 0;
+        item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_red)};
         item.value = {"%ID_PACKAGE_MANAGEMENT_REBOOT_REQUIRED%"};
         item.append_newlines = 1;

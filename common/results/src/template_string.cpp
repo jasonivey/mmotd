@@ -245,12 +245,6 @@ bool TemplateString::IsColorCodeMatchValid(const string &text, const smatch &mat
                   text);
         return false;
     }
-    LOG_VERBOSE("color definition is valid start={}, len={}, str size={}, match={}, str={}",
-                matches.position(),
-                matches.length(),
-                std::size(text),
-                text.substr(static_cast<size_t>(matches.position()), static_cast<size_t>(matches.length())),
-                text);
     return true;
 }
 
