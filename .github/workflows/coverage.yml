@@ -1,0 +1,98 @@
+name: Coverage Mmotd
+on: [push]
+jobs:
+  build:
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {
+              name: "Ubuntu Latest: gcc-11 debug",
+              os: ubuntu-latest,
+              build_type: Debug,
+              cc: "gcc-11",
+              cxx: "g++-11"
+            }
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Get CMake & Ninja
+        uses: symbitic/install-cmake@master
+        with:
+          cmake: '3.22.2'
+          ninja: '1.10.2'
+
+      - name: Add CMake & Ninja to GITHUB_PATH
+        shell: bash
+        run: |
+          if [[ -d /opt/hostedtoolcache/cmake/3.22.2/x64/cmake-3.22.2-linux-x86_64/bin ]]; then
+            echo "/opt/hostedtoolcache/cmake/3.22.2/x64/cmake-3.22.2-linux-x86_64/bin" >> $GITHUB_PATH
+            echo "added cmake-3.22.2 binary path to the GITHUB_PATH environment variable"
+          else
+            echo "ERROR: unable to add cmake-3.22.2 binary path to the GITHUB_PATH environment variable"
+          fi
+          if [[ -d /opt/hostedtoolcache/ninja/1.10.2/x64 ]]; then
+            echo "/opt/hostedtoolcache/ninja/1.10.2/x64" >> $GITHUB_PATH
+            echo "added ninja-1.10.2 binary path to the GITHUB_PATH environment variable"
+          else
+            echo "ERROR: unable to add ninja-1.10.2 binary path to the GITHUB_PATH environment variable"
+          fi
+
+      - name: Install Linux Base Packages
+        if: runner.os == 'Linux'
+        shell: bash
+        run: |
+          sudo apt-get update -y && sudo apt-get install -y apt-utils software-properties-common \
+            curl libcurl4 libcurl4-openssl-dev pkg-config wget gnupg build-essential git \
+            ca-certificates autoconf automake libtool flex bison binutils binutils-dev dpkg \
+            dpkg-dev make gdb m4 autotools-dev gdbserver gettext gnu-standards libboost-dev \
+            libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump elfutils libelf1 libelf-dev \
+            libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev tar unzip \
+            zip libcrypt1 libcrypt-dev openssl libssl-dev
+          sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Install Linux gcc-11 Compiler & lcov
+        if: runner.os == 'Linux' && matrix.config.cxx == 'g++-11'
+        shell: bash
+        run: |
+          sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update -y && sudo apt-get install -y cpp-11 gcc-11 g++-11 lcov
+          sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
+          sudo rm -rf /var/lib/apt/lists/*
+
+      - name: Configure
+        shell: bash
+        run: |
+          mkdir -p build
+          CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} cmake -S . -B build -GNinja \
+            -DENABLE_COVERAGE=ON \
+            -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -DCMAKE_C_COMPILER=${{ matrix.config.cc }} \
+            -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }}
+
+      - name: Build & Generate initial coverage report
+        shell: bash
+        run: |
+          cmake --build build --target all
+          lcov --gcov-tool gcov-11 --capture --initial --directory . --output-file ./build/coverage_base.txt
+
+      - name: Test & Generate coverage report
+        shell: bash
+        run: |
+          ctest --output-on-failure --test-dir build
+          lcov --gcov-tool gcov-11 --capture --directory . --output-file ./build/coverage_test.txt
+          lcov --gcov-tool gcov-11 --add-tracefile ./build/coverage_base.txt --add-tracefile ./build/coverage_test.txt --output-file ./build/coverage_total.txt
+          lcov --gcov-tool gcov-11 --remove ./build/coverage_total.txt './build/_deps/*' '/usr/include/*' '/usr/lib/gcc/x86_64-linux-gnu/*' --output-file ./build/coverage.txt
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          directory: ./build/
+          files: coverage.txt
+          flags: unittests
+          verbose: true

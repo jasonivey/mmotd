@@ -93,6 +93,10 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # If we are going to use clang and clang++ then we should also use,
         #  (but are not forced to) use libc++ instead of stdlibc++.
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-stdlib=libc++>
+        # Enable code coverage options
+        PRIVATE $<$<BOOL:ENABLE_COVERAGE>:--coverage>
+        PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-ftest-coverage>
+        PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-fprofile-arcs>
         # Enable debug information for stack tracing purposes non-DEBUG builds
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-g>
         # On DEBUG builds set '-g3' which enables features to ensure a quality debugging experience
@@ -112,34 +116,71 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-fcolor-diagnostics>
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
         # Enable various warnings
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Werror>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-pedantic-errors>
+        # both -Wall and -Wextra are the base set of warnings
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wextra>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wformat=2>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wdouble-promotion>
+        # TODO: fix_jasoni... I believe pedantic-errors is equivalent to `-pedantic` and `-Werror`
+        # warn if non-standard C++ is used
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-pedantic>
+        # warn the user if a variable declaration shadows one from a parent context
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wshadow>
+        # warn the user if a class with virtual functions has a non-virtual destructor
+        #  this helps catch hard to track down memory errors
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wnon-virtual-dtor>
+        # helps to identify those hidden c-style casts
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wold-style-cast>
+        # warn for potential performance problem casts
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wcast-align>
+        # warn on anything being unused
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunused>
+        # warn if you overload (not override) a virtual function
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Woverloaded-virtual>
+        # Give an error whenever the base standard (think C++98) requires a diagnostic, in some cases where there is
+        #  undefined behavior at compile-time and in some other cases that do not prevent compilation of programs that
+        #  are valid according to the standard.
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-pedantic-errors>
+        # warn on type conversions that may lose data
+        # TODO: fix_jasoni... re-enable
+        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wconversion>
+        # warn on sign conversions
+        # TODO: fix_jasoni... re-enable
+        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wsign-conversion>
+        # warn if float is implicit promoted to double
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wdouble-promotion>
+        # warn on security issues around functions that format output (ie `printf`)
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wformat=2>
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wstrict-aliasing>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wfloat-equal>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wwrite-strings>
-        # todo: fix_jasoni - these are great warnings but they need a seperate task to enable them
-        # PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wconversion>
-        # PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wsign-conversion>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wswitch-enum>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wnon-virtual-dtor>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wundef>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunreachable-code>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wold-style-cast>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Woverloaded-virtual>
-        # clang only
+
+        # LLVM clang only
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wmost>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wweak-vtables>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wmissing-noreturn>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wdtor-name>
-        # gnu only
+
+        # GNU g++ only
+        # warn if indentation implies blocks where blocks do not exist
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wmisleading-indentation>
+        # warn if `if / else` chain has duplicated conditions
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wduplicated-cond>
+        # warn if `if / else` branches have duplicated code
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wduplicated-branches>
+        # warn about wrapping a pointer or data in a stack object to call it indirectly (i.e. marking the stack executable)
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wtrampolines>
+        # warn about logical operations being used where bitwise were probably wanted
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op>
+        # warn if a null dereference is detected
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference>
+        # warn if you perform a cast to the same type
+        # TODO: fix_jasoni... re-enable
+        #       also I believe this is equivalent to `-Wcast-qual`
+        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:GNU>>:-Wuseless-cast>
+
         # disable -- clang
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-gnu-zero-variadic-macro-arguments>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-unused-local-typedef>
@@ -211,6 +252,13 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         )
 
     if (target_type STREQUAL "executable")
+        target_link_options(
+            ${MMOTD_TARGET_NAME}
+            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:--coverage>
+            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-g>
+            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-fprofile-arcs>
+            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-ftest-coverage>
+            )
         target_link_libraries(
             ${MMOTD_TARGET_NAME}
             PRIVATE mmotd_lib

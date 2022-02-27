@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/source_location_common.h"
 
+#include <algorithm>
 #include <string>
 #include <string_view>
 
@@ -26,10 +27,32 @@ size_t GetAnonymousNamespaceIndexEnd(string function) noexcept {
     }
 }
 
-pair<size_t, size_t> FindParens(string backtrace_detail) {
-    auto open_paren = backtrace_detail.rfind('(');
-    auto close_paren = backtrace_detail.find(')', open_paren);
+pair<string::const_iterator, string::const_iterator> FindParens(string::const_iterator str_begin,
+                                                                string::const_iterator str_end) noexcept {
+    static constexpr auto OPEN_PAREN = "("sv;
+    static constexpr auto CLOSE_PAREN = ")"sv;
+    auto open_paren = find_first_of(str_begin, str_end, begin(OPEN_PAREN), end(OPEN_PAREN));
+    if (open_paren == str_end) {
+        return {str_end, str_end};
+    }
+    auto close_paren = find_first_of(open_paren, str_end, begin(CLOSE_PAREN), end(CLOSE_PAREN));
+    if (close_paren == str_end) {
+        return {str_end, str_end};
+    }
     return {open_paren, close_paren};
+}
+
+string StripAroundParens(string function) noexcept {
+    auto [open_paren, close_paren] = FindParens(begin(function), end(function));
+    if (open_paren == end(function) || close_paren == end(function)) {
+        // a valid result includes both the open and closes parens `(` and `)`
+        //  (i.e. `void foo(int, float)`)
+        //                  ^        ^
+        return function;
+    }
+    return fmt::format(FMT_STRING("{}(...){}"),
+                       string(cbegin(function), open_paren),
+                       string(close_paren + 1, cend(function)));
 }
 
 } // namespace
@@ -54,7 +77,12 @@ string TrimFileName(const char *file) noexcept {
 // static optional<mmotd::information::Information> mmotd::results::TemplateString::FindInformation(...)
 // static optional<std::__1::string> mmotd::results::TemplateString::GetInformationValue(...)
 // 'std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >' => 'string'
-// boost::iterator_range<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > > boost::algorithm::detail::first_finderF<char const*, boost::algorithm::is_iequal>::operator()<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > > >(__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, __gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >) const (finder.hpp:76)
+// boost::iterator_range<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char,
+// std::char_traits<char>, std::allocator<char> > > > boost::algorithm::detail::first_finderF<char const*,
+// boost::algorithm::is_iequal>::operator()<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char,
+// std::char_traits<char>, std::allocator<char> > > >(__gnu_cxx::__normal_iterator<char const*,
+// std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >, __gnu_cxx::__normal_iterator<char
+// const*, std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> > >) const (finder.hpp:76)
 
 string
 TrimFunction(const char *function, FunctionArgStrategy arg_strategy, FunctionReturnStrategy return_strategy) noexcept {
@@ -97,13 +125,7 @@ string StripNamespaces(string function) noexcept {
 }
 
 string StripFunctionArgs(string function) noexcept {
-    auto [open_paren, close_paren] = FindParens(function);
-    if (open_paren != string::npos && close_paren != string::npos && open_paren + 1 != close_paren) {
-        function = format(FMT_STRING("{}(...){}"),
-                          string{begin(function), begin(function) + open_paren},
-                          string{begin(function) + close_paren + 1, end(function)});
-    }
-    return function;
+    return StripAroundParens(function);
 }
 
 } // namespace mmotd::source_location
