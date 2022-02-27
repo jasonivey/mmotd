@@ -123,11 +123,11 @@ tuple<string, string, string, string> WeatherInfo::GetWeatherInfo() {
         return make_tuple(location_str, weather_str, string{}, string{});
     }
 
-    auto weather = trim_copy(weather_str.substr(0, match.position(0)));
+    auto weather = trim_copy(weather_str.substr(0, static_cast<size_t>(match.position(0))));
     LOG_INFO("weather: '{}'", weather);
-    auto sunrise_str = weather_str.substr(match.position(1), match.length(1));
+    auto sunrise_str = weather_str.substr(static_cast<size_t>(match.position(1)), static_cast<size_t>(match.length(1)));
     LOG_INFO("sunrise: '{}'", sunrise_str);
-    auto sunset_str = weather_str.substr(match.position(2), match.length(2));
+    auto sunset_str = weather_str.substr(static_cast<size_t>(match.position(2)), static_cast<size_t>(match.length(2)));
     LOG_INFO("sunset: '{}'", sunset_str);
 
     auto [sunrise_parsed, sunset_parsed] = ParseSunriseSunset(sunrise_str, sunset_str);

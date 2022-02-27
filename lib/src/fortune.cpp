@@ -218,7 +218,7 @@ uint32_t ConvertDbIndexToFortuneFileOffset(size_t db_index, uint32_t file_size) 
     // add to the header size the actual database index * sizeof(uint64_t)
     file_offset += db_index * STRFILE_ENTRY_SIZE;
     // just make sure we haven't gone over the end of the file...
-    return std::min(file_offset, file_size - STRFILE_ENTRY_SIZE);
+    return static_cast<uint32_t>(std::min(file_offset, file_size - STRFILE_ENTRY_SIZE));
 }
 
 optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path &fortune_db_path) {
@@ -260,7 +260,7 @@ optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path 
     }
 
     LOG_VERBOSE("sizeof STRFILE header: {}", sizeof(StrFileHeader) + STRFILE_HEADER_PADDING);
-    auto remaining_size = static_cast<size_t>(fortune_db_file_size) - sizeof(StrFileHeader) - STRFILE_ENTRY_SIZE;
+    auto remaining_size = fortune_db_file_size - sizeof(StrFileHeader) - STRFILE_ENTRY_SIZE;
     LOG_VERBOSE("remaining size : {}", remaining_size);
     LOG_VERBOSE("number of strs : {}", strfile_header.count);
     LOG_VERBOSE("calculated strs: {} with {} bytes remaining",
@@ -269,7 +269,7 @@ optional<tuple<uint32_t, uint32_t, char>> GetRandomFortuneOffset(const fs::path 
 
     auto random_index = effing_random::get<size_t>(0, static_cast<size_t>(strfile_header.count));
     LOG_VERBOSE("random STRFILE database index: {}", random_index);
-    auto file_offset = ConvertDbIndexToFortuneFileOffset(random_index, fortune_db_file_size);
+    auto file_offset = ConvertDbIndexToFortuneFileOffset(random_index, static_cast<uint32_t>(fortune_db_file_size));
 
     auto fortune_offset = ReadRandomFortuneOffset(fortune_db_path, fortune_db_file, file_offset);
     if (!fortune_offset) {
@@ -349,7 +349,7 @@ optional<string> GetRandomFortune(string fortune_filename, string fortune_db_dir
                   fortune_offset,
                   max_fortune_size,
                   fortune_file_size);
-        max_fortune_size = fortune_file_size - fortune_offset;
+        max_fortune_size = static_cast<uint32_t>(fortune_file_size) - fortune_offset;
         LOG_DEBUG("updated fortune read size (offset={} + read size={}) should now be to the eof (file size={} bytes)",
                   fortune_offset,
                   max_fortune_size,

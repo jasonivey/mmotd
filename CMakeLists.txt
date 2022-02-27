@@ -21,6 +21,8 @@ define_property(
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+option(ENABLE_COVERAGE "enable code coverage" OFF)
+
 set_property(GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(target_common)
