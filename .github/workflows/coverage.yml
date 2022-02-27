@@ -87,7 +87,9 @@ jobs:
           ctest --output-on-failure --test-dir build
           lcov --gcov-tool gcov-11 --capture --directory . --output-file ./build/coverage_test.txt
           lcov --gcov-tool gcov-11 --add-tracefile ./build/coverage_base.txt --add-tracefile ./build/coverage_test.txt --output-file ./build/coverage_total.txt
-          lcov --gcov-tool gcov-11 --remove ./build/coverage_total.txt './build/_deps/*' '/usr/include/*' '/usr/lib/gcc/x86_64-linux-gnu/*' --output-file ./build/coverage.txt
+          # "$(realpath -LPe \"`pwd`\")"'/build'    : removes the build directory and all 3rd party dependencies
+          # "$(realpath -LPe \"`pwd`\")"'/**test**' : removes the unittest directories
+          lcov --gcov-tool gcov-11 --remove ./build/coverage_total.txt "$(realpath -LPe \"`pwd`\")"'/build' "$(realpath -LPe \"`pwd`\")"'/**test**' '/usr/include/*' '/usr/lib/gcc/x86_64-linux-gnu/*' --output-file ./build/coverage.txt
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
