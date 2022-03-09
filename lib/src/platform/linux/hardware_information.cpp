@@ -171,14 +171,25 @@ optional<string> ParseLspciOutput(optional<string> output_holder) {
     }
 
     // trim any whitespace off of the right hand side of the ":" character
-    const auto &gpu_name = boost::trim_copy(vga_line_parts.back());
+    auto gpu_name = boost::trim_copy(vga_line_parts.back());
     LOG_INFO("found gpu model name from 'lspci' output: '{}'", gpu_name);
     return make_optional(gpu_name);
 }
 
+fs::path FindLspciBinary() {
+    auto ec = error_code{};
+    if (auto lspci_path = fs::path{"/usr/bin/lspci"}; fs::exists(lspci_path, ec) && !ec) {
+        return lspci_path;
+    }
+    if (auto lspci_path = fs::path{"/usr/sbin/lspci"}; fs::exists(lspci_path, ec) && !ec) {
+        return lspci_path;
+    }
+    return fs::path{};
+}
+
 string GetGraphicsModelName() {
     using mmotd::system::command::Run;
-    auto gpu_model_name = Run("/usr/bin/lspci", {}, ParseLspciOutput);
+    auto gpu_model_name = Run(FindLspciBinary(), {}, ParseLspciOutput);
     if (!gpu_model_name) {
         LOG_ERROR("lspci did not return the gpu model name");
         return string{};

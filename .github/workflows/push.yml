@@ -1,18 +1,15 @@
-name: Build Mmotd
-
+name: Mmotd Continuous Integration
 on: [push, pull_request]
-
 jobs:
   build:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
-    # -${{ GITHUB_SHA::8 }}
     strategy:
       fail-fast: false
       matrix:
         config:
           - {
-              name: "macOS Latest: apple-clang release",
+              name: "CI build on 'macOS Latest' using 'xcode-apple-clang' and building for Release",
               artifact: "macos-apple-clang-release.tar.xz",
               os: macos-latest,
               build_type: Release,
@@ -20,7 +17,7 @@ jobs:
               cxx: "/usr/bin/clang++"
             }
           - {
-              name: "macOS Latest: apple-clang debug",
+              name: "CI build on 'macOS Latest' using 'xcode-apple-clang' and building for Debug",
               artifact: "macos-apple-clang-debug.tar.xz",
               os: macos-latest,
               build_type: Debug,
@@ -28,7 +25,7 @@ jobs:
               cxx: "/usr/bin/clang++"
             }
           - {
-              name: "macOS Latest: clang-12 release",
+              name: "CI build on 'macOS Latest' using 'clang-12' and building for Release",
               artifact: "macos-clang-12-release.tar.xz",
               os: macos-latest,
               build_type: Release,
@@ -36,7 +33,7 @@ jobs:
               cxx: "/usr/local/opt/llvm@12/bin/clang++"
             }
           - {
-              name: "macOS Latest: clang-12 debug",
+              name: "CI build on 'macOS Latest' using 'clang-12' and building for Debug",
               artifact: "macos-clang-12-debug.tar.xz",
               os: macos-latest,
               build_type: Debug,
@@ -44,7 +41,7 @@ jobs:
               cxx: "/usr/local/opt/llvm@12/bin/clang++"
             }
           - {
-              name: "macOS Latest: clang-13 release",
+              name: "CI build on 'macOS Latest' using 'clang-13' and building for Release",
               artifact: "macos-clang-13-release.tar.xz",
               os: macos-latest,
               build_type: Release,
@@ -52,7 +49,7 @@ jobs:
               cxx: "/usr/local/opt/llvm@13/bin/clang++"
             }
           - {
-              name: "macOS Latest: clang-13 debug",
+              name: "CI build on 'macOS Latest' using 'clang-13' and building for Debug",
               artifact: "macos-clang-13-debug.tar.xz",
               os: macos-latest,
               build_type: Debug,
@@ -60,7 +57,7 @@ jobs:
               cxx: "/usr/local/opt/llvm@13/bin/clang++"
             }
           - {
-              name: "Ubuntu Latest: gcc-10 debug",
+              name: "CI build on 'Ubuntu Latest' using 'gcc-10' and building for Debug",
               artifact: "mmotd-ubuntu-x86_64-gcc-10-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
@@ -68,7 +65,7 @@ jobs:
               cxx: "g++-10"
             }
           - {
-              name: "Ubuntu Latest: gcc-10 release",
+              name: "CI build on 'Ubuntu Latest' using 'gcc-10' and building for Release",
               artifact: "mmotd-ubuntu-x86_64-gcc-10-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
@@ -76,7 +73,7 @@ jobs:
               cxx: "g++-10"
             }
           - {
-              name: "Ubuntu Latest: gcc-11 debug",
+              name: "CI build on 'Ubuntu Latest' using 'gcc-11' and building for Debug",
               artifact: "mmotd-ubuntu-x86_64-gcc-11-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
@@ -84,7 +81,7 @@ jobs:
               cxx: "g++-11"
             }
           - {
-              name: "Ubuntu Latest: gcc-11 release",
+              name: "CI build on 'Ubuntu Latest' using 'gcc-11' and building for Release",
               artifact: "mmotd-ubuntu-x86_64-gcc-11-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
@@ -92,7 +89,7 @@ jobs:
               cxx: "g++-11"
             }
           - {
-              name: "Ubuntu Latest: clang-12 debug",
+              name: "CI build on 'Ubuntu Latest' using 'clang-12' and building for Debug",
               artifact: "mmotd-ubuntu-x86_64-clang-12-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
@@ -100,7 +97,7 @@ jobs:
               cxx: "clang++-12"
             }
           - {
-              name: "Ubuntu Latest: clang-12 release",
+              name: "CI build on 'Ubuntu Latest' using 'clang-12' and building for Release",
               artifact: "mmotd-ubuntu-x86_64-clang-12-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
@@ -108,7 +105,7 @@ jobs:
               cxx: "clang++-12"
             }
           - {
-              name: "Ubuntu Latest: clang-13 debug",
+              name: "CI build on 'Ubuntu Latest' using 'clang-13' and building for Debug",
               artifact: "mmotd-ubuntu-x86_64-clang-13-debug.tar.xz",
               os: ubuntu-latest,
               build_type: Debug,
@@ -116,7 +113,7 @@ jobs:
               cxx: "clang++-13"
             }
           - {
-              name: "Ubuntu Latest: clang-13 release",
+              name: "CI build on 'Ubuntu Latest' using 'clang-13' and building for Release",
               artifact: "mmotd-ubuntu-x86_64-clang-13-release.tar.xz",
               os: ubuntu-latest,
               build_type: Release,
@@ -139,9 +136,7 @@ jobs:
             gdbserver gettext gnu-standards libboost-dev libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump \
             elfutils libelf1 libelf-dev libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev \
             tar unzip zip libcrypt1 libcrypt-dev openssl libssl-dev
-          sudo apt-get autoclean
-          sudo apt-get autoremove
-          sudo apt-get clean
+          sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Linux gcc-10 Compiler
@@ -150,9 +145,7 @@ jobs:
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get update -y && sudo apt-get install -y cpp-10 gcc-10 g++-10
-          sudo apt-get autoclean
-          sudo apt-get autoremove
-          sudo apt-get clean
+          sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Linux gcc-11 Compiler
@@ -161,9 +154,7 @@ jobs:
         run: |
           sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get update -y && sudo apt-get install -y cpp-11 gcc-11 g++-11
-          sudo apt-get autoclean
-          sudo apt-get autoremove
-          sudo apt-get clean
+          sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Linux clang-12 Compiler
@@ -177,9 +168,7 @@ jobs:
           sudo apt-get update -y && sudo apt-get install -y libllvm12 llvm-12 llvm-12-dev llvm-12-runtime clang-12 \
             clang-tools-12 libclang-common-12-dev libclang-12-dev libclang1-12 clang-format-12 clangd-12 \
             libfuzzer-12-dev libunwind-12 libunwind-12-dev lldb-12 lld-12 libc++-12-dev libc++abi-12-dev libomp-12-dev
-          sudo apt-get autoclean
-          sudo apt-get autoremove
-          sudo apt-get clean
+          sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install Linux clang-13 Compiler
@@ -193,9 +182,7 @@ jobs:
           sudo apt-get update -y && sudo apt-get install -y libllvm13 llvm-13 llvm-13-dev llvm-13-runtime clang-13 \
             clang-tools-13 libclang-common-13-dev libclang-13-dev libclang1-13 clang-format-13 clangd-13 \
             libfuzzer-13-dev libunwind-13 libunwind-13-dev lldb-13 lld-13 libc++-13-dev libc++abi-13-dev libomp-13-dev
-          sudo apt-get autoclean
-          sudo apt-get autoremove
-          sudo apt-get clean
+          sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 
       - name: Install macOS apple-clang Compiler
@@ -205,8 +192,8 @@ jobs:
           brew install binutils boost cmake coreutils git libtool m4 make ninja openssl@1.1 readline zlib
           sed -i '' -e 's%\"--with-system-zlib\",%\"--with-system-zlib\",\"--enable-install-libiberty\",%g' `brew edit --print-path binutils`
           brew reinstall -s binutils
-          echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
-          echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/usr/local/opt/binutils/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
 
       - name: Install macOS clang-12 Compiler
         if: runner.os == 'macOS' && matrix.config.cxx == '/usr/local/opt/llvm@12/bin/clang++'
@@ -215,9 +202,9 @@ jobs:
           brew install binutils boost cmake coreutils git libtool m4 make ninja openssl@1.1 readline zlib llvm@12
           sed -i '' -e 's%\"--with-system-zlib\",%\"--with-system-zlib\",\"--enable-install-libiberty\",%g' `brew edit --print-path binutils`
           brew reinstall -s binutils
-          echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/llvm@12/lib -Wl,-rpath,/usr/local/opt/llvm@12/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
-          echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/llvm@12/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
-          echo PATH="/usr/local/opt/llvm@12/bin:$PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/usr/local/opt/binutils/lib -L/usr/local/opt/llvm@12/lib -Wl,-rpath,/usr/local/opt/llvm@12/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/llvm@12/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
+          echo "/usr/local/opt/llvm@12/bin" >> $GITHUB_PATH
 
       - name: Setup macOS clang-13 Compiler
         if: runner.os == 'macOS' && matrix.config.cxx == '/usr/local/opt/llvm@13/bin/clang++'
@@ -226,9 +213,9 @@ jobs:
           brew install binutils boost cmake coreutils git libtool m4 make ninja openssl@1.1 readline zlib llvm@13
           sed -i '' -e 's%\"--with-system-zlib\",%\"--with-system-zlib\",\"--enable-install-libiberty\",%g' `brew edit --print-path binutils`
           brew reinstall -s binutils
-          echo LDFLAGS="-L/usr/local/opt/binutils/lib -L/usr/local/opt/llvm@13/lib -Wl,-rpath,/usr/local/opt/llvm@13/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
-          echo CPPFLAGS="-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/llvm@13/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
-          echo PATH="/usr/local/opt/llvm@13/bin:$PATH" >> $GITHUB_ENV
+          echo "LDFLAGS=-L/usr/local/opt/binutils/lib -L/usr/local/opt/llvm@13/lib -Wl,-rpath,/usr/local/opt/llvm@13/lib -L/usr/local/opt/zlib/lib -L/usr/local/opt/openssl/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-isystem/usr/local/opt/binutils/include -isystem/usr/local/opt/llvm@13/include -isystem/usr/local/opt/zlib/include -isystem/usr/local/opt/openssl/include" >> $GITHUB_ENV
+          echo "/usr/local/opt/llvm@13/bin" >> $GITHUB_PATH
 
       - name: Configure
         shell: bash

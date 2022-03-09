@@ -44,7 +44,9 @@ namespace mmotd::system::command {
 optional<string> Run(const fs::path &exe_path, const vector<string> &args) {
     namespace bp = boost::process;
     namespace io = boost::asio;
-
+    if (empty(exe_path)) {
+        return nullopt;
+    }
     auto ec = error_code{};
     if (!fs::exists(exe_path, ec)) {
         LOG_ERROR("unable to execute '{}' since it does not exist", exe_path.string());

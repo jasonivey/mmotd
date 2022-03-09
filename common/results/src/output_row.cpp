@@ -97,7 +97,8 @@ void Row::SetNameValue(const Informations &informations) {
     for (auto i = size_t{0}; i != size(item_.name); ++i) {
         const auto &sub_name = item_.name[i];
         auto sub_color = item_.GetNameColor(i);
-        auto sub_row_name = format(FMT_STRING("{}{}"), GetRowNumber(), string(size_t{1}, 'a' + i));
+        auto sub_row_char = static_cast<char>('a' + i);
+        auto sub_row_name = format(FMT_STRING("{}{}"), GetRowNumber(), string(size_t{1}, sub_row_char));
         if (empty(sub_name)) {
             LOG_VERBOSE("skipping row {} since it's name is empty", sub_row_name);
             continue;
@@ -115,7 +116,8 @@ void Row::SetNameValue(const Informations &informations) {
     for (auto i = size_t{0}; i != size(item_.value); ++i) {
         const auto &sub_value = item_.value[i];
         auto sub_color = item_.GetValueColor(i);
-        auto sub_row_name = format(FMT_STRING("{}{}"), GetRowNumber(), string(size_t{1}, 'a' + i));
+        auto sub_row_char = static_cast<char>('a' + i);
+        auto sub_row_name = format(FMT_STRING("{}{}"), GetRowNumber(), string(size_t{1}, sub_row_char));
         if (empty(sub_value)) {
             LOG_VERBOSE("skipping row {} since it's value is empty", sub_row_name);
             continue;

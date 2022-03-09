@@ -115,13 +115,13 @@ KernelRelease KernelRelease::from_string(const string &release) {
     for (string part; getline(ss, part, '.');) {
         release_parts.push_back(part);
     }
-    if (release_parts.size() < 2) {
+    if (size(release_parts) < 2) {
         THROW_RUNTIME_ERROR("uname release string is not of the format 'xx.yy' instead it is '{}'", release);
     }
     auto kernel_release = KernelRelease{};
     kernel_release.major = stoul(release_parts[0]);
     kernel_release.minor = stoul(release_parts[1]);
-    if (release_parts.size() > 2) {
+    if (size(release_parts) > 2) {
         if (auto i = release_parts[2].find('-'); i != string::npos) {
             kernel_release.build = release_parts[2].substr(i);
             release_parts[2] = release_parts[2].substr(0, i);
@@ -130,7 +130,7 @@ KernelRelease KernelRelease::from_string(const string &release) {
             kernel_release.patch = stoul(release_parts[2]);
         }
     }
-    if (release_parts.size() > 3) {
+    if (size(release_parts) > 3) {
         if (std::all_of(begin(release_parts[3]), end(release_parts[3]), boost::is_digit())) {
             kernel_release.build = release_parts[3];
         }
