@@ -1,7 +1,7 @@
 # cmake/git_version.cmake
 include_guard (DIRECTORY)
 
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.18)
 
 macro (set_default_policies)
     # Honor visibility properties for all target types
