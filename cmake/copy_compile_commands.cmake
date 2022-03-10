@@ -1,7 +1,7 @@
 # cmake/copy_compile_commands.cmake
 include_guard (DIRECTORY)
 
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.18)
 
 if (CMAKE_EXPORT_COMPILE_COMMANDS AND EXISTS "${CMAKE_CURRENT_BINARY_DIR}/compile_commands.json")
     message (STATUS "Updating compile_commands.json")

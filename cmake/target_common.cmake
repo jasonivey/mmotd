@@ -1,7 +1,7 @@
 # cmake/target_common.cmake
 include_guard (DIRECTORY)
 
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.18)
 
 include (set_policies)
 set_default_policies()
@@ -20,6 +20,9 @@ macro (add_single_definition var_name flag)
     endif ()
 endmacro ()
 
+# If it isn't placed in the GLOBAL cxx and link flags the libc++ standard
+#  library won't be used in 3rd party code. This leads to link errors or
+#  worse, really confusing runtime behavior.
 if (CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang")
     add_single_definition(CMAKE_CXX_FLAGS "-stdlib=libc++")
     add_single_definition(CMAKE_EXE_LINKER_FLAGS "-stdlib=libc++")
@@ -90,27 +93,31 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
 
     target_compile_options(
         ${MMOTD_TARGET_NAME}
-        # If we are going to use clang and clang++ then we should also use,
-        #  (but are not forced to) use libc++ instead of stdlibc++.
+        # If we are going to use clang and clang++ then we should also,
+        #  but are not forced to, use libc++ instead of stdlibc++.
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-stdlib=libc++>
-        # Enable code coverage options
-        PRIVATE $<$<BOOL:ENABLE_COVERAGE>:--coverage>
-        PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-ftest-coverage>
-        PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-fprofile-arcs>
-        # Enable debug information for stack tracing purposes non-DEBUG builds
+
+        # COVERAGE OPTIONS...
+        PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:--coverage>
+        PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:-ftest-coverage>
+        PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:-fprofile-arcs>
+
+        # DEBUGGING & DEBUG INFO...
+        # On RELEASE builds embed debug information for stack trace information
         PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-g>
         # On DEBUG builds set '-g3' which enables features to ensure a quality debugging experience
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-g3>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-glldb>
+        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-ggdb>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-fdebug-macro>
-        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-ggdb3>
-        # Reduce compilation time and make debugging produce the expected results
+        PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-gcolumn-info>
+        #PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-grecord-command-line>
+
+        # OPTIMIZATIONS...
+        # Reduce compilation time and make debugging produce the expected results. This is the default.
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O0>
-        # Enables optimizations that do not interfere with debugging
-        # Note: -Og was causing variables to be optimized out in the debug build so going back to -O0
-        # PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Og>
         # Enable optimizations (speed & size) on release builds
-        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O3>
+        PRIVATE $<$<AND:$<NOT:$<CONFIG:Debug>>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-O2>
         # Enable C++ dialect options
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-felide-constructors>
         # Enable char8_t on clang compilers
@@ -258,10 +265,10 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
     if (target_type STREQUAL "executable")
         target_link_options(
             ${MMOTD_TARGET_NAME}
-            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:--coverage>
-            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-g>
-            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-fprofile-arcs>
-            PRIVATE $<$<BOOL:ENABLE_COVERAGE>:-ftest-coverage>
+            PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:--coverage>
+            PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:-fprofile-arcs>
+            PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:-ftest-coverage>
+            #PRIVATE $<$<CXX_COMPILER_ID:Clang>:-fuse-ld=lld>
             )
         target_link_libraries(
             ${MMOTD_TARGET_NAME}

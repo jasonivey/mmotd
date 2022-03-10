@@ -1,6 +1,6 @@
 # cmake/find_dependencies.cmake
 include_guard (DIRECTORY)
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.18)
 
 function (message)
     if (NOT MESSAGE_QUIET)
