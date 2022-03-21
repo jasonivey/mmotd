@@ -30,7 +30,6 @@ struct TemplateItemSettings {
     friend bool operator==(const TemplateItemSettings &lhs, const TemplateItemSettings &rhs) = default;
 
     int indent_size = 2;
-    int row_index = -1;
     int repeatable_index = 0;
     int column = ENTIRE_LINE;
     int prepend_newlines = 0;

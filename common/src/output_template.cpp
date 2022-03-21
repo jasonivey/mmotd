@@ -103,7 +103,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     {
         auto item = TemplateColumnItem{};
         item.indent_size = 0;
-        item.row_index = 1;
         item.value = {
             "%ID_GENERAL_GREETING%, %ID_GENERAL_USER_NAME%! %ID_GENERAL_LOCAL_TIME_EMOJI% Welcome to %ID_SYSTEM_INFORMATION_PLATFORM_NAME% %ID_SYSTEM_INFORMATION_PLATFORM_VERSION% (%ID_SYSTEM_INFORMATION_KERNEL_TYPE% %ID_SYSTEM_INFORMATION_KERNEL_RELEASE% %ID_SYSTEM_INFORMATION_ARCHITECTURE%)"};
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green)};
@@ -112,7 +111,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 2;
         item.value = {"System information as of %ID_GENERAL_LOCAL_DATE_TIME%"};
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_yellow)};
         item.append_newlines = 2;
@@ -120,7 +118,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 3;
         item.name = {"%ID_WEATHER_LOCATION%:"};
         item.value = {
             "%ID_WEATHER_WEATHER%, %color:bold_bright_green%Sunrise:%color:bold_bright_white% %ID_WEATHER_SUNRISE%, %color:bold_bright_green%Sunset:%color:bold_bright_white% %ID_WEATHER_SUNSET%"};
@@ -128,7 +125,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 4;
         item.name = {"Last Login:", "", ""};
         item.name_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan),
                            fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan),
@@ -143,7 +139,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 5;
         item.name = {"Up Time:"};
         item.value = {"%ID_BOOT_TIME_UP_TIME%"};
         items.emplace_back(item);
@@ -151,7 +146,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     {
         auto item = TemplateColumnItem{};
         item.append_newlines = 2;
-        item.row_index = 6;
         item.name = {"Boot Time:"};
         item.value = {"%ID_BOOT_TIME_BOOT_TIME%"};
         items.emplace_back(item);
@@ -159,63 +153,54 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     // Hardware specific
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 7;
         item.name = {"Type:"};
         item.value = {"%ID_HARDWARE_MACHINE_TYPE%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 8;
         item.name = {"Model:"};
         item.value = {"%ID_HARDWARE_MACHINE_MODEL%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 9;
         item.name = {"CPU:"};
         item.value = {"%ID_HARDWARE_CPU_NAME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 10;
         item.name = {"CPU Cores:"};
         item.value = {"%ID_HARDWARE_CPU_CORE_COUNT% (%ID_HARDWARE_CPU_BYTE_ORDER%)"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 11;
         item.name = {"CPU Temperature:"};
         item.value = {"%ID_HARDWARE_CPU_TEMPERATURE%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 12;
         item.name = {"GPU:"};
         item.value = {"%ID_HARDWARE_GPU_MODEL_NAME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 13;
         item.name = {"GPU Temperature:"};
         item.value = {"%ID_HARDWARE_GPU_TEMPERATURE%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 14;
         item.name = {"Monitor:"};
         item.value = {"%ID_HARDWARE_MONITOR_NAME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 15;
         item.name = {"Resolution:"};
         item.value = {"%ID_HARDWARE_MONITOR_RESOLUTION%"};
         item.append_newlines = 2;
@@ -224,70 +209,60 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     // The rest of the information
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 16;
         item.name = {"Computer Name:"};
         item.value = {"%ID_SYSTEM_INFORMATION_COMPUTER_NAME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 17;
         item.name = {"Hostname:"};
         item.value = {"%ID_SYSTEM_INFORMATION_HOST_NAME%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 18;
         item.name = {"Public IP:"};
         item.value = {"%ID_EXTERNAL_NETWORK_INFO_EXTERNAL_IP%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 19;
         item.name = {"System Load:"};
         item.value = {"%ID_LOAD_AVERAGE_LOAD_AVERAGE%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 20;
         item.name = {"Processes:"};
         item.value = {"%ID_PROCESSES_PROCESS_COUNT%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 21;
         item.name = {"Users Logged In:"};
         item.value = {"%ID_LOGGED_IN_USER_LOGGED_IN%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 22;
         item.name = {"Usage of /:"};
         item.value = {"%ID_FILE_SYSTEM_SUMMARY%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 23;
         item.name = {"Memory Usage:"};
         item.value = {"%ID_MEMORY_USAGE_SUMMARY%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 24;
         item.name = {"Swap Usage:"};
         item.value = {"%ID_SWAP_USAGE_SUMMARY%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 25;
         item.is_repeatable = true;
         item.is_optional = true;
         item.name = {"IP %ID_NETWORK_INFO_INTERFACE_NAME%:", "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"};
@@ -301,7 +276,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     // Whether the package manager is annoying us with updates
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 26;
         item.indent_size = 0;
         item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_yellow)};
@@ -313,7 +287,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     // Use the fortune databases to print a random "software engineering" quote
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 27;
         item.indent_size = 0;
         item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green)};
@@ -325,7 +298,6 @@ TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     // Notify the user whether the package manager has a reboot required
     {
         auto item = TemplateColumnItem{};
-        item.row_index = 28;
         item.indent_size = 0;
         item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_red)};
