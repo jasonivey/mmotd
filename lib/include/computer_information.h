@@ -1,15 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/big_five_macros.h"
-#include "common/include/information_definitions.h"
+#include "common/include/information.h"
 
-#include <array>
 #include <functional>
 #include <memory>
 #include <optional>
-#include <string>
-#include <string_view>
-#include <tuple>
 #include <vector>
 
 namespace mmotd::information {
@@ -20,16 +16,21 @@ using InformationProviderCreator = std::function<InformationProviderPtr()>;
 
 bool RegisterInformationProvider(InformationProviderCreator creator);
 
-class Informations;
-
 class ComputerInformation {
 public:
     NO_CONSTRUCTOR_DEFAULT_COPY_MOVE_OPERATORS_DESTRUCTOR(ComputerInformation);
 
     static ComputerInformation &Instance();
 
+    // Made public for future use -- currently this is called internally by GetAllInformations & GetInformations
+    void CacheInformation();
+
+    // This method does not call the CacheInformation method
     std::optional<Information> FindInformation(InformationId id) const;
-    const Informations &GetAllInformation() const;
+
+    // These methods DO call the CacheInformation method
+    Informations &GetAllInformations();
+    std::vector<Information> GetInformations();
 
 private:
     ComputerInformation();
@@ -39,12 +40,11 @@ private:
     void SetInformationProviders();
 
     bool IsInformationCached() const;
-    void CacheAllInformation() const;
-    void CacheAllInformationAsync() const;
-    void CacheAllInformationSerial() const;
+    void CacheInformationAsync();
+    void CacheInformationSerial();
 
     InformationProviders information_providers_;
-    mutable Informations information_cache_;
+    Informations information_cache_;
 };
 
 } // namespace mmotd::information

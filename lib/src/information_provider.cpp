@@ -25,7 +25,7 @@ InformationProvider::InformationProvider() = default;
 
 InformationProvider::~InformationProvider() = default;
 
-const std::vector<Information> &InformationProvider::GetInformations() const {
+const Informations &InformationProvider::GetInformations() const {
     return informations_;
 }
 
@@ -46,7 +46,11 @@ void InformationProvider::LookupInformation() {
 }
 
 void InformationProvider::AddInformation(Information information) {
-    informations_.push_back(information);
+    if (informations_.contains(information.GetId())) {
+        informations_[information.GetId()].push_back(move(information));
+    } else {
+        informations_.emplace(information.GetId(), vector<Information>{information});
+    }
 }
 
 Information InformationProvider::GetInfoTemplate(InformationId id) const {

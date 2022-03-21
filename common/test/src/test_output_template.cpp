@@ -1,7 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/output_template.h"
 #include "common/include/special_files.h"
-#include "common/results/include/output_template.h"
-#include "common/results/include/template_column_items.h"
+#include "common/include/template_column_items.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -36,7 +36,7 @@ fs::path FindDefaultTemplatePath() {
 
 } // namespace
 
-namespace mmotd::results::test {
+namespace mmotd::output_template::test {
 
 CATCH_TEST_CASE("default output template matches mmotd_template.json", "[OutputTemplate]") {
     auto default_template_path = FindDefaultTemplatePath();
@@ -53,4 +53,4 @@ CATCH_TEST_CASE("default output template matches mmotd_template.json", "[OutputT
     CATCH_CHECK(default_template_json == default_output_template_json);
 }
 
-} // namespace mmotd::results::test
+} // namespace mmotd::output_template::test

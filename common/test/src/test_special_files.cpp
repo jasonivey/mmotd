@@ -13,7 +13,7 @@ using namespace mmotd::core::special_files;
 using namespace std;
 using namespace std::literals;
 
-namespace mmotd::results::test {
+namespace mmotd::core::test {
 
 CATCH_TEST_CASE("empty GetEnvironmentValue", "[SpecialFiles]") {
     CATCH_CHECK(GetEnvironmentValue(string{}) == string{});
@@ -89,4 +89,4 @@ CATCH_TEST_CASE("no variables ExpandEnvironmentVariables", "[SpecialFiles]") {
     CATCH_CHECK(expanded == "/a/b/data/dir.txt"s);
 }
 
-} // namespace mmotd::results::test
+} // namespace mmotd::core::test

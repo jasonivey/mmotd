@@ -24,11 +24,18 @@ public:
                 std::string name,
                 std::string format_str);
 
-    InformationId GetId() const { return information_id_; }
-    std::string GetIdStr() const { return id_str_; }
-    std::string GetName() const { return name_; }
-    std::string GetFormat() const { return format_str_; }
-    std::string GetValue() const { return value_; }
+    // enum value: InformationId::ID_LOCATION_INFO_TIMEZONE
+    InformationId GetId() const noexcept { return information_id_; }
+    // string: "InformationId::ID_LOCATION_INFO_TIMEZONE"
+    std::string GetIdStr() const noexcept { return id_str_; }
+    // string: "ID_LOCATION_INFO_TIMEZONE"
+    std::string GetPlainIdStr() const noexcept { return id_str_no_namespace_; }
+    // string: "timezone"
+    std::string GetName() const noexcept { return name_; }
+    // string: "{}" in most all cases -- some floats are formatted as "{:.1f}"
+    std::string GetFormat() const noexcept { return format_str_; }
+    // string: "America/Denver" -- value after looked up via API call and formatted
+    std::string GetValue() const noexcept { return value_; }
 
     void SetName(const std::string &new_name) { name_ = new_name; }
 
@@ -45,6 +52,7 @@ private:
     CategoryId category_ = CategoryId::ID_INVALID;
     InformationId information_id_ = InformationId::ID_INVALID_INVALID_INFORMATION;
     std::string id_str_;
+    std::string id_str_no_namespace_;
     std::string name_;
     std::string format_str_;
     std::string value_;

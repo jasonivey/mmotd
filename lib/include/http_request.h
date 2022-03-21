@@ -14,7 +14,7 @@ std::string to_string(HttpProtocol protocol);
 
 class HttpRequest {
 public:
-    DEFAULT_DESTRUCTOR_DELETE_CONSTRUCTORS_COPY_MOVE_OPERATORS(HttpRequest);
+    DELETE_CONSTRUCTOR_COPY_MOVE_OPERATORS_DEFAULT_DESTRUCTOR(HttpRequest);
 
     HttpRequest(HttpProtocol protocol, std::string host, std::string port = std::string{});
 

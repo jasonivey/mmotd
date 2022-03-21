@@ -1,7 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/algorithm.h"
-#include "common/include/information_definitions.h"
-#include "common/include/information_objects.h"
+#include "common/assertion/include/assertion.h"
 #include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 #include "lib/include/information_provider.h"
@@ -15,7 +13,6 @@
 
 using namespace std;
 using fmt::format;
-using mmotd::algorithms::transform_if;
 
 namespace {
 
@@ -53,27 +50,37 @@ bool RegisterInformationProvider(InformationProviderCreator creator) {
 }
 
 optional<Information> ComputerInformation::FindInformation(InformationId id) const {
-    if (!IsInformationCached()) {
-        CacheAllInformation();
+    PRECONDITIONS(IsInformationCached(), "information cache is not initialized -- call GetAllInformations() first");
+    if (!information_cache_.contains(id) || empty(information_cache_.at(id))) {
+        return nullopt;
+    } else {
+        return information_cache_.at(id).front();
     }
-    auto i = find_if(begin(information_cache_), end(information_cache_), [id](const Information &info) {
-        return id == info.GetId();
-    });
-    return i == end(information_cache_) ? nullopt : make_optional(*i);
 }
 
-const Informations &ComputerInformation::GetAllInformation() const {
+Informations &ComputerInformation::GetAllInformations() {
     if (!IsInformationCached()) {
-        CacheAllInformation();
+        CacheInformation();
     }
     return information_cache_;
+}
+
+vector<Information> ComputerInformation::GetInformations() {
+    if (!IsInformationCached()) {
+        CacheInformation();
+    }
+    auto informations = vector<Information>{};
+    for (auto &[_, infos] : information_cache_) {
+        copy(begin(infos), end(infos), back_inserter(informations));
+    }
+    return informations;
 }
 
 bool ComputerInformation::IsInformationCached() const {
     return !information_cache_.empty();
 }
 
-void ComputerInformation::CacheAllInformationAsync() const {
+void ComputerInformation::CacheInformationAsync() {
     auto thread_pool = boost::asio::thread_pool{std::thread::hardware_concurrency()};
     for (auto &&provider : information_providers_) {
         boost::asio::post(thread_pool, [&provider]() { provider->LookupInformation(); });
@@ -81,21 +88,31 @@ void ComputerInformation::CacheAllInformationAsync() const {
     thread_pool.join();
 }
 
-void ComputerInformation::CacheAllInformationSerial() const {
+void ComputerInformation::CacheInformationSerial() {
     for (auto &&provider : information_providers_) {
         provider->LookupInformation();
     }
 }
 
-void ComputerInformation::CacheAllInformation() const {
+void ComputerInformation::CacheInformation() {
+    if (IsInformationCached()) {
+        return;
+    }
 #if defined(MMOTD_ASYNC_DISABLED)
-    CacheAllInformationSerial();
+    CacheInformationSerial();
 #else
-    CacheAllInformationAsync();
+    CacheInformationAsync();
 #endif
     for (const auto &provider : information_providers_) {
         const auto &informations = provider->GetInformations();
-        copy(begin(informations), end(informations), back_inserter(information_cache_));
+        for (auto [id, infos] : informations) {
+            if (!information_cache_.contains(id)) {
+                information_cache_.emplace(move(id), move(infos));
+            } else {
+                auto &existing_infos = information_cache_.at(id);
+                copy(begin(infos), end(infos), back_inserter(existing_infos));
+            }
+        }
     }
 }
 

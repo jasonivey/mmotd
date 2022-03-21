@@ -5,10 +5,12 @@
 #include "lib/include/platform/hardware_temperature.h"
 
 #include <optional>
+#include <string_view>
 #include <tuple>
 #include <vector>
 
 using namespace std;
+using namespace std::literals;
 using mmotd::platform::EndianType;
 
 bool gLinkHardwareInformation = false;
@@ -46,29 +48,29 @@ void HardwareInformation::CreateInformationObjects(const mmotd::platform::Hardwa
     byte_order.SetValueArgs(to_string(details.byte_order));
     AddInformation(byte_order);
 
+    static constexpr auto UNKNOWN_DATA = "[unknown]"sv;
+
     auto gpu_name = GetInfoTemplate(InformationId::ID_HARDWARE_GPU_MODEL_NAME);
-    gpu_name.SetValueArgs(details.gpu_name);
+    gpu_name.SetValueArgs(empty(details.gpu_name) ? UNKNOWN_DATA : details.gpu_name);
     AddInformation(gpu_name);
 
     auto monitor_name = GetInfoTemplate(InformationId::ID_HARDWARE_MONITOR_NAME);
-    monitor_name.SetValueArgs(details.monitor_name);
+    monitor_name.SetValueArgs(empty(details.monitor_name) ? UNKNOWN_DATA : details.monitor_name);
     AddInformation(monitor_name);
 
     auto monitor_resolution = GetInfoTemplate(InformationId::ID_HARDWARE_MONITOR_RESOLUTION);
-    monitor_resolution.SetValueArgs(details.monitor_resolution);
+    monitor_resolution.SetValueArgs(empty(details.monitor_resolution) ? UNKNOWN_DATA : details.monitor_resolution);
     AddInformation(monitor_resolution);
 
-    if (!details.cpu_temperature.empty()) {
-        auto cpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_CPU_TEMPERATURE);
-        cpu_temperature.SetValueArgs(details.cpu_temperature.to_string());
-        AddInformation(cpu_temperature);
-    }
+    auto cpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_CPU_TEMPERATURE);
+    cpu_temperature.SetValueArgs(std::empty(details.cpu_temperature) ? UNKNOWN_DATA :
+                                                                       details.cpu_temperature.to_string());
+    AddInformation(cpu_temperature);
 
-    if (!details.gpu_temperature.empty()) {
-        auto gpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_GPU_TEMPERATURE);
-        gpu_temperature.SetValueArgs(details.gpu_temperature.to_string());
-        AddInformation(gpu_temperature);
-    }
+    auto gpu_temperature = GetInfoTemplate(InformationId::ID_HARDWARE_GPU_TEMPERATURE);
+    gpu_temperature.SetValueArgs(std::empty(details.gpu_temperature) ? UNKNOWN_DATA :
+                                                                       details.gpu_temperature.to_string());
+    AddInformation(gpu_temperature);
 }
 
 } // namespace mmotd::information

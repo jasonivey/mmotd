@@ -2,10 +2,15 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 namespace mmotd::string_utils {
 
 std::string RemoveAsciiEscapeCodes(std::string input);
+std::string RemoveAsciiEscapeCodes(std::string_view input);
+
+std::size_t GetAsciiEscapeCodesSize(std::string input);
+std::size_t GetAsciiEscapeCodesSize(std::string_view input);
 
 std::string RemoveMultibyteCharacters(std::string input);
 

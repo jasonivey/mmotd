@@ -2,7 +2,7 @@
 #include "common/assertion/include/assertion.h"
 #include "common/include/algorithm.h"
 #include "common/include/logging.h"
-#include "common/results/include/output_template.h"
+#include "common/include/output_template.h"
 
 #include <filesystem>
 #include <fstream>
@@ -19,7 +19,7 @@ namespace fs = std::filesystem;
 using fmt::format;
 using namespace std;
 
-namespace mmotd::results {
+namespace mmotd::output_template {
 
 OutputTemplate::OutputTemplate() : template_config_(), column_items_(GetDefaultColumnItems()) {}
 
@@ -56,11 +56,11 @@ const vector<int> &OutputTemplate::GetColumns() const {
     return template_config_.columns;
 }
 
-const OutputTemplate::TemplateColumnItems &OutputTemplate::GetColumnItems() const {
+const TemplateColumnItems &OutputTemplate::GetColumnItems() const {
     return column_items_;
 }
 
-const mmotd::results::data::OutputSettings &OutputTemplate::GetOutputSettings() const {
+const mmotd::output_template::OutputSettings &OutputTemplate::GetOutputSettings() const {
     return template_config_.output_settings;
 }
 
@@ -74,11 +74,11 @@ void OutputTemplate::from_json(const json &root) {
                   quoted("column_items"),
                   quoted("array"));
 
-    auto template_config = root.at("config").get<data::TemplateConfig>();
+    auto template_config = root.at("config").get<TemplateConfig>();
     auto items = TemplateColumnItems{};
 
     for (auto &root_item : root.at("column_items")) {
-        auto column_item = data::TemplateItemSettings{};
+        auto column_item = TemplateItemSettings{};
         column_item.from_json(root_item, &template_config.default_settings);
         if (column_item.is_valid(template_config)) {
             items.emplace_back(std::move(column_item));
@@ -98,8 +98,7 @@ void OutputTemplate::to_json(json &root) const {
     root = json{{"config", template_config_}, {"column_items", column_items}};
 }
 
-mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
-    using namespace mmotd::results::data;
+TemplateColumnItems OutputTemplate::GetDefaultColumnItems() {
     auto items = TemplateColumnItems{};
     {
         auto item = TemplateColumnItem{};
@@ -130,16 +129,16 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
     {
         auto item = TemplateColumnItem{};
         item.row_index = 4;
-        item.name_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan),
-                           fmt::text_style{},
-                           fmt::text_style{}};
         item.name = {"Last Login:", "", ""};
-        item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white),
-                            fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green),
-                            fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green)};
+        item.name_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan),
+                           fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan),
+                           fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan)};
         item.value = {"%ID_LAST_LOGIN_LOGIN_SUMMARY%",
                       "Log in: %color:bold_bright_white%%ID_LAST_LOGIN_LOGIN_TIME%",
                       "Log out: %color:bold_bright_white%%ID_LAST_LOGIN_LOGOUT_TIME%"};
+        item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white),
+                            fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green),
+                            fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green)};
         items.emplace_back(item);
     }
     {
@@ -161,14 +160,14 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
     {
         auto item = TemplateColumnItem{};
         item.row_index = 7;
-        item.name = {"Machine Type:"};
+        item.name = {"Type:"};
         item.value = {"%ID_HARDWARE_MACHINE_TYPE%"};
         items.emplace_back(item);
     }
     {
         auto item = TemplateColumnItem{};
         item.row_index = 8;
-        item.name = {"Machine Model:"};
+        item.name = {"Model:"};
         item.value = {"%ID_HARDWARE_MACHINE_MODEL%"};
         items.emplace_back(item);
     }
@@ -292,7 +291,11 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         item.is_repeatable = true;
         item.is_optional = true;
         item.name = {"IP %ID_NETWORK_INFO_INTERFACE_NAME%:", "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"};
+        item.name_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan),
+                           fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan)};
         item.value = {"%ID_NETWORK_INFO_IP%", "%ID_NETWORK_INFO_MAC%"};
+        item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white),
+                            fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_white)};
         items.emplace_back(item);
     }
     // Whether the package manager is annoying us with updates
@@ -300,6 +303,7 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 26;
         item.indent_size = 0;
+        item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_yellow)};
         item.value = {"%ID_PACKAGE_MANAGEMENT_UPDATE_DETAILS%"};
         item.append_newlines = 1;
@@ -311,7 +315,8 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 27;
         item.indent_size = 0;
-        item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_cyan)};
+        item.is_optional = true;
+        item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_green)};
         item.value = {"%ID_FORTUNE_FORTUNE%"};
         item.append_newlines = 1;
         item.prepend_newlines = 1;
@@ -322,6 +327,7 @@ mmotd::results::data::TemplateColumnItems OutputTemplate::GetDefaultColumnItems(
         auto item = TemplateColumnItem{};
         item.row_index = 28;
         item.indent_size = 0;
+        item.is_optional = true;
         item.value_color = {fmt::emphasis::bold | fmt::fg(fmt::terminal_color::bright_red)};
         item.value = {"%ID_PACKAGE_MANAGEMENT_REBOOT_REQUIRED%"};
         item.append_newlines = 1;
@@ -365,4 +371,4 @@ bool WriteDefaultOutputTemplate(fs::path file_path) {
     return true;
 }
 
-} // namespace mmotd::results
+} // namespace mmotd::output_template

@@ -35,26 +35,26 @@
     },
     {
       "column": "ENTIRE_LINE",
-      "name_color": [
-        "bold_bright_cyan",
-        "bold_bright_cyan",
-        "bold_bright_cyan"
-      ],
       "name": [
         "Last Login:",
         "",
         ""
       ],
-      "row_index": 4,
-      "value_color": [
-        "bold_bright_white",
-        "bold_bright_green",
-        "bold_bright_green"
+      "name_color": [
+        "bold_bright_cyan",
+        "bold_bright_cyan",
+        "bold_bright_cyan"
       ],
+      "row_index": 4,
       "value": [
         "%ID_LAST_LOGIN_LOGIN_SUMMARY%",
         "Log in: %color:bold_bright_white%%ID_LAST_LOGIN_LOGIN_TIME%",
         "Log out: %color:bold_bright_white%%ID_LAST_LOGIN_LOGOUT_TIME%"
+      ],
+      "value_color": [
+        "bold_bright_white",
+        "bold_bright_green",
+        "bold_bright_green"
       ]
     },
     {
@@ -119,6 +119,7 @@
       ]
     },
     {
+      "column": "ENTIRE_LINE",
       "name": [
         "CPU Temperature:"
       ],
@@ -138,6 +139,7 @@
       ]
     },
     {
+      "column": "ENTIRE_LINE",
       "name": [
         "GPU Temperature:"
       ],
@@ -200,21 +202,21 @@
     {
       "column": "2",
       "name": [
-        "Processes:"
+        "System Load:"
       ],
       "row_index": 17,
       "value": [
-        "%ID_PROCESSES_PROCESS_COUNT%"
+        "%ID_LOAD_AVERAGE_LOAD_AVERAGE%"
       ]
     },
     {
       "column": "1",
       "name": [
-        "System Load:"
+        "Processes:"
       ],
       "row_index": 18,
       "value": [
-        "%ID_LOAD_AVERAGE_LOAD_AVERAGE%"
+        "%ID_PROCESSES_PROCESS_COUNT%"
       ]
     },
     {
@@ -238,25 +240,11 @@
       ]
     },
     {
-      "column": "2",
-      "is_optional": true,
-      "is_repeatable": true,
-      "name": [
-        "IP %ID_NETWORK_INFO_INTERFACE_NAME%:",
-        "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"
-      ],
-      "row_index": 19,
-      "value": [
-        "%ID_NETWORK_INFO_IP%",
-        "%ID_NETWORK_INFO_MAC%"
-      ]
-    },
-    {
       "column": "1",
-      "row_index": 20,
       "name": [
         "Memory Usage:"
       ],
+      "row_index": 20,
       "value": [
         "%ID_MEMORY_USAGE_SUMMARY%"
       ]
@@ -272,8 +260,31 @@
       ]
     },
     {
+      "column": "2",
+      "is_optional": true,
+      "is_repeatable": true,
+      "name": [
+        "IP %ID_NETWORK_INFO_INTERFACE_NAME%:",
+        "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"
+      ],
+      "name_color": [
+        "bold_bright_cyan",
+        "bold_bright_cyan"
+      ],
+      "row_index": 19,
+      "value": [
+        "%ID_NETWORK_INFO_IP%",
+        "%ID_NETWORK_INFO_MAC%"
+      ],
+      "value_color": [
+        "bold_bright_white",
+        "bold_bright_white"
+      ]
+    },
+    {
       "column": "ENTIRE_LINE",
       "indent_size": 0,
+      "is_optional": true,
       "prepend_newlines": 1,
       "row_index": 22,
       "value": [
@@ -286,18 +297,20 @@
     {
       "column": "ENTIRE_LINE",
       "indent_size": 0,
+      "is_optional": true,
       "prepend_newlines": 1,
       "row_index": 23,
       "value": [
         "%ID_FORTUNE_FORTUNE%"
       ],
       "value_color": [
-        "bold_bright_cyan"
+        "bold_bright_green"
       ]
     },
     {
       "column": "ENTIRE_LINE",
       "indent_size": 0,
+      "is_optional": true,
       "prepend_newlines": 1,
       "row_index": 24,
       "value": [
@@ -315,10 +328,11 @@
       "2"
     ],
     "default_settings": {
+      "append_newlines": 1,
       "column": "ENTIRE_LINE",
       "indent_size": 2,
-      "is_repeatable": false,
       "is_optional": false,
+      "is_repeatable": false,
       "name_color": [
         "bold_bright_cyan"
       ],

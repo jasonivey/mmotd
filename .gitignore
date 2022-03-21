@@ -4,10 +4,7 @@
 .vsbuild/
 .vscode/c_cpp_properties.json
 .vscode/cmake-kits.json
-.vscode/launch.json
 .vscode/settings.json
-.vscode/tasks.json
 build/
 common/include/version_number.h
 compile_commands.json
-vsbuild/

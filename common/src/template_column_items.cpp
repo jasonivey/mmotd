@@ -3,8 +3,7 @@
 #include "common/assertion/include/precondition.h"
 #include "common/include/algorithm.h"
 #include "common/include/logging.h"
-#include "common/results/include/template_column_items.h"
-#include "common/results/include/template_string.h"
+#include "common/include/template_column_items.h"
 
 #include <algorithm>
 #include <array>
@@ -12,7 +11,9 @@
 #include <iterator>
 #include <optional>
 #include <regex>
+#include <string_view>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 #include <boost/algorithm/string.hpp>
@@ -23,29 +24,30 @@
 using fmt::format;
 using nlohmann::json;
 using namespace std;
-using mmotd::results::data::ENTIRE_LINE, mmotd::results::data::ENTIRE_LINE_REPR;
-using mmotd::results::data::TemplateItemSettings;
+using mmotd::output_template::ENTIRE_LINE, mmotd::output_template::ENTIRE_LINE_REPR;
+using mmotd::output_template::TemplateItemSettings;
 
 namespace {
 
+static constexpr int MAX_NEWLINES = 100;
 static constexpr auto TerminalColors =
     array<const char *, 8>{"black", "red", "green", "yellow", "blue", "magenta", "cyan", "white"};
 static constexpr auto TerminalColorIndexes = array<fmt::terminal_color, 16>{fmt::terminal_color::black,
-                                                                                  fmt::terminal_color::red,
-                                                                                  fmt::terminal_color::green,
-                                                                                  fmt::terminal_color::yellow,
-                                                                                  fmt::terminal_color::blue,
-                                                                                  fmt::terminal_color::magenta,
-                                                                                  fmt::terminal_color::cyan,
-                                                                                  fmt::terminal_color::white,
-                                                                                  fmt::terminal_color::bright_black,
-                                                                                  fmt::terminal_color::bright_red,
-                                                                                  fmt::terminal_color::bright_green,
-                                                                                  fmt::terminal_color::bright_yellow,
-                                                                                  fmt::terminal_color::bright_blue,
-                                                                                  fmt::terminal_color::bright_magenta,
-                                                                                  fmt::terminal_color::bright_cyan,
-                                                                                  fmt::terminal_color::bright_white};
+                                                                            fmt::terminal_color::red,
+                                                                            fmt::terminal_color::green,
+                                                                            fmt::terminal_color::yellow,
+                                                                            fmt::terminal_color::blue,
+                                                                            fmt::terminal_color::magenta,
+                                                                            fmt::terminal_color::cyan,
+                                                                            fmt::terminal_color::white,
+                                                                            fmt::terminal_color::bright_black,
+                                                                            fmt::terminal_color::bright_red,
+                                                                            fmt::terminal_color::bright_green,
+                                                                            fmt::terminal_color::bright_yellow,
+                                                                            fmt::terminal_color::bright_blue,
+                                                                            fmt::terminal_color::bright_magenta,
+                                                                            fmt::terminal_color::bright_cyan,
+                                                                            fmt::terminal_color::bright_white};
 
 vector<string> ConvertTerminalColors() {
     return vector<string>{begin(TerminalColors), end(TerminalColors)};
@@ -61,12 +63,12 @@ optional<uint32_t> FromString(string_view str, int base = 10) {
     }
 }
 
-optional<fmt::text_style> GetHexColorValue(string value) {
+optional<fmt::text_style> GetHexColorValue(string_view value) {
     PRECONDITIONS(!empty(value), "unable to convert empty string to hex color");
     const auto pattern = regex(R"(^hex\(\s*([0-9A-Fa-f]{2}|0)\s*([0-9A-Fa-f]{2})?\s*([0-9A-Fa-f]{2})?\s*\)$)",
                                std::regex_constants::ECMAScript | std::regex_constants::icase);
-    auto matches = smatch{};
-    if (regex_match(value, matches, pattern)) {
+    auto matches = cmatch{};
+    if (regex_match(data(value), matches, pattern)) {
         auto hex_str = matches.str(1);
         if (matches.size() > 2) {
             hex_str += matches.str(2);
@@ -82,12 +84,12 @@ optional<fmt::text_style> GetHexColorValue(string value) {
     return nullopt;
 }
 
-optional<fmt::text_style> GetRgbColorValue(string value) {
+optional<fmt::text_style> GetRgbColorValue(string_view value) {
     PRECONDITIONS(!empty(value), "unable to convert empty string to rgb color");
     const auto pattern = regex(R"(^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$)",
                                std::regex_constants::ECMAScript | std::regex_constants::icase);
-    auto matches = smatch{};
-    if (regex_match(value, matches, pattern)) {
+    auto matches = cmatch{};
+    if (regex_match(data(value), matches, pattern)) {
         auto red = FromString(string_view(matches.str(1)));
         auto green = FromString(string_view(matches.str(2)));
         auto blue = FromString(string_view(matches.str(3)));
@@ -101,12 +103,12 @@ optional<fmt::text_style> GetRgbColorValue(string value) {
     return nullopt;
 }
 
-optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
+optional<fmt::text_style> GetTerminalPlainColor(string_view value, bool bright) {
     PRECONDITIONS(!empty(value), "unable to convert empty string to plain color");
     const auto colors = string{"black|red|green|yellow|blue|magenta|cyan|white"};
     const auto color_regex = regex(colors, regex_constants::ECMAScript | regex_constants::icase);
-    auto match = smatch{};
-    if (!regex_search(value, match, color_regex)) {
+    auto match = cmatch{};
+    if (!regex_search(data(value), match, color_regex)) {
         LOG_ERROR("no terminal color was specified within {} (valid colors are: {})", value, colors);
         return nullopt;
     }
@@ -133,7 +135,7 @@ optional<fmt::text_style> GetTerminalPlainColor(string value, bool bright) {
     return make_optional(fmt::fg(color));
 }
 
-optional<tuple<bool, bool, bool, bool, bool>> GetTerminalColorEmphasis(string value) {
+optional<tuple<bool, bool, bool, bool, bool>> GetTerminalColorEmphasis(string_view value) {
     PRECONDITIONS(!empty(value), "unable to convert empty string to color emphasis");
     auto bold = false, italic = false, underline = false, strikethrough = false, bright = false;
     if (boost::icontains(value, "bold_") || boost::icontains(value, "_bold")) {
@@ -159,7 +161,7 @@ optional<tuple<bool, bool, bool, bool, bool>> GetTerminalColorEmphasis(string va
     return make_optional(make_tuple(bold, italic, underline, strikethrough, bright));
 }
 
-optional<fmt::text_style> GetTerminalColorValue(string value) {
+optional<fmt::text_style> GetTerminalColorValue(string_view value) {
     PRECONDITIONS(!empty(value), "unable to convert empty string to terminal color");
     auto emphasis_holder = GetTerminalColorEmphasis(value);
     if (!emphasis_holder) {
@@ -186,7 +188,7 @@ optional<fmt::text_style> GetTerminalColorValue(string value) {
     return make_optional(txt_style);
 }
 
-optional<fmt::text_style> GetColorValue(string value) {
+optional<fmt::text_style> GetColorValue(string_view value) {
     if (empty(value)) {
         LOG_DEBUG("unable to convert empty string to color");
         return nullopt;
@@ -213,14 +215,15 @@ inline int column_from_string(const string &column_str) {
 }
 
 inline string column_to_string(int column_value) {
-    using namespace mmotd::results::data;
+    using namespace mmotd::output_template;
     return column_value == ENTIRE_LINE ? string{ENTIRE_LINE_REPR} : to_string(column_value);
 }
 
 vector<fmt::text_style> read_colors(const json &color_list) {
     auto color_defs = vector<fmt::text_style>{};
-    for (auto color_str : color_list) {
-        color_defs.push_back(mmotd::results::color::from_color_string(color_str));
+    for (auto color_value : color_list) {
+        auto color_str = string(color_value);
+        color_defs.push_back(mmotd::output_template::color::from_color_string(color_str));
     }
     return color_defs;
 }
@@ -228,7 +231,7 @@ vector<fmt::text_style> read_colors(const json &color_list) {
 vector<string> write_colors(const vector<fmt::text_style> &color_defs) {
     auto color_strs = vector<string>{};
     for (auto color_def : color_defs) {
-        color_strs.push_back(mmotd::results::color::to_string(color_def));
+        color_strs.push_back(mmotd::output_template::color::to_string(color_def));
     }
     return color_strs;
 }
@@ -268,6 +271,7 @@ void from_json_column(const json &root, const TemplateItemSettings *default_sett
 void from_json_prepend_newlines(const json &root, const TemplateItemSettings *default_settings, int &prepend_newlines) {
     if (root.contains("prepend_newlines")) {
         root.at("prepend_newlines").get_to(prepend_newlines);
+        prepend_newlines = std::clamp(prepend_newlines, 0, MAX_NEWLINES);
     } else if (default_settings != nullptr) {
         prepend_newlines = default_settings->prepend_newlines;
     }
@@ -276,6 +280,7 @@ void from_json_prepend_newlines(const json &root, const TemplateItemSettings *de
 void from_json_append_newlines(const json &root, const TemplateItemSettings *default_settings, int &append_newlines) {
     if (root.contains("append_newlines")) {
         root.at("append_newlines").get_to(append_newlines);
+        append_newlines = std::clamp(append_newlines, 1, MAX_NEWLINES);
     } else if (default_settings != nullptr) {
         append_newlines = default_settings->append_newlines;
     }
@@ -312,7 +317,14 @@ void from_json_name_color(const json &root,
     if (root.contains("name_color")) {
         name_color = read_colors(root["name_color"]);
     } else if (default_settings != nullptr) {
-        name_color = default_settings->name_color;
+        auto names = vector<string>{};
+        if (root.contains("name")) {
+            root.at("name").get_to(names);
+        }
+        const auto &default_name_colors = default_settings->name_color;
+        for (auto i = size_t{0}; i != std::max(size(names), size_t{1}); ++i) {
+            name_color.push_back(default_name_colors.front());
+        }
     }
 }
 
@@ -328,7 +340,14 @@ void from_json_value_color(const json &root,
     if (root.contains("value_color")) {
         value_color = read_colors(root["value_color"]);
     } else if (default_settings != nullptr) {
-        value_color = default_settings->value_color;
+        auto values = vector<string>{};
+        if (root.contains("value")) {
+            root.at("value").get_to(values);
+        }
+        const auto &default_value_colors = default_settings->value_color;
+        for (auto i = size_t{0}; i != std::max(size(values), size_t{1}); ++i) {
+            value_color.push_back(default_value_colors.front());
+        }
     }
 }
 
@@ -408,7 +427,7 @@ void value_color_to_json(nlohmann::json &root,
 
 } // namespace
 
-namespace mmotd::results::color {
+namespace mmotd::output_template::color {
 
 string to_string(fmt::text_style txt_style) {
     if (!txt_style.has_foreground()) {
@@ -441,14 +460,14 @@ string to_string(fmt::text_style txt_style) {
     return terminal_color + *(begin(TerminalColors) + index);
 }
 
-fmt::text_style from_color_string(string input) {
+fmt::text_style from_color_string(string_view input) {
     auto text_style_holder = ::GetColorValue(input);
     return text_style_holder.has_value() ? text_style_holder.value() : fmt::text_style{};
 }
 
-} // namespace mmotd::results::color
+} // namespace mmotd::output_template::color
 
-namespace mmotd::results::data {
+namespace mmotd::output_template {
 
 fmt::text_style TemplateItemSettings::GetNameColor(size_t index) const noexcept {
     if (index < size(name_color)) {
@@ -511,6 +530,10 @@ bool TemplateItemSettings::is_valid(const TemplateConfig &default_config) {
         return false;
     }
     return true;
+}
+
+bool TemplateItemSettings::IsEntireLine() const noexcept {
+    return column == ENTIRE_LINE;
 }
 
 void TemplateItemSettings::from_json(const json &root, const TemplateItemSettings *default_settings) {
@@ -673,4 +696,4 @@ string to_string(const TemplateColumnItems &items) {
     });
 }
 
-} // namespace mmotd::results::data
+} // namespace mmotd::output_template

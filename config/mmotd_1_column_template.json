@@ -38,8 +38,8 @@
       ],
       "name_color": [
         "bold_bright_cyan",
-        "",
-        ""
+        "bold_bright_cyan",
+        "bold_bright_cyan"
       ],
       "row_index": 4,
       "value": [
@@ -74,7 +74,7 @@
     },
     {
       "name": [
-        "Machine Type:"
+        "Type:"
       ],
       "row_index": 7,
       "value": [
@@ -83,7 +83,7 @@
     },
     {
       "name": [
-        "Machine Model:"
+        "Model:"
       ],
       "row_index": 8,
       "value": [
@@ -242,14 +242,23 @@
         "IP %ID_NETWORK_INFO_INTERFACE_NAME%:",
         "Mac %ID_NETWORK_INFO_INTERFACE_NAME%:"
       ],
+      "name_color": [
+        "bold_bright_cyan",
+        "bold_bright_cyan"
+      ],
       "row_index": 25,
       "value": [
         "%ID_NETWORK_INFO_IP%",
         "%ID_NETWORK_INFO_MAC%"
+      ],
+      "value_color": [
+        "bold_bright_white",
+        "bold_bright_white"
       ]
     },
     {
       "indent_size": 0,
+      "is_optional": true,
       "prepend_newlines": 1,
       "row_index": 26,
       "value": [
@@ -261,17 +270,19 @@
     },
     {
       "indent_size": 0,
+      "is_optional": true,
       "prepend_newlines": 1,
       "row_index": 27,
       "value": [
         "%ID_FORTUNE_FORTUNE%"
       ],
       "value_color": [
-        "bold_bright_cyan"
+        "bold_bright_green"
       ]
     },
     {
       "indent_size": 0,
+      "is_optional": true,
       "prepend_newlines": 1,
       "row_index": 28,
       "value": [

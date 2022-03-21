@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -42,19 +43,26 @@ inline constexpr std::size_t MakeInformationId(CategoryId category, std::size_t 
     return static_cast<std::size_t>(category) | PrepValueForInformationId(id);
 }
 
+// clang-format off
 enum class InformationId : std::size_t {
     ID_INVALID_INVALID_INFORMATION = MakeInformationId(CategoryId::ID_INVALID, 1ull),
-#define INFO_DEF(cat, id_descriptor, name, fmttr, id)                      \
-    BOOST_PP_CAT(ID_, BOOST_PP_CAT(cat, BOOST_PP_CAT(_, id_descriptor))) = \
+#define INFO_DEF(cat, id_descriptor, name, fmttr, id)                                                                  \
+    BOOST_PP_CAT(ID_, BOOST_PP_CAT(cat, BOOST_PP_CAT(_, id_descriptor))) =                                             \
         MakeInformationId(BOOST_PP_CAT(CategoryId::ID_, cat), id),
 #define CATEGORY_INFO_DEF(name, description, value)
 #include "common/include/information_defs.h"
 };
+// clang-format on
 
-class Informations;
-Informations CreateInformations();
+class Information;
+using Informations = std::unordered_map<InformationId, std::vector<Information>>;
+const Informations &GetInformations();
+const std::vector<Information> &GetInformationList();
+
+InformationId from_information_id_string(std::string id_str);
+std::string to_string(InformationId id);
 
 using CategoryIds = std::vector<std::pair<CategoryId, std::string>>;
-CategoryIds CreateCategoryIds();
+const CategoryIds &GetCategoryIds();
 
 } // namespace mmotd::information
