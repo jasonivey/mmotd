@@ -38,8 +38,8 @@
       ],
       "name_color": [
         "bold_bright_cyan",
-        "",
-        ""
+        "bold_bright_cyan",
+        "bold_bright_cyan"
       ],
       "row_index": 4,
       "value": [
@@ -74,7 +74,7 @@
     },
     {
       "name": [
-        "Machine Type:"
+        "Type:"
       ],
       "row_index": 7,
       "value": [
@@ -83,7 +83,7 @@
     },
     {
       "name": [
-        "Machine Model:"
+        "Model:"
       ],
       "row_index": 8,
       "value": [
@@ -277,7 +277,7 @@
         "%ID_FORTUNE_FORTUNE%"
       ],
       "value_color": [
-        "bold_bright_cyan"
+        "bold_bright_green"
       ]
     },
     {

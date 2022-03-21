@@ -67,6 +67,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         ${MMOTD_TARGET_NAME}
         # On non-Windows C++ standard libraraies _GNU_SOURCE definition is required.
         PRIVATE $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:_GNU_SOURCE>
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:_GLIBCXX_USE_CXX11_ABI=1>
         # 'DEBUG', '_DEBUG' and 'NDEBUG' comes for free on MSVC compilers
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:DEBUG>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<NOT:$<CXX_COMPILER_ID:MSVC>>>:_DEBUG>
@@ -125,14 +126,16 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # Enable colorized output to always
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-fcolor-diagnostics>
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-fdiagnostics-color=always>
-        # Enable various warnings
+        # Enable warnings as errors
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Werror>
-        # both -Wall and -Wextra are the base set of warnings
+        # Give an error whenever the standard (i.e. -std=c++20) requires a diagnostic, in some cases where there is
+        #  undefined behavior at compile-time and in some other cases that do not prevent compilation of programs that
+        #  are valid according to the standard.
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-pedantic-errors>
+        # enables all the warnings about constructions that are questionable
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wall>
+        # enables some extra warning flags that are not enabled by -Wall
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wextra>
-        # TODO: fix_jasoni... I believe pedantic-errors is equivalent to `-pedantic` and `-Werror`
-        # warn if non-standard C++ is used
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-pedantic>
         # warn the user if a variable declaration shadows one from a parent context
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wshadow>
         # warn the user if a class with virtual functions has a non-virtual destructor
@@ -146,10 +149,6 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunused>
         # warn if you overload (not override) a virtual function
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Woverloaded-virtual>
-        # Give an error whenever the base standard (think C++98) requires a diagnostic, in some cases where there is
-        #  undefined behavior at compile-time and in some other cases that do not prevent compilation of programs that
-        #  are valid according to the standard.
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-pedantic-errors>
         # warn on type conversions that may lose data
         # TODO: fix_jasoni... re-enable
         PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wconversion>
@@ -248,7 +247,6 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         ${MMOTD_TARGET_NAME} SYSTEM
         PRIVATE ${Boost_INCLUDE_DIRS}
         PRIVATE ${BACKWARD_INCLUDE_DIRS}
-        PRIVATE ${fort_SOURCE_DIR}/lib
         PRIVATE ${certify_SOURCE_DIR}/include
         PRIVATE ${fmt_SOURCE_DIR}/include
         PRIVATE ${random_SOURCE_DIR}/include
@@ -274,11 +272,9 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
             ${MMOTD_TARGET_NAME}
             PRIVATE mmotd_lib
             PRIVATE mmotd_common
-            PRIVATE mmotd_output
             )
         target_link_libraries(
             ${MMOTD_TARGET_NAME}
-            PRIVATE fort
             INTERFACE utfcpp
             PRIVATE nlohmann_json::nlohmann_json
             PRIVATE fmt::fmt

@@ -41,7 +41,7 @@ string GetInformationValueString(const mmotd::information::Information &informat
     return !empty(value) ? format(formatting_color, FMT_STRING("{}"), value) : string{};
 }
 
-size_t GetColumnWidth(const mmotd::information::Informations &informations) {
+size_t GetColumnWidth(const vector<mmotd::information::Information> &informations) {
     auto i = max_element(begin(informations), end(informations), [](const auto &a, const auto &b) {
         return GetInformationNameStringSize(a) < GetInformationNameStringSize(b);
     });
@@ -50,7 +50,7 @@ size_t GetColumnWidth(const mmotd::information::Informations &informations) {
 
 void PrintMmotdRaw() {
     auto &computer_information = mmotd::information::ComputerInformation::Instance();
-    const auto &informations = computer_information.GetAllInformation();
+    auto informations = computer_information.GetInformations();
     auto output_lines = vector<string>{};
     const auto width = GetColumnWidth(informations);
     for (const auto &information : informations) {

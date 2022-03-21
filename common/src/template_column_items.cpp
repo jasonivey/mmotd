@@ -3,8 +3,7 @@
 #include "common/assertion/include/precondition.h"
 #include "common/include/algorithm.h"
 #include "common/include/logging.h"
-#include "common/results/include/template_column_items.h"
-#include "common/results/include/template_string.h"
+#include "common/include/template_column_items.h"
 
 #include <algorithm>
 #include <array>
@@ -25,8 +24,8 @@
 using fmt::format;
 using nlohmann::json;
 using namespace std;
-using mmotd::results::data::ENTIRE_LINE, mmotd::results::data::ENTIRE_LINE_REPR;
-using mmotd::results::data::TemplateItemSettings;
+using mmotd::output_template::ENTIRE_LINE, mmotd::output_template::ENTIRE_LINE_REPR;
+using mmotd::output_template::TemplateItemSettings;
 
 namespace {
 
@@ -216,7 +215,7 @@ inline int column_from_string(const string &column_str) {
 }
 
 inline string column_to_string(int column_value) {
-    using namespace mmotd::results::data;
+    using namespace mmotd::output_template;
     return column_value == ENTIRE_LINE ? string{ENTIRE_LINE_REPR} : to_string(column_value);
 }
 
@@ -224,7 +223,7 @@ vector<fmt::text_style> read_colors(const json &color_list) {
     auto color_defs = vector<fmt::text_style>{};
     for (auto color_value : color_list) {
         auto color_str = string(color_value);
-        color_defs.push_back(mmotd::results::color::from_color_string(color_str));
+        color_defs.push_back(mmotd::output_template::color::from_color_string(color_str));
     }
     return color_defs;
 }
@@ -232,7 +231,7 @@ vector<fmt::text_style> read_colors(const json &color_list) {
 vector<string> write_colors(const vector<fmt::text_style> &color_defs) {
     auto color_strs = vector<string>{};
     for (auto color_def : color_defs) {
-        color_strs.push_back(mmotd::results::color::to_string(color_def));
+        color_strs.push_back(mmotd::output_template::color::to_string(color_def));
     }
     return color_strs;
 }
@@ -428,7 +427,7 @@ void value_color_to_json(nlohmann::json &root,
 
 } // namespace
 
-namespace mmotd::results::color {
+namespace mmotd::output_template::color {
 
 string to_string(fmt::text_style txt_style) {
     if (!txt_style.has_foreground()) {
@@ -466,9 +465,9 @@ fmt::text_style from_color_string(string_view input) {
     return text_style_holder.has_value() ? text_style_holder.value() : fmt::text_style{};
 }
 
-} // namespace mmotd::results::color
+} // namespace mmotd::output_template::color
 
-namespace mmotd::results::data {
+namespace mmotd::output_template {
 
 fmt::text_style TemplateItemSettings::GetNameColor(size_t index) const noexcept {
     if (index < size(name_color)) {
@@ -697,4 +696,4 @@ string to_string(const TemplateColumnItems &items) {
     });
 }
 
-} // namespace mmotd::results::data
+} // namespace mmotd::output_template

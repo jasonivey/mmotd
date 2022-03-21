@@ -126,16 +126,37 @@ jobs:
           fetch-depth: 0
       - uses: seanmiddleditch/gha-setup-ninja@master
 
+      # - name: Get CMake & Ninja
+      #   if: runner.os == 'Linux' || runner.os == 'macOS'
+      #   uses: symbitic/install-cmake@master
+      #   with:
+      #     cmake: '3.22.3'
+      #     ninja: '1.10.2'
+
+      # - name: Add CMake & Ninja to GITHUB_PATH
+      #   if: runner.os == 'Linux' || runner.os == 'macOS'
+      #   shell: bash
+      #   run: |
+      #     if [ -d /opt/hostedtoolcache/cmake/3.22.3/x64/cmake-3.22.3-linux-x86_64/bin ]; then
+      #       echo "/opt/hostedtoolcache/cmake/3.22.3/x64/cmake-3.22.3-linux-x86_64/bin" >> $GITHUB_PATH;
+      #     fi
+      #     if [ -d /opt/hostedtoolcache/ninja/1.10.2/x64 ]; then
+      #       echo "/opt/hostedtoolcache/ninja/1.10.2/x64" >> $GITHUB_PATH;
+      #     fi
+
       - name: Install Linux Base Packages
         if: runner.os == 'Linux'
         shell: bash
         run: |
-          sudo apt-get update -y && sudo apt-get install -y apt-utils software-properties-common curl libcurl4 \
-            libcurl4-openssl-dev pkg-config wget gnupg build-essential git ca-certificates cmake ninja-build \
+          sudo apt-get update -y && sudo apt-get install -y apt-utils lsb-release software-properties-common curl \
+            libcurl4 libcurl4-openssl-dev pkg-config wget gnupg build-essential git ca-certificates ninja-build \
             autoconf automake libtool flex bison binutils binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev \
             gdbserver gettext gnu-standards libboost-dev libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump \
             elfutils libelf1 libelf-dev libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev \
             tar unzip zip libcrypt1 libcrypt-dev openssl libssl-dev
+          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+          sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+          sudo apt-get update -y && sudo apt-get install -y cmake
           sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
           sudo rm -rf /var/lib/apt/lists/*
 

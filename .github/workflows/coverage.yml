@@ -23,14 +23,14 @@ jobs:
       - name: Get CMake & Ninja
         uses: symbitic/install-cmake@master
         with:
-          cmake: '3.22.2'
+          cmake: '3.22.3'
           ninja: '1.10.2'
 
       - name: Add CMake & Ninja to GITHUB_PATH
         shell: bash
         run: |
-          if [ -d /opt/hostedtoolcache/cmake/3.22.2/x64/cmake-3.22.2-linux-x86_64/bin ]; then
-            echo "/opt/hostedtoolcache/cmake/3.22.2/x64/cmake-3.22.2-linux-x86_64/bin" >> $GITHUB_PATH;
+          if [ -d /opt/hostedtoolcache/cmake/3.22.3/x64/cmake-3.22.3-linux-x86_64/bin ]; then
+            echo "/opt/hostedtoolcache/cmake/3.22.3/x64/cmake-3.22.3-linux-x86_64/bin" >> $GITHUB_PATH;
           fi
           if [ -d /opt/hostedtoolcache/ninja/1.10.2/x64 ]; then
             echo "/opt/hostedtoolcache/ninja/1.10.2/x64" >> $GITHUB_PATH;

@@ -1,14 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/information_decls.h"
-#include "common/include/informations.h"
 
 #include <cstdlib> // for std::size_t
+#include <vector>
 
 namespace mmotd::information {
-
-enum class CategoryId : std::size_t;
-enum class InformationId : std::size_t;
 
 //
 // This singleton is designed to be used by multiple threads.  The public interface shows
@@ -32,11 +29,11 @@ public:
     Information GetInformationDefinition(InformationId id) const;
 
 private:
-    InformationDefinitions(CategoryIds categories, Informations informations);
+    InformationDefinitions(CategoryIds categories, std::vector<Information> informations);
     InformationDefinitions() = default;
 
     CategoryIds categories_;
-    Informations informations_;
+    std::vector<Information> informations_;
 };
 
 } // namespace mmotd::information

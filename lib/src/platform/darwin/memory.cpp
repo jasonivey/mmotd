@@ -3,7 +3,6 @@
 #if defined(__APPLE__)
 #include "common/include/human_size.h"
 #include "common/include/information_definitions.h"
-#include "common/include/information_objects.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "lib/include/platform/memory.h"

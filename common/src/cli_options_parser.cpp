@@ -6,7 +6,7 @@
 #include "common/include/special_files.h"
 #include "common/include/user_information.h"
 #include "common/include/version.h"
-#include "common/results/include/output_template.h"
+#include "common/include/output_template.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -257,7 +257,7 @@ bool CliOptionsParser::WriteDefaultConfiguration(fs::path file_path) {
 }
 
 bool CliOptionsParser::WriteDefaultTemplate(fs::path file_path) {
-    using namespace mmotd::results;
+    using namespace mmotd::output_template;
     PrintStatus(format(FMT_STRING("start:  writing output template to '{}'"), file_path));
     auto result = WriteDefaultOutputTemplate(file_path);
     PrintStatus(format(FMT_STRING("finish: writing output template to '{}', write status: {}"), file_path, result),

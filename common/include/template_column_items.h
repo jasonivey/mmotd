@@ -11,14 +11,14 @@
 #include <fmt/color.h>
 #include <nlohmann/json_fwd.hpp>
 
-namespace mmotd::results::color {
+namespace mmotd::output_template::color {
 
 fmt::text_style from_color_string(std::string_view input);
 std::string to_string(fmt::text_style txt_style);
 
-} // namespace mmotd::results::color
+} // namespace mmotd::output_template::color
 
-namespace mmotd::results::data {
+namespace mmotd::output_template {
 
 struct TemplateConfig;
 
@@ -105,4 +105,4 @@ using TemplateColumnItems = std::vector<TemplateColumnItem>;
 
 std::string to_string(const TemplateColumnItems &items);
 
-} // namespace mmotd::results::data
+} // namespace mmotd::output_template

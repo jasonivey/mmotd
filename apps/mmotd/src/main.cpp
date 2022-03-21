@@ -6,11 +6,10 @@
 #include "common/include/cli_options_parser.h"
 #include "common/include/config_options.h"
 #include "common/include/logging.h"
+#include "common/include/output_template.h"
+#include "common/include/output_template_writer.h"
 #include "common/include/special_files.h"
-#include "common/results/include/output_template.h"
-#include "common/results/include/output_template_printer.h"
 #include "lib/include/computer_information.h"
-#include "output/include/output.h"
 
 #include <clocale>
 #include <cstdlib>
@@ -32,7 +31,8 @@ using mmotd::core::ConfigOptions;
 namespace {
 
 void PrintMmotd() {
-    using namespace mmotd::results;
+    using namespace mmotd::output_template;
+    using namespace mmotd::output_template_writer;
     using mmotd::core::special_files::ExpandEnvironmentVariables;
 
     auto template_filename = ConfigOptions::Instance().GetString("core.template_path"sv, ""sv);
@@ -50,13 +50,11 @@ void PrintMmotd() {
         return;
     }
 
-    const auto &computer_information = mmotd::information::ComputerInformation::Instance();
-    const auto &informations = computer_information.GetAllInformation();
+    auto &computer_information = mmotd::information::ComputerInformation::Instance();
+    auto informations = computer_information.GetAllInformations();
 
-    PrintOutputTemplate(*output_template, informations);
-
-    auto output = mmotd::output::Output{};
-    fmt::print("{}\n", output.to_string(*output_template, informations));
+    auto writer = OutputTemplateWriter(output_template->GetColumns(), output_template->GetColumnItems(), informations);
+    fmt::print("{}\n", to_string(writer));
 }
 
 void UpdateLoggingDetails() {

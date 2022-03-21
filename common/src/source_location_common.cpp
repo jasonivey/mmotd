@@ -72,10 +72,10 @@ string TrimFileName(const char *file) noexcept {
 // bool (anonymous namespace)::IsInterfaceActive(...)
 // optional<fmt::text_style> (anonymous namespace)::GetTerminalPlainColor(...)
 // optional<fmt::text_style> (anonymous namespace)::GetTerminalPlainColor(...)
-// static optional<mmotd::information::Information> mmotd::results::TemplateString::FindInformation(...)
-// static optional<std::__1::string> mmotd::results::TemplateString::GetInformationValue(...)
-// static optional<mmotd::information::Information> mmotd::results::TemplateString::FindInformation(...)
-// static optional<std::__1::string> mmotd::results::TemplateString::GetInformationValue(...)
+// static optional<mmotd::information::Information> mmotd::TemplateString::FindInformation(...)
+// static optional<std::__1::string> mmotd::TemplateString::GetInformationValue(...)
+// static optional<mmotd::information::Information> mmotd::TemplateString::FindInformation(...)
+// static optional<std::__1::string> mmotd::TemplateString::GetInformationValue(...)
 // 'std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >' => 'string'
 // boost::iterator_range<__gnu_cxx::__normal_iterator<char const*, std::__cxx11::basic_string<char,
 // std::char_traits<char>, std::allocator<char> > > > boost::algorithm::detail::first_finderF<char const*,

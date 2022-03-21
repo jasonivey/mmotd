@@ -45,8 +45,16 @@ string RemoveAsciiEscapeCodes(string input) {
     return regex_replace(input, color_code_regex, "");
 }
 
+string RemoveAsciiEscapeCodes(string_view input) {
+    return RemoveAsciiEscapeCodes(string{input});
+}
+
 size_t GetAsciiEscapeCodesSize(string input) {
     return size(input) - size(RemoveAsciiEscapeCodes(input));
+}
+
+size_t GetAsciiEscapeCodesSize(string_view input) {
+    return GetAsciiEscapeCodesSize(string{input});
 }
 
 string RemoveMultibyteCharacters(string input) {

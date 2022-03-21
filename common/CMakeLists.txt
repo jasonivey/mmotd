@@ -13,35 +13,22 @@ add_library (
     assertion/src/exception.cpp
     assertion/src/stack_trace.cpp
     assertion/src/throw.cpp
-    results/src/output_column.cpp
-    results/src/output_column_indexes.cpp
-    results/src/output_frame.cpp
-    results/src/output_position_index.cpp
-    results/src/output_row.cpp
-    results/src/output_row_number_sentinals.cpp
-    results/src/output_table.cpp
-    results/src/output_template.cpp
-    results/src/output_template_printer.cpp
-    results/src/template_column_items.cpp
-    results/src/template_string.cpp
-    results/src/template_substring.cpp
-    results/src/template_substring_range.cpp
-    results/src/template_substrings.cpp
     src/cli_options_parser.cpp
     src/config_options.cpp
     src/information.cpp
     src/information_decls.cpp
     src/information_definitions.cpp
-    src/information_objects.cpp
-    src/informations.cpp
     src/logging.cpp
     src/mac_address.cpp
     src/network_device.cpp
+    src/output_template.cpp
+    src/output_template_writer.cpp
     src/source_location.cpp
     src/source_location_common.cpp
     src/special_files.cpp
     src/string_utils.cpp
     src/system_command.cpp
+    src/template_column_items.cpp
     src/user_information.cpp
     src/version.cpp
     )
