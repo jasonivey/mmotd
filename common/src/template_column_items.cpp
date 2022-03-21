@@ -244,13 +244,6 @@ void from_json_indent_size(const json &root, const TemplateItemSettings *default
     }
 }
 
-void from_json_row_index(const json &root, const TemplateItemSettings *, int &row_index) {
-    if (root.contains("row_index")) {
-        // fix_todo: refactor the row_index property in favor of "NEXT" or "increment"
-        root.at("row_index").get_to(row_index);
-    }
-}
-
 void from_json_repeatable_index(const json &root, const TemplateItemSettings *default_settings, int &repeatable_index) {
     // this should never be in the default or in the "column_items" array
     if (root.contains("repeatable_index")) {
@@ -355,10 +348,6 @@ void indent_size_to_json(nlohmann::json &root, const TemplateItemSettings &defau
     if (indent_size != default_settings.indent_size) {
         root["indent_size"] = indent_size;
     }
-}
-
-void row_index_to_json(nlohmann::json &root, const TemplateItemSettings &, const int row_index) {
-    root["row_index"] = row_index;
 }
 
 void column_to_json(nlohmann::json &root, const TemplateItemSettings &default_settings, const int column) {
@@ -491,7 +480,6 @@ fmt::text_style TemplateItemSettings::GetValueColor(size_t index) const noexcept
 
 string TemplateItemSettings::to_string() const {
     return format(FMT_STRING(R"(indent_size: {},
-row_index: {},
 repeatable_index: {},
 column: {},
 prepend_newlines: {},
@@ -503,7 +491,6 @@ name_color: [{}],
 value: [{}],
 value_color: [{}])"),
                   indent_size,
-                  row_index,
                   repeatable_index,
                   column,
                   prepend_newlines,
@@ -519,14 +506,13 @@ value_color: [{}])"),
 bool TemplateItemSettings::is_valid(const TemplateConfig &default_config) {
     auto i = find(begin(default_config.columns), end(default_config.columns), column);
     if (i == end(default_config.columns)) {
-        LOG_ERROR("item at row index={} has an invalid column={}, valid columns are {}",
-                  row_index,
+        LOG_ERROR("item has an invalid column={}, valid columns are {}",
                   column_to_string(column),
                   default_config.columns_to_string());
         return false;
     }
     if (empty(name) && empty(value)) {
-        LOG_ERROR("item at column={}, row={} has 0 names and 0 values", column_to_string(column), row_index);
+        LOG_ERROR("item has 0 names and 0 values");
         return false;
     }
     return true;
@@ -538,7 +524,6 @@ bool TemplateItemSettings::IsEntireLine() const noexcept {
 
 void TemplateItemSettings::from_json(const json &root, const TemplateItemSettings *default_settings) {
     from_json_indent_size(root, default_settings, indent_size);
-    from_json_row_index(root, default_settings, row_index);
     from_json_repeatable_index(root, default_settings, repeatable_index);
     from_json_column(root, default_settings, column);
     from_json_prepend_newlines(root, default_settings, prepend_newlines);
@@ -573,7 +558,6 @@ void TemplateItemSettings::default_to_json(nlohmann::json &root) const {
 void TemplateItemSettings::not_default_to_json(nlohmann::json &root,
                                                const TemplateItemSettings &default_settings) const {
     indent_size_to_json(root, default_settings, indent_size);
-    row_index_to_json(root, default_settings, row_index);
     column_to_json(root, default_settings, column);
     prepend_newlines_to_json(root, default_settings, prepend_newlines);
     append_newlines_to_json(root, default_settings, append_newlines);
