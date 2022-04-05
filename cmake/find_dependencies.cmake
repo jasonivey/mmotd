@@ -210,8 +210,8 @@ endif ()
 #                           https://raw.githubusercontent.com/facebook/folly/master/folly/ScopeGuard.h
 #                          But the author's work is much more concise and simple in my opinion.
 FetchContent_Declare(scope_guard
-    GIT_REPOSITORY   https://github.com/ricab/scope_guard.git
-    GIT_TAG          v1.0.0
+    GIT_REPOSITORY   https://github.com/jasonivey/scope_guard.git
+    #GIT_TAG          v1.0.0
 )
 FetchContent_GetProperties(scope_guard)
 if (NOT scope_guard_POPULATED)
