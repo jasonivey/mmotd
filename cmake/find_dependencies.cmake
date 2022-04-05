@@ -22,7 +22,7 @@ find_package(Threads REQUIRED)
 find_package(ZLIB 1.2.11 REQUIRED)
 find_package(Boost 1.71.0 REQUIRED)
 find_package(OpenSSL 1.1.1 REQUIRED)
-find_package(CURL 7.68.0 REQUIRED)
+find_package(CURL 7.50.0 REQUIRED)
 
 Include(FetchContent)
 
@@ -41,7 +41,6 @@ endif ()
 get_filename_component(DEPENDENT_CACHE_PATH ../_deps-cache ABSOLUTE CACHE)
 get_filename_component(DEPS_DIR_BACKWARD    ${DEPENDENT_CACHE_PATH}/backward    ABSOLUTE)
 get_filename_component(DEPS_DIR_CATCH2      ${DEPENDENT_CACHE_PATH}/catch2      ABSOLUTE)
-# get_filename_component(DEPS_DIR_CERTIFY     ${DEPENDENT_CACHE_PATH}/certify     ABSOLUTE)
 get_filename_component(DEPS_DIR_CLI11       ${DEPENDENT_CACHE_PATH}/cli11       ABSOLUTE)
 get_filename_component(DEPS_DIR_DATE        ${DEPENDENT_CACHE_PATH}/date        ABSOLUTE)
 get_filename_component(DEPS_DIR_FMT         ${DEPENDENT_CACHE_PATH}/fmt         ABSOLUTE)
@@ -57,9 +56,6 @@ endif ()
 if (IS_DIRECTORY "${DEPS_DIR_CATCH2}")
     set(FETCHCONTENT_SOURCE_DIR_CATCH2      ${DEPS_DIR_CATCH2}      CACHE PATH "Catch2 dependency cache"      FORCE)
 endif ()
-# if (IS_DIRECTORY "${DEPS_DIR_CERTIFY}")
-#     set(FETCHCONTENT_SOURCE_DIR_CERTIFY     ${DEPS_DIR_CERTIFY}     CACHE PATH "certify dependency cache"     FORCE)
-# endif ()
 if (IS_DIRECTORY "${DEPS_DIR_CLI11}")
     set(FETCHCONTENT_SOURCE_DIR_CLI11       ${DEPS_DIR_CLI11}       CACHE PATH "cli11 dependency cache"       FORCE)
 endif ()
@@ -150,19 +146,6 @@ if(NOT json_POPULATED)
     FetchContent_Populate(json)
     add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
-
-# Component: certify.  A small module which plugs into boost::beast and boost::asio to support secure https
-#            transmissions.  The module handles all of the certificate managment, validation and creation
-#            if needed.
-#FetchContent_Declare(certify
-#    GIT_REPOSITORY   https://github.com/djarek/certify.git
-#)
-#FetchContent_GetProperties(certify)
-#if (NOT certify_POPULATED)
-#    FetchContent_Populate(certify)
-#    add_library(certify INTERFACE)
-#    target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
-#endif ()
 
 # Component: fmt.  The library has been added to C++20 (only in the MSVC STL as of this writing).  It a great
 #                  substitue for both iostreams and printf.  There is support for all builtin and STL types,
