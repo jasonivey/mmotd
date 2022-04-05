@@ -8,12 +8,6 @@ project(mmotd_root)
 
 get_filename_component(ROOT_CMAKE_PROJECT_DIR . ABSOLUTE ${CMAKE_CURRENT_SOURCE_DIR})
 
-# if (DEFINED ENV{MMOTD_PROFILE})
-#     option(MMOTD_PROFILE_OPT "enable profiling using gprof" ON)
-# else ()
-#     option(MMOTD_PROFILE_OPT "enable profiling using gprof" OFF)
-# endif()
-
 define_property(
     GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR INHERITED
     BRIEF_DOCS "mmotd root directory" FULL_DOCS "root directory for the mmotd project"
@@ -21,12 +15,18 @@ define_property(
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# When there is an external API these options will be converted to uses where
+#  this project is no longer the root project.  (Possible renaming options to something with 'mmotd')
+option(ENABLE_PROFILING "enable code profiling" OFF)
 option(ENABLE_COVERAGE "enable code coverage" OFF)
+option(ENABLE_TESTING "enable building unit-tests" ON)
 
 set_property(GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 
 include(target_common)
 include(git_version)
+update_version_header()
+if_modified_update_version()
 
 add_subdirectory(common)
 add_subdirectory(lib)

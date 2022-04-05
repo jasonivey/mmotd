@@ -98,6 +98,9 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         #  but are not forced to, use libc++ instead of stdlibc++.
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-stdlib=libc++>
 
+        # PROFILING OPTIONS...
+        PRIVATE $<$<BOOL:${ENABLE_PROFILING}>:-pg>
+
         # COVERAGE OPTIONS...
         PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:--coverage>
         PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:-ftest-coverage>
@@ -143,8 +146,12 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wnon-virtual-dtor>
         # helps to identify those hidden c-style casts
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wold-style-cast>
-        # warn for potential performance problem casts
+        # warn whenever a pointer is cast such that the required alignment of the target is increased. for example,
+        #  warn if a `char *` is cast to an `int *` on machines where integers can only be accessed at two- or
+        #  four-byte boundaries.
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wcast-align>
+        # same as above except change 'on machines where integers...' to 'regardless of the target machine' (strict)
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wcast-align=strict>
         # warn on anything being unused
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunused>
         # warn if you overload (not override) a virtual function
@@ -164,6 +171,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wwrite-strings>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wswitch-enum>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wundef>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunused-macros>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunreachable-code>
 
         # LLVM clang only
@@ -187,8 +195,9 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference>
         # warn if you perform a cast to the same type
         # TODO: fix_jasoni... re-enable
-        #       also I believe this is equivalent to `-Wcast-qual`
         PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:GNU>>:-Wuseless-cast>
+        # TODO: fix_jasoni... re-enable
+        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wcast-qual>
 
         # disable -- clang
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-gnu-zero-variadic-macro-arguments>
@@ -245,27 +254,36 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
 
     target_include_directories(
         ${MMOTD_TARGET_NAME} SYSTEM
-        PRIVATE ${Boost_INCLUDE_DIRS}
         PRIVATE ${BACKWARD_INCLUDE_DIRS}
-        PRIVATE ${certify_SOURCE_DIR}/include
-        PRIVATE ${fmt_SOURCE_DIR}/include
-        PRIVATE ${random_SOURCE_DIR}/include
-        PRIVATE ${json_SOURCE_DIR}/include
+        PRIVATE ${Boost_INCLUDE_DIRS}
+        # PRIVATE ${certify_SOURCE_DIR}/include
+        PRIVATE ${CURL_INCLUDE_DIR}
+        PRIVATE ${cli11_SOURCE_DIR}/include
         PRIVATE ${date_SOURCE_DIR}/include
-        PRIVATE ${scope_guard_SOURCE_DIR}
+        PRIVATE ${fmt_SOURCE_DIR}/include
+        PRIVATE ${json_SOURCE_DIR}/single_include
         PRIVATE ${OPENSSL_INCLUDE_DIR}
+        PRIVATE ${random_SOURCE_DIR}/include
+        PRIVATE ${scope_guard_SOURCE_DIR}
         PRIVATE ${toml11_SOURCE_DIR}
         PRIVATE ${utfcpp_SOURCE_DIR}/source
-        PRIVATE ${cli11_SOURCE_DIR}/include
         PRIVATE $<$<AND:$<STREQUAL:"${target_type}","executable">,$<STREQUAL:"${MMOTD_TARGET_NAME}","mmotd_test">>:${catch2_SOURCE_DIR}/single_include>
         )
 
     if (target_type STREQUAL "executable")
         target_link_options(
             ${MMOTD_TARGET_NAME}
+            # PROFILING OPTIONS...
+            PRIVATE $<$<BOOL:${ENABLE_PROFILING}>:-pg>
+            # COVERAGE OPTIONS...
             PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:--coverage>
             PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:-fprofile-arcs>
             PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:-ftest-coverage>
+            # SWITCH DEFAULT LINKER: valid values:
+            #  - bfd  : The 'Binary File Descriptor' linker
+            #  - gold : The GNU ELF linker
+            #  - lld  : The LLVM linker
+            #  - mold : The modern linker
             #PRIVATE $<$<CXX_COMPILER_ID:Clang>:-fuse-ld=lld>
             )
         target_link_libraries(
@@ -276,7 +294,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         target_link_libraries(
             ${MMOTD_TARGET_NAME}
             INTERFACE utfcpp
-            PRIVATE nlohmann_json::nlohmann_json
+            PRIVATE ${CURL_LIBRARIES}
+            INTERFACE nlohmann_json::nlohmann_json
             PRIVATE fmt::fmt
             PRIVATE date-tz
             PRIVATE OpenSSL::SSL

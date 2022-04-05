@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstddef>
 #include <functional>
+#include <iomanip>
 #include <iterator>
 #include <limits>
 #include <sstream>
@@ -141,16 +142,17 @@ template<class Container, class Seperator, class Func>
 inline std::string join(const Container &container, Seperator seperator, Func func) {
     auto output = std::string{};
     auto i = std::begin(container);
-    auto end = std::end(container);
-    if (i != end) {
-        output += func(*i);
-        ++i;
+    if (i != std::end(container)) {
+        output += func(*i++);
     }
-    for (; i != end; ++i) {
-        output += seperator;
-        output += func(*i);
-    }
+    for_each(i, std::end(container), [&](const auto &value) { output += seperator + func(value); });
     return output;
+}
+
+// Vanilla version of `join` which assumes each element of `container` is a string
+template<class Container, class Seperator>
+inline std::string join(const Container &container, Seperator seperator) {
+    return join(container, seperator, [](const auto &i) { return i; });
 }
 
 template<class Container, class Seperator, class Func, class Pred>

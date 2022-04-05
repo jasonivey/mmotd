@@ -1,31 +1,16 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/logging.h"
 #include "lib/include/http_request.h"
+
+#include "common/include/logging.h"
 
 #include <utility>
 
-#include <boost/asio/connect.hpp>
-#include <boost/asio/ip/tcp.hpp>
-#include <boost/asio/ssl/stream.hpp>
-#include <boost/beast/core.hpp>
-#include <boost/beast/http.hpp>
-#include <boost/beast/ssl.hpp>
-#include <boost/beast/version.hpp>
-#include <boost/certify/extensions.hpp>
-#include <boost/certify/https_verification.hpp>
-#include <boost/exception/diagnostic_information.hpp>
+#include <curl/curl.h>
 #include <fmt/format.h>
+#include <scope_guard.hpp>
 
-namespace beast = boost::beast;
-namespace asio = boost::asio;
-namespace ssl = asio::ssl;
-namespace http = boost::beast::http;
-using mmotd::networking::HttpProtocol;
-using tcp = boost::asio::ip::tcp;
-using ssl_stream = ssl::stream<tcp::socket>;
-using ssl_stream_ptr = std::unique_ptr<ssl_stream>;
-using tcp_stream_ptr = std::unique_ptr<beast::tcp_stream>;
 using fmt::format;
+using mmotd::networking::HttpProtocol;
 using namespace std;
 
 namespace {
@@ -38,26 +23,7 @@ public:
     optional<string> MakeRequest();
 
 private:
-    template<typename T>
-    optional<string> MakeRequestImpl();
-
-    template<typename T>
-    T CreateStream(asio::io_context &ctx);
-
-    template<typename T>
-    void CloseStream(T &stream);
-
     bool IsHttps() const { return protocol_ == HttpProtocol::HTTPS; }
-
-    tcp::resolver::results_type Resolve(asio::io_context &ctx);
-    tcp::socket Connect(asio::io_context &ctx);
-    ssl_stream_ptr MakeStream(asio::io_context &ctx, ssl::context &ssl_ctx);
-    tcp_stream_ptr MakeStream(asio::io_context &ctx);
-
-    template<typename T>
-    http::response<http::string_body> Request(T &stream);
-    // http::response<http::string_body> Request(beast::tcp_stream &stream);
-
     string to_string() const;
 
     HttpProtocol protocol_ = HttpProtocol::HTTP;
@@ -84,118 +50,64 @@ string HttpClient::to_string() const {
     if (path.front() != '/') {
         path = "/" + path;
     }
-    return format("{}://{}:{}{}", protocol_str, host_, port, path);
+    return format(FMT_STRING("{}://{}:{}{}"), protocol_str, host_, port, path);
 }
 
-tcp::resolver::results_type HttpClient::Resolve(asio::io_context &ctx) {
-    auto resolver = tcp::resolver{ctx};
-    return resolver.resolve(host_, port_);
+static size_t CurlWriteFunction(void *ptr, size_t size, size_t nmemb, std::string *data) {
+    if (ptr == nullptr || data == nullptr || size == 0 || nmemb == 0) {
+        LOG_ERROR("invalid input, ptr={}, data={}, size={}, nmemb={}", fmt::ptr(ptr), fmt::ptr(data), size, nmemb);
+        return 0;
+    }
+    data->append(static_cast<char *>(ptr), size * nmemb);
+    return size * nmemb;
 }
 
-tcp::socket HttpClient::Connect(asio::io_context &ctx) {
-    auto socket = tcp::socket{ctx};
-    asio::connect(socket, Resolve(ctx));
-    return socket;
-}
-
-ssl_stream_ptr HttpClient::MakeStream(asio::io_context &ctx, ssl::context &ssl_ctx) {
-    auto stream = boost::make_unique<ssl_stream>(Connect(ctx), ssl_ctx);
-    boost::certify::set_server_hostname(*stream, host_);
-    boost::certify::sni_hostname(*stream, host_);
-    stream->handshake(ssl::stream_base::handshake_type::client);
-    return stream;
-}
-
-tcp_stream_ptr HttpClient::MakeStream(asio::io_context &ctx) {
-    return boost::make_unique<beast::tcp_stream>(Connect(ctx));
-}
-
-#if 0
-http::response<http::string_body> HttpClient::Request(ssl_stream &stream) {
-    http::request<http::empty_body> request;
-    request.method(http::verb::get);
-    request.target(path_);
-    request.keep_alive(false);
-    request.version(11);
-    request.set(http::field::host, host_);
-    http::write(stream, request);
-
-    http::response<http::string_body> response;
-    beast::flat_buffer buffer;
-    http::read(stream, buffer, response);
-
-    return response;
-}
-#endif
-
-template<typename T>
-http::response<http::string_body> HttpClient::Request(T &stream) {
-    http::request<http::empty_body> request;
-    request.method(http::verb::get);
-    request.target(path_);
-    request.keep_alive(false);
-    request.version(11);
-    request.set(http::field::user_agent, BOOST_BEAST_VERSION_STRING);
-    request.set(http::field::content_type, "application/json");
-    request.set(http::field::host, host_);
-    http::write(stream, request);
-
-    http::response<http::string_body> response;
-    beast::flat_buffer buffer;
-    http::read(stream, buffer, response);
-
-    return response;
-}
-
-template<>
-ssl_stream_ptr HttpClient::CreateStream<ssl_stream_ptr>(asio::io_context &ctx) {
-    ssl::context ssl_ctx{ssl::context::tls_client};
-    ssl_ctx.set_verify_mode(ssl::context::verify_peer | ssl::context::verify_fail_if_no_peer_cert);
-    ssl_ctx.set_default_verify_paths();
-
-    boost::certify::enable_native_https_server_verification(ssl_ctx);
-
-    return MakeStream(ctx, ssl_ctx);
-}
-
-template<>
-tcp_stream_ptr HttpClient::CreateStream<tcp_stream_ptr>(asio::io_context &ctx) {
-    return MakeStream(ctx);
-}
-
-template<>
-void HttpClient::CloseStream<ssl_stream>(ssl_stream &stream) {
-    auto ec = boost::system::error_code{};
-    stream.shutdown(ec);
-    stream.next_layer().close(ec);
-}
-
-template<>
-void HttpClient::CloseStream<beast::tcp_stream>(beast::tcp_stream &stream) {
-    auto ec = boost::system::error_code{};
-    stream.socket().shutdown(tcp::socket::shutdown_both, ec);
-}
-
-template<typename T>
-optional<string> HttpClient::MakeRequestImpl() {
-    asio::io_context ctx;
-
-    auto stream = CreateStream<T>(ctx);
-    auto response = Request(*stream);
-
-    auto response_str = response.body();
-    LOG_INFO("response from {}\n{}", to_string(), response_str);
-    CloseStream(*stream);
-
-    return make_optional(response_str);
-}
+#define CURL_EASY_SETOPT(hndl, opt, val)                                                                               \
+    do {                                                                                                               \
+        /* NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg) */                                                        \
+        if (auto ec = curl_easy_setopt(hndl, opt, val); ec != CURLE_OK) {                                              \
+            LOG_ERROR("failed to set curl option '{}', error: {}: {}", #opt, ec, curl_easy_strerror(ec));              \
+            return nullopt;                                                                                            \
+        }                                                                                                              \
+    } while (0)
 
 optional<string> HttpClient::MakeRequest() {
-    if (IsHttps()) {
-        return MakeRequestImpl<ssl_stream_ptr>();
-    } else {
-        return MakeRequestImpl<tcp_stream_ptr>();
+    // fix: todo: jasoni: the global init and cleanup should be done once per process (i.e. main thread)
+    auto ret_code = curl_global_init(CURL_GLOBAL_DEFAULT);
+    if (ret_code != CURLE_OK) {
+        LOG_ERROR("failed when calling 'curl_global_init(CURL_GLOBAL_DEFAULT)', error: {}: {}",
+                  ret_code,
+                  curl_easy_strerror(ret_code));
+        return nullopt;
     }
+    sg::make_scope_guard([]() noexcept { curl_global_cleanup(); });
+
+    auto *curl_handle = curl_easy_init();
+    if (curl_handle == nullptr) {
+        LOG_ERROR("curl_easy_init did not return a valid handle (hndl == nullptr)");
+        return nullopt;
+    }
+    sg::make_scope_guard([&curl_handle]() noexcept { curl_easy_cleanup(curl_handle); });
+
+    const auto url = to_string();
+    CURL_EASY_SETOPT(curl_handle, CURLOPT_URL, std::data(url));
+    CURL_EASY_SETOPT(curl_handle, CURLOPT_NOPROGRESS, 1L);
+    CURL_EASY_SETOPT(curl_handle, CURLOPT_MAXREDIRS, 50L);
+    CURL_EASY_SETOPT(curl_handle, CURLOPT_TCP_KEEPALIVE, 1L);
+    CURL_EASY_SETOPT(curl_handle, CURLOPT_WRITEFUNCTION, CurlWriteFunction);
+    auto response = string{};
+    CURL_EASY_SETOPT(curl_handle, CURLOPT_WRITEDATA, &response);
+
+    ret_code = curl_easy_perform(curl_handle);
+    if (ret_code != CURLE_OK) {
+        LOG_ERROR("failed when calling curl_easy_perform to '{}', error: {}: {}",
+                  std::data(url),
+                  ret_code,
+                  curl_easy_strerror(ret_code));
+        return nullopt;
+    }
+
+    return std::empty(response) ? nullopt : make_optional(response);
 }
 
 } // namespace

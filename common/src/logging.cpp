@@ -151,7 +151,7 @@ inline bool HasHexPrefix(string num_value) {
 }
 
 string to_string(std::thread::id thread_id) {
-    string thread_id_str = format(FMT_STRING("{}"), thread_id);
+    string thread_id_str = fmt::to_string(thread_id);
     if (HasHexPrefix(thread_id_str)) {
         thread_id_str = thread_id_str.substr(2);
     }

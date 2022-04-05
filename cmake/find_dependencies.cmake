@@ -22,6 +22,7 @@ find_package(Threads REQUIRED)
 find_package(ZLIB 1.2.11 REQUIRED)
 find_package(Boost 1.71.0 REQUIRED)
 find_package(OpenSSL 1.1.1 REQUIRED)
+find_package(CURL 7.68.0 REQUIRED)
 
 Include(FetchContent)
 
@@ -40,7 +41,7 @@ endif ()
 get_filename_component(DEPENDENT_CACHE_PATH ../_deps-cache ABSOLUTE CACHE)
 get_filename_component(DEPS_DIR_BACKWARD    ${DEPENDENT_CACHE_PATH}/backward    ABSOLUTE)
 get_filename_component(DEPS_DIR_CATCH2      ${DEPENDENT_CACHE_PATH}/catch2      ABSOLUTE)
-get_filename_component(DEPS_DIR_CERTIFY     ${DEPENDENT_CACHE_PATH}/certify     ABSOLUTE)
+# get_filename_component(DEPS_DIR_CERTIFY     ${DEPENDENT_CACHE_PATH}/certify     ABSOLUTE)
 get_filename_component(DEPS_DIR_CLI11       ${DEPENDENT_CACHE_PATH}/cli11       ABSOLUTE)
 get_filename_component(DEPS_DIR_DATE        ${DEPENDENT_CACHE_PATH}/date        ABSOLUTE)
 get_filename_component(DEPS_DIR_FMT         ${DEPENDENT_CACHE_PATH}/fmt         ABSOLUTE)
@@ -56,9 +57,9 @@ endif ()
 if (IS_DIRECTORY "${DEPS_DIR_CATCH2}")
     set(FETCHCONTENT_SOURCE_DIR_CATCH2      ${DEPS_DIR_CATCH2}      CACHE PATH "Catch2 dependency cache"      FORCE)
 endif ()
-if (IS_DIRECTORY "${DEPS_DIR_CERTIFY}")
-    set(FETCHCONTENT_SOURCE_DIR_CERTIFY     ${DEPS_DIR_CERTIFY}     CACHE PATH "certify dependency cache"     FORCE)
-endif ()
+# if (IS_DIRECTORY "${DEPS_DIR_CERTIFY}")
+#     set(FETCHCONTENT_SOURCE_DIR_CERTIFY     ${DEPS_DIR_CERTIFY}     CACHE PATH "certify dependency cache"     FORCE)
+# endif ()
 if (IS_DIRECTORY "${DEPS_DIR_CLI11}")
     set(FETCHCONTENT_SOURCE_DIR_CLI11       ${DEPS_DIR_CLI11}       CACHE PATH "cli11 dependency cache"       FORCE)
 endif ()
@@ -131,7 +132,7 @@ endif ()
 # Component: Catch2.  Unit testing framework
 FetchContent_Declare(catch2
     GIT_REPOSITORY   https://github.com/catchorg/Catch2.git
-    GIT_TAG          v2.13.7
+    GIT_TAG          v2.13.8
 )
 FetchContent_GetProperties(catch2)
 if (NOT catch2_POPULATED)
@@ -142,7 +143,7 @@ endif ()
 # Component: json.  The lightweight repository of nlohmann/json which provides json support.
 FetchContent_Declare(json
     GIT_REPOSITORY   https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent.git
-    GIT_TAG          v3.10.4
+    GIT_TAG          v3.10.5
 )
 FetchContent_GetProperties(json)
 if(NOT json_POPULATED)
@@ -153,22 +154,22 @@ endif()
 # Component: certify.  A small module which plugs into boost::beast and boost::asio to support secure https
 #            transmissions.  The module handles all of the certificate managment, validation and creation
 #            if needed.
-FetchContent_Declare(certify
-    GIT_REPOSITORY   https://github.com/djarek/certify.git
-)
-FetchContent_GetProperties(certify)
-if (NOT certify_POPULATED)
-    FetchContent_Populate(certify)
-    add_library(certify INTERFACE)
-    target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
-endif ()
+#FetchContent_Declare(certify
+#    GIT_REPOSITORY   https://github.com/djarek/certify.git
+#)
+#FetchContent_GetProperties(certify)
+#if (NOT certify_POPULATED)
+#    FetchContent_Populate(certify)
+#    add_library(certify INTERFACE)
+#    target_include_directories(certify INTERFACE ${certify_SOURCE_DIR}/include)
+#endif ()
 
 # Component: fmt.  The library has been added to C++20 (only in the MSVC STL as of this writing).  It a great
 #                  substitue for both iostreams and printf.  There is support for all builtin and STL types,
 #                  ability to re-ordered argument assignment, and support for std::date and std::time.
 FetchContent_Declare(fmt
     GIT_REPOSITORY   https://github.com/fmtlib/fmt.git
-    GIT_TAG          8.0.1
+    GIT_TAG          8.1.1
 )
 FetchContent_GetProperties(fmt)
 if (NOT fmt_POPULATED)
@@ -181,7 +182,7 @@ endif ()
 # Component: toml11.  A C++11 header-only toml parser/encoder depending only on C++ standard library.
 FetchContent_Declare(toml11
     GIT_REPOSITORY   https://github.com/ToruNiina/toml11.git
-    GIT_TAG          v3.7.0
+    GIT_TAG          v3.7.1
 )
 FetchContent_GetProperties(toml11)
 if (NOT toml11_POPULATED)
@@ -194,7 +195,7 @@ endif ()
 #                    complexity needed for a project of this scale.
 FetchContent_Declare(cli11
     GIT_REPOSITORY   https://github.com/CLIUtils/CLI11.git
-    GIT_TAG          v2.1.1
+    GIT_TAG          v2.2.0
 )
 FetchContent_GetProperties(cli11)
 if (NOT cli11_POPULATED)
@@ -210,7 +211,7 @@ endif ()
 #                          But the author's work is much more concise and simple in my opinion.
 FetchContent_Declare(scope_guard
     GIT_REPOSITORY   https://github.com/ricab/scope_guard.git
-    GIT_TAG          v0.2.3
+    GIT_TAG          v1.0.0
 )
 FetchContent_GetProperties(scope_guard)
 if (NOT scope_guard_POPULATED)
@@ -231,7 +232,7 @@ endif ()
 #                      5. ... and the non-trivial concept of seeding (i.e when, how, how often, etc.)
 FetchContent_Declare(random
     GIT_REPOSITORY   https://github.com/effolkronium/random.git
-    GIT_TAG          v1.4.0
+    GIT_TAG          v1.4.1
 )
 FetchContent_GetProperties(random)
 if (NOT random_POPULATED)

@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "apps/mmotd/include/main.h"
+
 #include "common/assertion/include/assertion.h"
 #include "common/assertion/include/throw.h"
 #include "common/include/algorithm.h"
@@ -20,6 +21,7 @@
 #include <backward.hpp>
 #include <boost/exception/exception.hpp>
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 using namespace fmt;
 using namespace std;
@@ -54,7 +56,7 @@ void PrintMmotd() {
     auto informations = computer_information.GetAllInformations();
 
     auto writer = OutputTemplateWriter(output_template->GetColumns(), output_template->GetColumnItems(), informations);
-    fmt::print("{}\n", to_string(writer));
+    fmt::print(FMT_STRING("{}\n"), writer);
 }
 
 void UpdateLoggingDetails() {

@@ -1,9 +1,14 @@
-# cmake/git_version.cmake
+# cmake/set_policies.cmake
 include_guard (DIRECTORY)
 
 cmake_minimum_required (VERSION 3.18)
 
 macro (set_default_policies)
+    # Included scripts do automatic cmake_policy PUSH and POP.
+    if (POLICY CMP0011)
+        cmake_policy(SET CMP0011 NEW)
+    endif ()
+
     # Honor visibility properties for all target types
     if (POLICY CMP0063)
         cmake_policy (SET CMP0063 NEW)

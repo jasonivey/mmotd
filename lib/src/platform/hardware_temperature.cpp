@@ -30,7 +30,7 @@ bool Temperature::empty() const noexcept {
 }
 
 string Temperature::to_string() const {
-    return fmt::format("{} {:.1f}°C {:.1f}°F",
+    return fmt::format(FMT_STRING("{} {:.1f}°C {:.1f}°F"),
                        GetTemperatureIcon(),
                        GetTemperature(Units::Celsius),
                        GetTemperature(Units::Fahrenheit));
