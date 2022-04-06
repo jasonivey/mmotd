@@ -1,10 +1,11 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #if defined(__linux__)
+#include "lib/include/hardware_information.h"
+
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
 #include "common/include/system_command.h"
-#include "lib/include/hardware_information.h"
 #include "lib/include/platform/hardware_information.h"
 
 #include <bit>
@@ -62,6 +63,7 @@ void from_json(const json &root, LscpuContainer &lscpu_ontainer) {
 using CpuInfo = tuple<string, int32_t, optional<endian>>;
 
 CpuInfo ParseLscpuOutput(optional<string> output_holder) {
+    using mmotd::platform::from_endian_string;
     // ensure input is valid
     if (!output_holder) {
         return CpuInfo{};
@@ -82,7 +84,7 @@ CpuInfo ParseLscpuOutput(optional<string> output_holder) {
     // query the data structure for byte order
     auto byte_order = optional<endian>{};
     if (auto byte_order_str_holder = lscpu.GetData("Byte Order:"); !byte_order_str_holder) {
-        LOG_ERROR("lscpu output does not contain 'Byte Order:');
+        LOG_ERROR("lscpu output does not contain 'Byte Order:'");
     } else {
         if (auto byte_order_holder = from_endian_string(*byte_order_str_holder); !byte_order_holder) {
             LOG_ERROR("unable to parse '{}' as endian", *byte_order_str_holder);
@@ -107,7 +109,7 @@ CpuInfo ParseLscpuOutput(optional<string> output_holder) {
     auto cpu_name_holder = lscpu.GetData("Model name:");
     auto cpu_name = cpu_name_holder.value_or(string{});
 
-    return make_tuple(cpu_name, cpu_count, {byte_order});
+    return make_tuple(cpu_name, cpu_count, byte_order);
 }
 
 CpuInfo GetCpuInformation() {
