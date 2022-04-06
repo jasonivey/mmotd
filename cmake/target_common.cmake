@@ -171,7 +171,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wwrite-strings>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wswitch-enum>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wundef>
-        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunused-macros>
+        # Unused macros pulled in by CLI11 headers
+        # PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunused-macros>
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wunreachable-code>
 
         # LLVM clang only
