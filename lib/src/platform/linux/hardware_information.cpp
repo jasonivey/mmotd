@@ -7,6 +7,7 @@
 #include "lib/include/hardware_information.h"
 #include "lib/include/platform/hardware_information.h"
 
+#include <bit>
 #include <charconv>
 #include <filesystem>
 #include <fstream>
@@ -25,7 +26,6 @@ namespace fs = std::filesystem;
 using fmt::format;
 using namespace std;
 using json = nlohmann::json;
-using mmotd::platform::EndianType, mmotd::platform::from_endian_string;
 
 namespace {
 
@@ -59,10 +59,12 @@ void from_json(const json &root, LscpuContainer &lscpu_ontainer) {
     root.at("lscpu").get_to(lscpu_ontainer.name_values);
 }
 
-tuple<string, int32_t, EndianType> ParseLscpuOutput(optional<string> output_holder) {
+using CpuInfo = tuple<string, int32_t, optional<endian>>;
+
+CpuInfo ParseLscpuOutput(optional<string> output_holder) {
     // ensure input is valid
     if (!output_holder) {
-        return tuple<string, int32_t, EndianType>{};
+        return CpuInfo{};
     }
     auto output = *output_holder;
 
@@ -70,7 +72,7 @@ tuple<string, int32_t, EndianType> ParseLscpuOutput(optional<string> output_hold
     auto root = json::parse(output, nullptr, false, true);
     if (root.is_null()) {
         LOG_ERROR("parsing output of 'lscpu' into json, output: '{}'", output);
-        return tuple<string, int32_t, EndianType>{};
+        return CpuInfo{};
     }
 
     // serialize the nlohmann::json data to an actual data structure
@@ -78,10 +80,15 @@ tuple<string, int32_t, EndianType> ParseLscpuOutput(optional<string> output_hold
     from_json(root, lscpu);
 
     // query the data structure for byte order
-    auto byte_order_holder = lscpu.GetData("Byte Order:");
-    auto byte_order = EndianType::unknown;
-    if (byte_order_holder) {
-        byte_order = from_endian_string(*byte_order_holder);
+    auto byte_order = optional<endian>{};
+    if (auto byte_order_str_holder = lscpu.GetData("Byte Order:"); !byte_order_str_holder) {
+        LOG_ERROR("lscpu output does not contain 'Byte Order:');
+    } else {
+        if (auto byte_order_holder = from_endian_string(*byte_order_str_holder); !byte_order_holder) {
+            LOG_ERROR("unable to parse '{}' as endian", *byte_order_str_holder);
+        } else {
+            byte_order = byte_order_holder;
+        }
     }
 
     // query the data structure for cpu count
@@ -100,12 +107,11 @@ tuple<string, int32_t, EndianType> ParseLscpuOutput(optional<string> output_hold
     auto cpu_name_holder = lscpu.GetData("Model name:");
     auto cpu_name = cpu_name_holder.value_or(string{});
 
-    return make_tuple(cpu_name, cpu_count, byte_order);
+    return make_tuple(cpu_name, cpu_count, {byte_order});
 }
 
-tuple<string, int32_t, EndianType> GetCpuInformation() {
+CpuInfo GetCpuInformation() {
     using mmotd::system::command::Run;
-
     return Run("/usr/bin/lscpu", {"--json"}, ParseLscpuOutput);
 }
 
