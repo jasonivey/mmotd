@@ -8,6 +8,7 @@
 #include "lib/include/system_details.h"
 
 #include <array>
+#include <bit>
 #include <cstddef>
 #include <iterator>
 #include <string_view>
@@ -240,24 +241,22 @@ optional<int32_t> GetCpuCount() {
     }
 }
 
-mmotd::platform::EndianType GetByteOrder() {
-    using mmotd::platform::EndianType;
+optional<endian> GetByteOrder() {
     uint32_t byte_order = 0;
     auto buffer_size = size_t{4};
     if (sysctlbyname("hw.byteorder", &byte_order, &buffer_size, nullptr, 0) == -1) {
         auto error_str = mmotd::error::posix_error::to_string();
         LOG_ERROR("error calling sysctlbyname with hw.byteorder, details: {}", error_str);
-        return mmotd::platform::EndianType::unknown;
+        return nullopt;
     }
-    static constexpr uint32_t BIG_ENDIAN_REPR = 4321;
-    static constexpr uint32_t LITTLE_ENDIAN_REPR = 1234;
+    static constexpr uint32_t BIG_ENDIAN_REPR = 4321u;
+    static constexpr uint32_t LITTLE_ENDIAN_REPR = 1234u;
     if (byte_order == BIG_ENDIAN_REPR) {
-        return EndianType::big;
+        return endian::big;
     } else if (byte_order == LITTLE_ENDIAN_REPR) {
-        return EndianType::little;
-    } else {
-        return EndianType::unknown;
+        return endian::little;
     }
+    return nullopt;
 }
 
 string GetCpuName() {
