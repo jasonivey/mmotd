@@ -6,12 +6,12 @@ on:
   pull_request:
     branches: [ master ]
   schedule:
-    - cron: '18 3 * * 5"
+    - cron: '18 3 * * 5'
 
 jobs:
   analyze:
-    name: ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
+    name: "Static analysis of code on 'Ubuntu Latest' using 'clang-13' and building for Release"
+    runs-on: ubuntu-latest
     permissions:
       actions: read
       contents: read
@@ -20,13 +20,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        config:
-          - build_type: Release
-            cc: clang-13
-            cxx: clang++-13
-            language: cpp
-            name: "Static analysis of code on 'Ubuntu Latest' using 'clang-13' and building for Release"
-            os: ubuntu-latest
+        language: [ 'cpp' ]
 
     steps:
     - name: Checkout repository
@@ -41,7 +35,7 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
-        languages: ${{ matrix.config.language }}
+        languages: cpp
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
@@ -79,10 +73,8 @@ jobs:
       shell: bash
       run: |
         mkdir -p build
-        CC=${{ matrix.config.cc }} CXX=${{ matrix.config.cxx }} cmake -S . -B build -GNinja \
-          -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
-          -DCMAKE_C_COMPILER=${{ matrix.config.cc }} \
-          -DCMAKE_CXX_COMPILER=${{ matrix.config.cxx }}
+        CC=clang-13 CXX=clang++-13 cmake -S . -B build -GNinja \
+          -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-13 -DCMAKE_CXX_COMPILER=clang++-13
 
     - name: Build
       shell: bash
