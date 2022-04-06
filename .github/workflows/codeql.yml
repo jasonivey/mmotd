@@ -1,0 +1,84 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  schedule:
+    - cron: '18 3 * * 5'
+
+jobs:
+  analyze:
+    name: "Static analysis of code on 'Ubuntu Latest' using 'clang-13' and building for Release"
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'cpp' ]
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Setup Ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: cpp
+        # If you wish to specify custom queries, you can do so here or in a config file.
+        # By default, queries listed here will override any specified in a config file.
+        # Prefix the list here with "+" to use these queries and those in the config file.
+        # queries: ./path/to/local/query, your-org/your-repo/queries@main
+
+    - name: Install Linux Base Packages
+      shell: bash
+      run: |
+        sudo apt-get update -y && sudo apt-get install -y apt-utils lsb-release software-properties-common curl \
+          libcurl4 libcurl4-openssl-dev pkg-config wget gnupg build-essential git ca-certificates ninja-build \
+          autoconf automake libtool flex bison binutils binutils-dev dpkg dpkg-dev make gdb m4 autotools-dev \
+          gdbserver gettext gnu-standards libboost-dev libdw1 libdw-dev libdwarf-dev libdwarf1 dwarfdump \
+          elfutils libelf1 libelf-dev libbz2-1.0 libbz2-dev liblzma5 liblzma-dev zlibc zlib1g zlib1g-dev \
+          tar unzip zip libcrypt1 libcrypt-dev openssl libssl-dev
+        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | sudo tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null
+        sudo apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main"
+        sudo apt-get update -y && sudo apt-get install -y cmake
+        sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+
+    - name: Install Linux clang-13 Compiler
+      shell: bash
+      run: |
+        wget -O /tmp/llvm-snapshot.gpg.key https://apt.llvm.org/llvm-snapshot.gpg.key
+        sudo APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1 apt-key add /tmp/llvm-snapshot.gpg.key
+        echo "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+        echo "deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-13 main" | sudo tee -a /etc/apt/sources.list.d/llvm.list
+        sudo apt-get update -y && sudo apt-get install -y libllvm13 llvm-13 llvm-13-dev llvm-13-runtime clang-13 \
+          clang-tools-13 libclang-common-13-dev libclang-13-dev libclang1-13 clang-format-13 clangd-13 \
+          libfuzzer-13-dev libunwind-13 libunwind-13-dev lldb-13 lld-13 libc++-13-dev libc++abi-13-dev libomp-13-dev
+        sudo apt-get autoclean && sudo apt-get autoremove && sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+
+    - name: Configure
+      shell: bash
+      run: |
+        mkdir -p build
+        CC=clang-13 CXX=clang++-13 cmake -S . -B build -GNinja \
+          -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang-13 -DCMAKE_CXX_COMPILER=clang++-13
+
+    - name: Build
+      shell: bash
+      run: cmake --build build --target all
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
