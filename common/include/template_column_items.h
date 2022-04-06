@@ -24,12 +24,13 @@ struct TemplateConfig;
 
 static constexpr int ENTIRE_LINE = std::numeric_limits<int>::max() - 1;
 static constexpr std::string_view ENTIRE_LINE_REPR = "ENTIRE_LINE";
+static constexpr int DEFAULT_INDENT_SIZE = 2;
 
 struct TemplateItemSettings {
     DEFAULT_CONSTRUCTORS_COPY_MOVE_OPERATORS_DESTRUCTOR(TemplateItemSettings);
     friend bool operator==(const TemplateItemSettings &lhs, const TemplateItemSettings &rhs) = default;
 
-    int indent_size = 2;
+    int indent_size = DEFAULT_INDENT_SIZE;
     int repeatable_index = 0;
     int column = ENTIRE_LINE;
     int prepend_newlines = 0;

@@ -7,6 +7,6 @@
 //
 namespace mmotd::version::detail {
 
-inline constexpr std::string_view MMOTD_VERSION = "@MMOTD_VERSION@+@MMOTD_GIT_REVISION@";
+inline constexpr std::string_view MMOTD_VERSION = "@MMOTD_VERSION@";
 
 } // namespace mmotd::version::detail

@@ -2,6 +2,7 @@
 #pragma once
 #include "common/include/big_five_macros.h"
 
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -27,6 +28,8 @@ protected:
     void AddInformation(Information information);
 
     Information GetInfoTemplate(InformationId id) const;
+
+    std::string GetUnknownProperty() const;
 
 private:
     Informations informations_;

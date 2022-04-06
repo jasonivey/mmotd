@@ -1,4 +1,5 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/algorithm.h"
 #include "common/include/config_options.h"
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
@@ -363,12 +364,12 @@ struct TextFortune {
     vector<string> text;
     void append(string &&new_text) { text.emplace_back(new_text); }
     void append(const string &new_text) { text.push_back(new_text); }
-    string to_string() const { return fmt::format(FMT_STRING("{}"), fmt::join(text, "\n")); }
+    string to_string() const { return mmotd::algorithms::join(text, "\n"); }
 };
 
 using TextFortunes = vector<TextFortune>;
 
-TextFortunes ReadTextFortunes(fs::path fortune_path) {
+optional<string> ReadTextFromFortunesFile(fs::path fortune_path) {
     auto fortune_file = ifstream{};
     fortune_file.exceptions(std::ifstream::goodbit);
     fortune_file.open(fortune_path, ios_base::in);
@@ -377,25 +378,33 @@ TextFortunes ReadTextFortunes(fs::path fortune_path) {
         LOG_ERROR("unable to open {} for reading, {}",
                   fortune_path.string(),
                   mmotd::error::ios_flags::to_string(fortune_file));
-        return TextFortunes{};
+        return nullopt;
     }
-    LOG_DEBUG("found text fortunes and opened it for reading: {}", fortune_path.string());
 
+    LOG_DEBUG("found text fortunes and opened it for reading: {}", fortune_path.string());
+    return make_optional(string(istreambuf_iterator<char>(fortune_file), istreambuf_iterator<char>()));
+}
+
+TextFortunes ParseTextFortunes(string fortune_text) {
+    auto fortune_strm = istringstream{fortune_text};
     auto text_fortunes = TextFortunes{1ull, TextFortune{}};
-    for (std::string line; std::getline(fortune_file, line);) {
+    for (std::string line; std::getline(fortune_strm, line);) {
         if (boost::trim_copy(line) == "%") {
             text_fortunes.emplace_back(TextFortune{});
         } else {
             text_fortunes.back().append(boost::trim_right_copy(line));
         }
     }
-    LOG_DEBUG("read {} text fortunes from file: ", size(text_fortunes), fortune_path.string());
-
     return text_fortunes;
 }
 
 optional<string> ReadTextFortuneFile(fs::path fortune_path) {
-    auto text_fortunes = ReadTextFortunes(fortune_path);
+    auto text = ReadTextFromFortunesFile(fortune_path);
+    if (!text) {
+        LOG_ERROR("no text was found within: {}", quoted(fortune_path.string()));
+        return nullopt;
+    }
+    auto text_fortunes = ParseTextFortunes(*text);
     if (empty(text_fortunes)) {
         LOG_ERROR("no text fortunes were parsed from: {}", quoted(fortune_path.string()));
         return nullopt;

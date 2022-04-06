@@ -56,7 +56,7 @@ CATCH_TEST_CASE("Assertion contains context", "[assertion]") {
         Assertion{GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "Assertion", "assertion")};
     auto assertion_str = string(assertion.what());
     fmt::print(FMT_STRING("{}\n"), assertion_str);
-    CATCH_CHECK_THAT(assertion_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(assertion_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("ALWAYS_FAIL throws assertion exception", "[assertion]") {

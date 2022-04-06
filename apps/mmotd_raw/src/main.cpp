@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "apps/mmotd_raw/include/main.h"
+
 #include "common/assertion/include/throw.h"
 #include "common/include/algorithm.h"
 #include "common/include/logging.h"
@@ -28,7 +29,7 @@ namespace {
 string GetInformationNameString(const mmotd::information::Information &information) {
     const auto &name = information.GetName();
     static const auto formatting_color = fg(color::lime_green) | emphasis::bold;
-    return !empty(name) ? format(formatting_color, FMT_STRING("{}"), name) + ": " : string{};
+    return !empty(name) ? format(formatting_color, FMT_STRING("{}: "), name) : string{};
 }
 
 size_t GetInformationNameStringSize(const mmotd::information::Information &information) {
