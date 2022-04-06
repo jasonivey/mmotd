@@ -27,7 +27,7 @@ CATCH_TEST_CASE("InvalidArgument contains context", "[exception]") {
         GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "InvalidArgument", "InvalidArgument")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("DomainError inherits from std::domain_error", "[exception]") {
@@ -41,7 +41,7 @@ CATCH_TEST_CASE("DomainError contains context", "[exception]") {
         GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "DomainError", "DomainError")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("LengthError inherits from std::length_error", "[exception]") {
@@ -55,7 +55,7 @@ CATCH_TEST_CASE("LengthError contains context", "[exception]") {
         GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "LengthError", "LengthError")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("OutOfRange inherits from std::out_of_range", "[exception]") {
@@ -69,7 +69,7 @@ CATCH_TEST_CASE("OutOfRange contains context", "[exception]") {
         OutOfRange{GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "OutOfRange", "OutOfRange")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("RuntimeError inherits from std::runtime_error", "[exception]") {
@@ -83,7 +83,7 @@ CATCH_TEST_CASE("RuntimeError contains context", "[exception]") {
         GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "RuntimeError", "RuntimeError")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("RangeError inherits from std::range_error", "[exception]") {
@@ -97,7 +97,7 @@ CATCH_TEST_CASE("RangeError contains context", "[exception]") {
         RangeError{GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "RangeError", "RangeError")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("OverflowError inherits from std::overflow_error", "[exception]") {
@@ -111,7 +111,7 @@ CATCH_TEST_CASE("OverflowError contains context", "[exception]") {
         GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "OverflowError", "OverflowError")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("UnderflowError inherits from std::underflow_error", "[exception]") {
@@ -125,7 +125,7 @@ CATCH_TEST_CASE("UnderflowError contains context", "[exception]") {
         GetExceptionMessage(mmotd::source_location::SourceLocation::current(), "UnderflowError", "UnderflowError")};
     auto ex_str = string(ex.what());
     fmt::print(FMT_STRING("{}\n"), ex_str);
-    CATCH_CHECK_THAT(ex_str, Contains("____C_A_T_C_H____T_E_S_T____"));
+    CATCH_CHECK_THAT(ex_str, Contains("C_A_T_C_H_T_E_S_T"));
 }
 
 CATCH_TEST_CASE("THROW_INVALID_ARGUMENT throws", "[exception]") {

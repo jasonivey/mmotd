@@ -1,11 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/output_template_writer.h"
+
 #include "common/assertion/include/assertion.h"
 #include "common/include/algorithm.h"
 #include "common/include/config_options.h"
 #include "common/include/information.h"
 #include "common/include/logging.h"
 #include "common/include/output_template.h"
-#include "common/include/output_template_writer.h"
 #include "common/include/string_utils.h"
 #include "common/include/template_column_items.h"
 
@@ -298,13 +299,13 @@ public:
     bool empty() const noexcept;
     size_t size() const noexcept;
 
-    void GetMaxColumnWidths(vector<size_t> &widths, size_t &widths_index) const;
-    void SetColumnWidths(const vector<size_t> &widths, size_t &widths_index);
+    pair<size_t, size_t> GetMaxColumnWidths(size_t name_width, size_t value_width) const;
+    void SetColumnWidths(size_t name_width, size_t value_width);
 
 private:
     ColumnData name_;
     ColumnData value_;
-    size_t indent_ = size_t{0};
+    size_t indent_ = static_cast<size_t>(output_template::DEFAULT_INDENT_SIZE);
 };
 
 NameValueColumn::NameValueColumn(optional<string> name, optional<string> value, size_t indent) :
@@ -323,7 +324,7 @@ size_t NameValueColumn::size() const noexcept {
         // A placeholder column is size=2 because it has a potential of having a name and value
         return size_t{2};
     } else if (std::empty(name_) || std::empty(value_)) {
-        // Strictly speaking, only the `name_` field is allowed to be empty, but we'll allow either
+        // Strictly speaking, only the `name_` field is allowed to be empty, but we'll allow either in this calculation
         return size_t{1};
     } else {
         // In the most common case name and value are both present
@@ -331,17 +332,14 @@ size_t NameValueColumn::size() const noexcept {
     }
 }
 
-void NameValueColumn::GetMaxColumnWidths(vector<size_t> &widths, size_t &widths_index) const {
-    widths[widths_index] = std::max(widths[widths_index], name_.GetWidth());
-    ++widths_index;
-    widths[widths_index] = std::max(widths[widths_index], value_.GetWidth());
-    ++widths_index;
+pair<size_t, size_t> NameValueColumn::GetMaxColumnWidths(size_t name_width, size_t value_width) const {
+    name_width = max(name_width, name_.GetWidth());
+    value_width = max(value_width, value_.GetWidth());
+    return make_pair(name_width, value_width);
 }
 
-void NameValueColumn::SetColumnWidths(const vector<size_t> &widths, size_t &widths_index) {
-    auto name_width = widths_index < std::size(widths) ? widths[widths_index++] : name_.GetWidth();
+void NameValueColumn::SetColumnWidths(size_t name_width, size_t value_width) {
     name_.SetWidth(name_width);
-    auto value_width = widths_index < std::size(widths) ? widths[widths_index++] : value_.GetWidth();
     value_.SetWidth(value_width);
 }
 
@@ -350,20 +348,23 @@ void NameValueColumn::SetColumnWidths(const vector<size_t> &widths, size_t &widt
 ostream &operator<<(ostream &os, const NameValueColumn &column) {
     if (column.indent_ > 0) {
         os << string(column.indent_, ' ');
-    } else if (std::empty(column)) {
-        os << "  "sv;
     }
-    auto name_width = column.name_.GetWidth() + sutils::GetAsciiEscapeCodesSize(column.name_.GetData());
-    auto name = column.name_.HasData() && !std::empty(column.name_.GetData()) ? column.name_.GetData() :
-                                                                                string(name_width, ' ');
-    os << std::setfill(' ') << std::left << std::setw(static_cast<int>(name_width)) << name;
+    if (!std::empty(column.name_) || std::empty(column)) {
+        auto name_width = column.name_.GetWidth() + sutils::GetAsciiEscapeCodesSize(column.name_.GetData());
+        auto name = column.name_.HasData() && !std::empty(column.name_.GetData()) ? column.name_.GetData() :
+                                                                                    string(name_width, ' ');
+        os << std::setfill(' ') << std::left << std::setw(static_cast<int>(name_width)) << name;
+    }
+    // if there is no value string or this is a spacer, add in the space between the name and the value
     if (!std::empty(column.name_) || std::empty(column)) {
         os << " "s;
     }
-    auto value_width = column.value_.GetWidth() + sutils::GetAsciiEscapeCodesSize(column.value_.GetData());
-    auto value = column.value_.HasData() && !std::empty(column.value_.GetData()) ? column.value_.GetData() :
-                                                                                   string(value_width, ' ');
-    os << std::left << std::setw(static_cast<int>(value_width)) << value;
+    if (!std::empty(column.value_) || std::empty(column)) {
+        auto value_width = column.value_.GetWidth() + sutils::GetAsciiEscapeCodesSize(column.value_.GetData());
+        auto value = column.value_.HasData() && !std::empty(column.value_.GetData()) ? column.value_.GetData() :
+                                                                                       string(value_width, ' ');
+        os << std::left << std::setw(static_cast<int>(value_width)) << value;
+    }
     return os;
 }
 
@@ -412,7 +413,7 @@ public:
 
     size_t GetTotalColumnCount() const noexcept;
     size_t GetColumnCount() const noexcept;
-    void SetColumnCount(size_t count) noexcept;
+    void ReserveColumnCount(size_t count) noexcept;
     bool IsColumnEmpty(size_t column_index) const noexcept { return std::empty(columns_.at(column_index)); }
     bool empty() const noexcept { return std::empty(columns_); }
 
@@ -442,7 +443,7 @@ size_t OutputRow::GetColumnCount() const noexcept {
     return std::size(columns_);
 }
 
-void OutputRow::SetColumnCount(size_t count) noexcept {
+void OutputRow::ReserveColumnCount(size_t count) noexcept {
     for (auto i = GetColumnCount(); i < count; ++i) {
         columns_.emplace_back();
     }
@@ -465,16 +466,22 @@ void OutputRow::SetColumnData(size_t column_index,
 }
 
 void OutputRow::GetMaxColumnWidths(vector<size_t> &widths) const {
-    auto widths_index = size_t{0};
-    for_each(begin(columns_), end(columns_), [&widths, &widths_index](auto &column) {
-        column.GetMaxColumnWidths(widths, widths_index);
+    PRECONDITIONS((GetColumnCount() * 2) == std::size(widths), "widths list must be equal to column count");
+    auto index = size_t{0};
+    for_each(begin(columns_), end(columns_), [&widths, &index](const auto &column) {
+        CHECKS(index + 1 < std::size(widths), "index into the widths list is out of bounds");
+        tie(widths[index], widths[index + 1]) = column.GetMaxColumnWidths(widths[index], widths[index + 1]);
+        index += 2;
     });
 }
 
 void OutputRow::SetColumnWidths(const vector<size_t> &widths) {
-    auto widths_index = size_t{0};
-    for_each(begin(columns_), end(columns_), [&widths, &widths_index](auto &column) {
-        column.SetColumnWidths(widths, widths_index);
+    PRECONDITIONS((GetColumnCount() * 2) == std::size(widths), "widths list must be equal to column count");
+    auto index = size_t{0};
+    for_each(begin(columns_), end(columns_), [&widths, &index](auto &column) {
+        CHECKS(index + 1 < std::size(widths), "index into the widths list is out of bounds");
+        column.SetColumnWidths(widths[index], widths[index + 1]);
+        index += 2;
     });
 }
 
@@ -579,7 +586,7 @@ OutputRow &OutputRows::GetCurrentRow(int column, size_t column_count) {
         }
     }
     CHECKS(row != nullptr, "unable to find current row and did not allocate a new one");
-    row->SetColumnCount(column_count);
+    row->ReserveColumnCount(column_count);
     return *row;
 }
 
@@ -695,16 +702,21 @@ bool OutputRows::AddItem(const TemplateColumnItem &item) {
 }
 
 void OutputRows::SetColumnWidths() {
+    auto first_name_column_width = size_t{0};
     auto begin_range = begin(rows);
     while (begin_range != end(rows)) {
         auto i = adjacent_find(begin_range, end(rows), [](const auto &row_a, const auto &row_b) {
             return row_a.GetTotalColumnCount() != row_b.GetTotalColumnCount();
         });
         auto end_range = i == end(rows) ? end(rows) : i + 1;
-        auto column_count = begin_range->GetTotalColumnCount();
-        auto widths = vector<size_t>(column_count, size_t{0});
-        for_each(begin_range, end_range, [&widths](auto &row) { row.GetMaxColumnWidths(widths); });
+        auto column_count = begin_range->GetColumnCount();
+        auto widths = vector<size_t>(column_count * 2, size_t{0});
+        if (!std::empty(widths)) {
+            widths.front() = first_name_column_width;
+        }
+        for_each(begin_range, end_range, [&widths](const auto &row) { row.GetMaxColumnWidths(widths); });
         for_each(begin_range, end_range, [&widths](auto &row) { row.SetColumnWidths(widths); });
+        first_name_column_width = std::empty(widths) ? size_t{0} : widths.front();
         begin_range = end_range;
     }
 }

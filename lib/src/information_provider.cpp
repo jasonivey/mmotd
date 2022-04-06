@@ -14,6 +14,7 @@
 #include <vector>
 
 #include <boost/exception/diagnostic_information.hpp>
+#include <fmt/color.h>
 #include <fmt/format.h>
 
 using namespace std;
@@ -55,6 +56,12 @@ void InformationProvider::AddInformation(Information information) {
 
 Information InformationProvider::GetInfoTemplate(InformationId id) const {
     return InformationDefinitions::Instance().GetInformationDefinition(id);
+}
+
+std::string InformationProvider::GetUnknownProperty() const {
+    static constexpr auto style = fmt::text_style(fmt::emphasis::bold) | fmt::fg(fmt::terminal_color::bright_yellow);
+    static const auto UNKNOWN_STR = fmt::format(style, FMT_STRING("[unknown]"));
+    return UNKNOWN_STR;
 }
 
 } // namespace mmotd::information

@@ -1,0 +1,40 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root=true
+
+# [*.{sh,bash,zsh,py,c,cpp,h,hpp,inl}]
+
+[*]
+charset=utf-8
+indent_size=4
+indent_style=space
+insert_final_newline=true
+end_of_line=lf
+tab_width=4
+trim_trailing_whitespace=true
+
+# defaults for all shell, python and C/C++ files
+[{*.{sh,bash,zsh,py,c,cpp,h,hpp,inl,H.IN},CMakeLists.txt,*.cmake}]
+max_line_length=120
+
+# Markdown files
+[*.md,LICENSE]
+max_line_length=1000
+trim_trailing_whitespace=false
+insert_final_newline=false
+
+# Tab indentation (no size specified)
+[{Makefile, *.mak}]
+indent_style=tab
+max_line_length=120
+
+# Javascript only has indent of 2 spaces
+[{*.{js,json,toml,yml},.clang-format,.clang-tidy,.clangd,.gitattributes,.gitignore}]
+indent_size=2
+tab_width=2
+
+# Matches the exact files either package.json or .travis.yml
+[{}]
+indent_size=2
+tab_width=2
