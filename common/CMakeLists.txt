@@ -15,16 +15,17 @@ add_library (
     assertion/src/throw.cpp
     src/cli_options_parser.cpp
     src/config_options.cpp
-    src/information.cpp
+    src/global_state.cpp
     src/information_decls.cpp
     src/information_definitions.cpp
+    src/information.cpp
     src/logging.cpp
     src/mac_address.cpp
     src/network_device.cpp
-    src/output_template.cpp
     src/output_template_writer.cpp
-    src/source_location.cpp
+    src/output_template.cpp
     src/source_location_common.cpp
+    src/source_location.cpp
     src/special_files.cpp
     src/string_utils.cpp
     src/system_command.cpp
