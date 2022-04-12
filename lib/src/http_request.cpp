@@ -3,8 +3,11 @@
 
 #include "common/include/logging.h"
 
+#include <optional>
+#include <string>
 #include <utility>
 
+#include <boost/preprocessor/stringize.hpp>
 #include <curl/curl.h>
 #include <fmt/format.h>
 #include <scope_guard.hpp>
@@ -65,23 +68,14 @@ static size_t CurlWriteFunction(void *ptr, size_t size, size_t nmemb, std::strin
 #define CURL_EASY_SETOPT(hndl, opt, val)                                                                               \
     do {                                                                                                               \
         /* NOLINTNEXTLINE(cppcoreguidelines-pro-type-vararg) */                                                        \
-        if (auto ec = curl_easy_setopt(hndl, opt, val); ec != CURLE_OK) {                                              \
-            LOG_ERROR("failed to set curl option '{}', error: {}: {}", #opt, ec, curl_easy_strerror(ec));              \
+        if (auto curl_code_078 = curl_easy_setopt(hndl, opt, val); curl_code_078 != CURLE_OK) {                        \
+            LOG_ERROR("failed to set curl option '{}', error: {}: {}",                                                 \
+                      BOOST_PP_STRINGIZE(opt), curl_code_078, curl_easy_strerror(curl_code_078));                      \
             return nullopt;                                                                                            \
         }                                                                                                              \
     } while (0)
 
 optional<string> HttpClient::MakeRequest() {
-    // fix: todo: jasoni: the global init and cleanup should be done once per process (i.e. main thread)
-    auto ret_code = curl_global_init(CURL_GLOBAL_DEFAULT);
-    if (ret_code != CURLE_OK) {
-        LOG_ERROR("failed when calling 'curl_global_init(CURL_GLOBAL_DEFAULT)', error: {}: {}",
-                  ret_code,
-                  curl_easy_strerror(ret_code));
-        return nullopt;
-    }
-    sg::make_scope_guard([]() noexcept { curl_global_cleanup(); });
-
     auto *curl_handle = curl_easy_init();
     if (curl_handle == nullptr) {
         LOG_ERROR("curl_easy_init did not return a valid handle (hndl == nullptr)");
@@ -98,7 +92,7 @@ optional<string> HttpClient::MakeRequest() {
     auto response = string{};
     CURL_EASY_SETOPT(curl_handle, CURLOPT_WRITEDATA, &response);
 
-    ret_code = curl_easy_perform(curl_handle);
+    auto ret_code = curl_easy_perform(curl_handle);
     if (ret_code != CURLE_OK) {
         LOG_ERROR("failed when calling curl_easy_perform to '{}', error: {}: {}",
                   std::data(url),

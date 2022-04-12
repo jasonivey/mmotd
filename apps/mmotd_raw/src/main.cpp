@@ -3,6 +3,7 @@
 
 #include "common/assertion/include/throw.h"
 #include "common/include/algorithm.h"
+#include "common/include/global_state.h"
 #include "common/include/logging.h"
 #include "lib/include/computer_information.h"
 
@@ -75,6 +76,9 @@ int main_impl(int, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
     auto signal_handling = backward::SignalHandling{};
     unused(signal_handling);
+
+    auto global_state = mmotd::globals::GlobalState{};
+    unused(global_state);
 
     mmotd::logging::InitializeLogging(*argv);
 

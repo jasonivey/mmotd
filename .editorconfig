@@ -1,9 +1,7 @@
 # EditorConfig is awesome: https://EditorConfig.org
 
 # top-most EditorConfig file
-root=true
-
-# [*.{sh,bash,zsh,py,c,cpp,h,hpp,inl}]
+root=false
 
 [*]
 charset=utf-8
@@ -31,10 +29,5 @@ max_line_length=120
 
 # Javascript only has indent of 2 spaces
 [{*.{js,json,toml,yml},.clang-format,.clang-tidy,.clangd,.gitattributes,.gitignore}]
-indent_size=2
-tab_width=2
-
-# Matches the exact files either package.json or .travis.yml
-[{}]
 indent_size=2
 tab_width=2
