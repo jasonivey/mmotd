@@ -10,6 +10,7 @@
 #include <optional>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 #include <boost/algorithm/string/replace.hpp>
 #include <date/date.h>
@@ -68,13 +69,29 @@ inline std::string to_string(std::chrono::time_point<Clock, Duration> time_point
     return lower_case_merīdiem(result);
 }
 
-inline auto from_string(std::string input, const char *chrono_format) {
+inline auto date_time_from_string(std::string input, const char *chrono_format) {
+    using namespace std::chrono;
+    std::istringstream stream{input};
+    auto time_point = std::chrono::system_clock::time_point{};
+    stream >> date::parse(chrono_format, time_point);
+    return !stream.fail() ? std::make_optional(time_point) : std::nullopt;
+}
+
+inline auto date_time_from_string(std::string_view input, const char *chrono_format) {
+    return date_time_from_string(std::string{input}, chrono_format);
+}
+
+inline auto time_from_string(std::string input, const char *chrono_format) {
     using namespace std::chrono;
     auto seconds_since_midnight = std::chrono::seconds{};
     std::istringstream stream{input};
     stream >> date::parse(chrono_format, seconds_since_midnight);
     auto tod = date::make_time(seconds_since_midnight);
     return !stream.fail() ? std::make_optional(tod) : std::nullopt;
+}
+
+inline auto time_from_string(std::string_view input, const char *chrono_format) {
+    return time_from_string(std::string(input), chrono_format);
 }
 
 inline std::optional<std::size_t> get_current_hour() {
@@ -99,7 +116,8 @@ inline std::optional<std::size_t> get_current_hour() {
 
 } // namespace detail
 
-using detail::from_string;
+using detail::date_time_from_string;
+using detail::time_from_string;
 using detail::get_current_hour;
 using detail::GetTimeZone;
 using detail::to_string;

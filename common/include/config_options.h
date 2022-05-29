@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
 #include "common/include/big_five_macros.h"
+#include "common/include/logging.h"
 
 #include <cstdint>
 #include <filesystem>
@@ -11,7 +12,6 @@
 #include <string_view>
 #include <type_traits>
 
-// #include <toml/get.hpp>
 #include <toml/value.hpp>
 
 namespace mmotd::core {
@@ -27,6 +27,10 @@ public:
 
     // This method is only to be used by the unit-tests
     void ParseConfigFile(std::istream &input);
+
+    // This method is the only one that is "usage specific"
+    std::optional<mmotd::logging::Severity> GetLoggingSeverity(const std::string &name = "logging.severity") const;
+    std::optional<mmotd::logging::Severity> GetLoggingSeverity(const std::string_view &name = "logging.severity") const;
 
     template<typename T>
     void SetDefault(std::string name, T value, std::string section = std::string{"core"});

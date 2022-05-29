@@ -4,9 +4,9 @@
 #include "common/assertion/include/assertion.h"
 #include "common/assertion/include/throw.h"
 #include "common/include/algorithm.h"
-#include "common/include/global_state.h"
 #include "common/include/cli_options_parser.h"
 #include "common/include/config_options.h"
+#include "common/include/global_state.h"
 #include "common/include/logging.h"
 #include "common/include/output_template.h"
 #include "common/include/output_template_writer.h"
@@ -18,13 +18,14 @@
 #include <iostream>
 #include <iterator>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 
 #include <backward.hpp>
 #include <boost/exception/exception.hpp>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-using namespace fmt;
 using namespace std;
 using namespace std::string_literals;
 using mmotd::algorithms::unused;
@@ -39,7 +40,7 @@ void PrintMmotd() {
     using mmotd::core::special_files::ExpandEnvironmentVariables;
 
     auto template_filename = ConfigOptions::Instance().GetString("core.template_path"sv, ""sv);
-    LOG_INFO("template file name: {}", quoted(empty(template_filename) ? "<builtin template>"s : template_filename));
+    LOG_INFO("template file name: '{}'", (empty(template_filename) ? "<builtin template>"s : template_filename));
     auto output_template = unique_ptr<OutputTemplate>{};
     if (!empty(template_filename)) {
         output_template = MakeOutputTemplate(ExpandEnvironmentVariables(template_filename));
@@ -61,34 +62,26 @@ void PrintMmotd() {
 }
 
 void UpdateLoggingDetails() {
-    auto output_color = ConfigOptions::Instance().GetBoolean("logging.output_color"sv);
-    if (output_color.has_value()) {
-        mmotd::logging::SetColorOutput(*output_color);
-    }
-    auto flush_on_write = ConfigOptions::Instance().GetBoolean("logging.flush_on_write"sv);
-    if (flush_on_write.has_value()) {
-        mmotd::logging::SetFlushLogfileAfterEveryLine(*flush_on_write);
-    }
-    auto log_severity_raw = ConfigOptions::Instance().GetInteger("logging.severity"sv, -1);
-    if (log_severity_raw == -1) {
-        return;
-    }
-    auto new_severity = static_cast<mmotd::logging::Severity>(log_severity_raw);
-    auto current_severity = mmotd::logging::GetSeverity();
-    if (new_severity != current_severity) {
-        mmotd::logging::SetSeverity(new_severity);
+    using namespace mmotd::logging;
+    auto severity_holder = ConfigOptions::Instance().GetLoggingSeverity("logging.severity"sv);
+    if (severity_holder) {
+        auto new_severity = severity_holder.value();
+        auto old_severity = SetSeverity(new_severity);
+        LOG_INFO("set severity to '{}', previous severity '{}'", to_string(new_severity), to_string(old_severity));
     }
 }
 
 int main_impl(int argc, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
+    auto program_name = argv != nullptr && *argv != nullptr ? string_view(*argv) : string_view{};
+    auto initilized = mmotd::logging::InitializeLogging(program_name);
+    CHECKS(initilized, "unable to initialize logging");
+
     auto signal_handling = backward::SignalHandling();
     unused(signal_handling);
 
     auto global_state = mmotd::globals::GlobalState{};
     unused(global_state);
-
-    mmotd::logging::InitializeLogging(*argv);
 
     auto [app_finished, error_exit] = CliOptionsParser::ParseCommandLine(argc, argv);
     if (app_finished) {
@@ -116,7 +109,7 @@ int main(int argc, char *argv[]) {
     } catch (...) { exception_message = mmotd::assertion::GetUnknownExceptionMessage(); }
 
     if (!empty(exception_message)) {
-        LOG_FATAL("{}", exception_message);
+        fmt::print(stderr, FMT_STRING("{}\n"), exception_message);
         retval = EXIT_FAILURE;
     }
     return retval;

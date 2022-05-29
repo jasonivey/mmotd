@@ -63,6 +63,10 @@ CATCH_TEST_CASE("ALWAYS_FAIL throws assertion exception", "[assertion]") {
     CATCH_CHECK_THROWS_MATCHES(ALWAYS_FAIL("throws an mmotd::assertion::Assertion"),
                                mmotd::assertion::Assertion,
                                MmotdExceptionMatcher("throws an mmotd::assertion::Assertion"));
+
+    CATCH_CHECK_THROWS_MATCHES(ALWAYS_FAIL("throws an {}", "mmotd::assertion::Assertion"),
+                               mmotd::assertion::Assertion,
+                               MmotdExceptionMatcher("throws an mmotd::assertion::Assertion"));
 }
 
 CATCH_TEST_CASE("PRECONDITIONS(false) throws", "[assertion]") {

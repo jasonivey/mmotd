@@ -1,19 +1,29 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "lldb",
-            "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceFolder}/build/apps/mmotd/mmotd",
-            "args": [
-                "-c",
-                "../config/mmotd_config.toml"
-            ],
-            "cwd": "${workspaceFolder}/build"
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug mmotd",
+      "program": "${workspaceFolder}/build/apps/mmotd/mmotd",
+      "args": [
+        "-c",
+        "../config/mmotd_config.toml"
+      ],
+      "cwd": "${workspaceFolder}/build"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug test runner",
+      "program": "${workspaceFolder}/build/test/mmotd_test",
+      "args": [
+        "[assertion]"
+      ],
+      "cwd": "${workspaceFolder}/build"
+    }
+  ]
 }

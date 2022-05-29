@@ -15,14 +15,12 @@ set_default_policies()
 
 if (APPLE)
     set (ZLIB_ROOT /usr/local/opt/zlib)
-    set (OPENSSL_ROOT_DIR /usr/local/opt/openssl)
 endif ()
 
 find_package(Threads REQUIRED)
 find_package(ZLIB 1.2.11 REQUIRED)
 find_package(Boost 1.71.0 REQUIRED)
-find_package(OpenSSL 1.1.1 REQUIRED)
-find_package(CURL 7.50.0 REQUIRED)
+find_package(CURL 7.63.0 REQUIRED)
 
 Include(FetchContent)
 
@@ -47,6 +45,7 @@ get_filename_component(DEPS_DIR_FMT         ${DEPENDENT_CACHE_PATH}/fmt         
 get_filename_component(DEPS_DIR_JSON        ${DEPENDENT_CACHE_PATH}/json        ABSOLUTE)
 get_filename_component(DEPS_DIR_RANDOM      ${DEPENDENT_CACHE_PATH}/random      ABSOLUTE)
 get_filename_component(DEPS_DIR_SCOPE_GUARD ${DEPENDENT_CACHE_PATH}/scope_guard ABSOLUTE)
+get_filename_component(DEPS_DIR_SPDLOG      ${DEPENDENT_CACHE_PATH}/spdlog      ABSOLUTE)
 get_filename_component(DEPS_DIR_TOML11      ${DEPENDENT_CACHE_PATH}/toml11      ABSOLUTE)
 get_filename_component(DEPS_DIR_UTFCPP      ${DEPENDENT_CACHE_PATH}/utfcpp      ABSOLUTE)
 
@@ -202,6 +201,20 @@ if (NOT scope_guard_POPULATED)
     FetchContent_Populate(scope_guard)
     add_library(scope_guard INTERFACE)
     target_include_directories(scope_guard INTERFACE ${scope_guard_SOURCE_DIR})
+endif ()
+
+# Component: spdlog
+FetchContent_Declare(spdlog
+    GIT_REPOSITORY   https://github.com/gabime/spdlog.git
+    GIT_TAG          v1.10.0
+)
+FetchContent_GetProperties(spdlog)
+if (NOT spdlog_POPULATED)
+    FetchContent_Populate(spdlog)
+    set(MESSAGE_QUIET ON)
+    set(SPDLOG_FMT_EXTERNAL ON)
+    add_subdirectory(${spdlog_SOURCE_DIR} ${spdlog_BINARY_DIR} EXCLUDE_FROM_ALL)
+    unset(MESSAGE_QUIET)
 endif ()
 
 # Component: random.  Wrapper library around the standard C++11 random number facilities.  This library

@@ -1,14 +1,16 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "lib/include/external_network.h"
+
 #include "common/assertion/include/throw.h"
 #include "common/include/logging.h"
 #include "common/include/special_files.h"
 #include "lib/include/computer_information.h"
-#include "lib/include/external_network.h"
 #include "lib/include/http_request.h"
 
 #include <sstream>
 #include <string_view>
 #include <tuple>
+#include <utility>
 
 #include <boost/algorithm/string.hpp>
 #include <boost/asio/ip/address.hpp>
@@ -21,45 +23,42 @@ using boost::asio::ip::make_address;
 using fmt::format;
 using namespace std;
 using namespace std::string_literals;
+using mmotd::core::special_files::GetEnvironmentValue;
 
 bool gLinkExternalNetwork = false;
+
+namespace {
+
+// https://ipinfo.io/json?token=YOUR_TOKEN_HERE
+static constexpr auto EXTERNAL_IP_SERVICE_URL = string_view{"ipinfo.io"};
+
+pair<string, string> CreateQueryString() {
+    auto api_key = GetEnvironmentValue("$IPINFO_API_KEY");
+    string query, log_safe_query;
+    if (!empty(api_key)) {
+        query = format(FMT_STRING("token={}"), api_key);
+        log_safe_query = format(FMT_STRING("token={}"), string(size(api_key), '*'));
+    }
+    return make_pair(query, log_safe_query);
+}
+
+} // namespace
 
 namespace mmotd::information {
 
 static const bool external_network_information_factory_registered =
     RegisterInformationProvider([]() { return make_unique<mmotd::information::ExternalNetwork>(); });
 
-#if 0
-static void walk_ptree(const pt::ptree &tree, size_t indent) {
-    const string data = tree.data();
-    LOG_INFO("{}data: \"{}\"\n", string(indent, ' '), data);
-    for (auto i = begin(tree); i != end(tree); ++i) {
-        const auto &child = *i;
-        LOG_INFO("{}child: \"{}\"\n", string(indent, ' '), child.first);
-        walk_ptree(child.second, indent + 2);
-    }
-}
-#endif
-
-// const auto response = request.MakeRequest("/json?token=YOUR_TOKEN_HERE");
-pair<string, string> ExternalNetwork::GetRequestUrl() const {
-    if (auto api_key = mmotd::core::special_files::GetEnvironmentValue("$IPINFO_API_KEY"); !empty(api_key)) {
-        return make_pair("/json?token="s + api_key, "/json?token="s + string(size(api_key), '*'));
-    } else {
-        return make_pair("/json"s, "/json"s);
-    }
-}
-
 void ExternalNetwork::FindInformation() {
-    using boost::ifind_first;
-    using mmotd::networking::HttpRequest, mmotd::networking::HttpProtocol;
-
-    auto [request_url, request_url_no_auth] = GetRequestUrl();
-    const auto response = HttpRequest{HttpProtocol::HTTPS, "ipinfo.io"}.MakeRequest(request_url, request_url_no_auth);
+    using namespace mmotd::networking;
+    auto path = "json"sv;
+    auto [query, log_safe_query] = CreateQueryString();
+    auto response = HttpRequest::Get(HttpProtocol::HTTPS, EXTERNAL_IP_SERVICE_URL, path, query);
     if (response.has_value()) {
         ParseJsonResponse(*response);
     } else {
-        LOG_ERROR("querying 'http://ipinfo.io{}' failed", request_url_no_auth);
+        auto url = HttpRequest::GetUrl(HttpProtocol::HTTPS, EXTERNAL_IP_SERVICE_URL, path, log_safe_query);
+        LOG_ERROR("querying '{}' failed", url);
     }
 }
 

@@ -1,12 +1,13 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
-#include "common/include/algorithm.h"
 #include "common/include/cli_options_parser.h"
+
+#include "common/include/algorithm.h"
 #include "common/include/config_options.h"
 #include "common/include/logging.h"
+#include "common/include/output_template.h"
 #include "common/include/special_files.h"
 #include "common/include/user_information.h"
 #include "common/include/version.h"
-#include "common/include/output_template.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -23,9 +24,7 @@
 
 #include <CLI/CLI.hpp>
 #include <boost/algorithm/string.hpp>
-#include <fmt/color.h>
 #include <fmt/format.h>
-#include <fmt/ostream.h>
 #include <toml.hpp>
 
 using mmotd::version::Version;
@@ -131,7 +130,7 @@ pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
     auto output_config_path = options_->GetOutputConfigPath();
     if (!output_config_path.empty()) {
         if (!WriteDefaultConfiguration(output_config_path)) {
-            LOG_FATAL("CLI error 204: unable to write default config to {}", quoted(output_config_path.string()));
+            LOG_FATAL("CLI error 204: unable to write default config to '{}'", output_config_path.string());
             error_exit = true;
         }
         app_finished = true;
@@ -139,7 +138,7 @@ pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
     auto output_template_path = options_->GetOutputTemplatePath();
     if (!output_template_path.empty()) {
         if (!WriteDefaultTemplate(output_template_path)) {
-            LOG_FATAL("CLI error 205: unable to write default template to {}", quoted(output_template_path.string()));
+            LOG_FATAL("CLI error 205: unable to write default template to '{}'", output_template_path.string());
             error_exit = true;
         }
         app_finished = true;
@@ -153,21 +152,21 @@ pair<bool, bool> CliOptionsParser::Parse(const int argc, char **argv) {
 void CliOptionsParser::AddConfigOptions() const {
     using mmotd::core::special_files::IsStdoutTty;
     auto config_path = options_->GetConfigPath();
-    LOG_VERBOSE("cli config file: {}", std::quoted(config_path.string()));
+    LOG_VERBOSE("cli config file: '{}'", config_path.string());
 
     auto template_path = options_->GetTemplatePath();
-    LOG_VERBOSE("cli template file: {}", std::quoted(template_path.string()));
+    LOG_VERBOSE("cli template file: '{}'", template_path.string());
 
     if (!empty(config_path)) {
         ConfigOptions::Instance().ParseConfigFile(config_path);
         LOG_VERBOSE("config file parsed: {}", ConfigOptions::Instance().to_string());
     }
     if (!empty(template_path)) {
-        LOG_VERBOSE("overriding value for template_path in config file with: {}", quoted(template_path.string()));
+        LOG_VERBOSE("overriding value for template_path in config file with: '{}'", template_path.string());
         ConfigOptions::Instance().Override("template_path"s, template_path.string(), "core"s);
     }
     const auto template_path_str = ConfigOptions::Instance().GetString("core.template_path", string{});
-    LOG_VERBOSE("post-parsing config template file: {}", quoted(template_path_str));
+    LOG_VERBOSE("post-parsing config template file: '{}'", template_path_str);
 }
 
 void CliOptionsParser::AddOptionsToSubCommand(CLI::App &app) {
@@ -207,9 +206,9 @@ void CliOptionsParser::AddOptionDeclarations(CLI::App &app) {
 
     auto default_locations = GetDefaultLocationsStr();
     constexpr auto config_description_fmt =
-        R"(Path to optional "toml" configuration file to specifiy application details. Default file name is {}. Default locations are {}.)";
+        R"(Path to optional "toml" configuration file to specifiy application details. Default file name is '{}'. Default locations are '{}'.)";
     auto config_description = fmt::vformat(fmt::to_string_view(config_description_fmt),
-                                           fmt::make_format_args(quoted(CONFIG_FILENAME), default_locations));
+                                           fmt::make_format_args(CONFIG_FILENAME, default_locations));
     app.add_option(
            "-c, --config",
            [this](auto &&paths) { return options_->SetConfigPath(forward<decltype(paths)>(paths)); },
@@ -220,9 +219,9 @@ void CliOptionsParser::AddOptionDeclarations(CLI::App &app) {
         ->configurable(false);
 
     constexpr auto template_description_fmt =
-        R"(Path to optional "json" template file for specifying output properties. Default file name is {}. Default locations are {}.)";
+        R"(Path to optional "json" template file for specifying output properties. Default file name is '{}'. Default locations are '{}'.)";
     auto template_description = fmt::vformat(fmt::to_string_view(template_description_fmt),
-                                             fmt::make_format_args(quoted(TEMPLATE_FILENAME), default_locations));
+                                             fmt::make_format_args(TEMPLATE_FILENAME, default_locations));
     app.add_option(
            "-t, --template",
            [this](auto &&paths) { return options_->SetTemplatePath(forward<decltype(paths)>(paths)); },
