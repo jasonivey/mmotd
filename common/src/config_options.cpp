@@ -1,5 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/config_options.h"
+
+#include "common/include/logging.h"
 #include "common/include/special_files.h"
 
 #include <algorithm>
@@ -68,22 +70,11 @@ state="NM"
 country="USA"
 
 [logging]
-# Which log level (and below) to output:
-#  none, fatal, error, warning, info, debug, verbose
+# Which log level (and higher) to output:
+#  trace, debug, info, warn, err, critical, off
 #  The value can be specified as a string or as a number:
-#  "none" -> 0, "fatal" -> 1, "error" -> 2, "warning" -> 3, "info" -> 4, "debug" -> 5, "verbose" -> 6
-severity="verbose"
-# Control whether to output a colorized log file. This looks strange when
-#  opening the log file in a text editor, but it works well with the following
-#  command:
-#  cat /tmp/mmotd-00007ccf.log | less -RFX
-output_color=true
-# This is mainly used for debugging. This option will flush the contents of the
-#  log file after every line has been written. This provides the opportunity to
-#  see the live status of the application at any given moment. (Especially
-#  handy when debugging an application crash.) As a result though, enabling
-#  this option may have performance reprocussions.
-flush_on_write=false
+#  "trace" -> 0, "debug" -> 1, "info" -> 2, "warn" -> 3, "err" -> 4, "critical" -> 5, "off" -> 6
+severity="trace"
 )"_toml;
 }
 
@@ -102,36 +93,34 @@ toml::value FindValueImpl(const toml::value &toml_value, queue<string> names) {
     return result_ptr == nullptr ? toml::value{} : *result_ptr;
 }
 
-inline bool IsLoggingSeverity(const string &name) {
-    return boost::iequals(name, "logging.severity"s);
-}
-
-inline int64_t ConvertLoggingSeverity(const string &severity_str) {
-    if (boost::iequals(severity_str, "fatal"s)) {
-        return int64_t{1};
-    } else if (boost::iequals(severity_str, "error"s)) {
-        return int64_t{2};
-    } else if (boost::iequals(severity_str, "warning"s)) {
-        return int64_t{3};
-    } else if (boost::iequals(severity_str, "info"s)) {
-        return int64_t{4};
+inline mmotd::logging::Severity ConvertLoggingSeverity(const string &severity_str) {
+    using mmotd::logging::Severity;
+    if (boost::iequals(severity_str, "trace"s)) {
+        return Severity::trace;
     } else if (boost::iequals(severity_str, "debug"s)) {
-        return int64_t{5};
-    } else if (boost::iequals(severity_str, "verbose"s)) {
-        return int64_t{6};
+        return Severity::debug;
+    } else if (boost::iequals(severity_str, "info"s)) {
+        return Severity::info;
+    } else if (boost::iequals(severity_str, "warn"s)) {
+        return Severity::warn;
+    } else if (boost::iequals(severity_str, "err"s)) {
+        return Severity::err;
+    } else if (boost::iequals(severity_str, "critical"s)) {
+        return Severity::critical;
     } else {
-        // boost::iequals(severity_str, "none"s)
-        return int64_t{0};
+        // if (boost::iequals(severity_str, "off"s))
+        return Severity::off;
     }
 }
 
-inline int64_t GetLoggingSeverity(const toml::value &value) {
+inline optional<mmotd::logging::Severity> ConvertValueToLoggingSeverity(const toml::value &value) {
     if (value.is_string() && !empty(value.as_string().str)) {
         return ConvertLoggingSeverity(value.as_string().str);
     } else if (value.is_integer()) {
-        return std::clamp(value.as_integer(), int64_t{0}, int64_t{6});
+        auto raw_severity = std::clamp(value.as_integer(), int64_t{0}, int64_t{6});
+        return static_cast<mmotd::logging::Severity>(raw_severity);
     }
-    return int64_t{0};
+    return mmotd::logging::Severity::warn;
 }
 
 } // namespace
@@ -163,9 +152,7 @@ void ConfigOptions::Initialize(T &input) {
     auto output_color = special_files::IsStdoutTty();
     SetDefault("output_color"s, output_color, "core"s);
     SetDefault("file_name"s, "softwareengineering", "fortune"s);
-    SetDefault("severity"s, "verbose"s, "logging"s);
-    SetDefault("output_color"s, output_color, "logging"s);
-    SetDefault("flush_on_write"s, false, "logging"s);
+    SetDefault("severity"s, "trace"s, "logging"s);
 }
 
 toml::value ConfigOptions::FindValue(string input_name) const {
@@ -175,6 +162,14 @@ toml::value ConfigOptions::FindValue(string input_name) const {
     auto names_deque = deque<string>{};
     boost::split(names_deque, input_name, boost::is_any_of("."));
     return FindValueImpl(core_value_, queue<string>{std::move(names_deque)});
+}
+
+optional<mmotd::logging::Severity> ConfigOptions::GetLoggingSeverity(const string &name) const {
+    return ConvertValueToLoggingSeverity(FindValue(name));
+}
+
+optional<mmotd::logging::Severity> ConfigOptions::GetLoggingSeverity(const string_view &name) const {
+    return GetLoggingSeverity(string(name));
 }
 
 bool ConfigOptions::Contains(const std::string &name) const {
@@ -194,9 +189,6 @@ bool ConfigOptions::GetBoolean(const string &name, bool default_value) const noe
 
 optional<int64_t> ConfigOptions::GetInteger(const string &name) const noexcept {
     auto value = FindValue(name);
-    if (IsLoggingSeverity(name)) {
-        return make_optional(GetLoggingSeverity(value));
-    }
     return value.is_integer() ? make_optional(value.as_integer()) : nullopt;
 }
 

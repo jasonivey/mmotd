@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <string>
 #include <tuple>
+#include <optional>
 
 namespace mmotd::information {
 
@@ -17,7 +18,8 @@ protected:
     void FindInformation() override;
 
 private:
-    std::tuple<std::string, std::string, std::string, std::string> GetWeatherInfo();
+    using WeatherData = std::tuple<std::string, std::string, std::string, std::string>;
+    std::optional<WeatherData> GetWeatherInfo();
 };
 
 } // namespace mmotd::information

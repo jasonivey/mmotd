@@ -33,6 +33,10 @@ endif ()
 #  which then results in numerous warnings (not errors so it's just noise) of the type
 #  ‘bool std::uncaught_exception()’ is deprecated [-Wdeprecated-declarations]
 add_single_definition(CMAKE_CXX_FLAGS "-DHAS_UNCAUGHT_EXCEPTIONS")
+# disabling spdlog's dependency on it's own internal fmt library since I'm already using a newer version
+add_single_definition(CMAKE_CXX_FLAGS "-DSPDLOG_FMT_EXTERNAL")
+add_single_definition(CMAKE_CXX_FLAGS "-DSPDLOG_DISABLE_DEFAULT_LOGGER")
+add_single_definition(CMAKE_CXX_FLAGS "-DSPDLOG_ACTIVE_LEVEL=0")
 
 include (CheckPIESupported)
 
@@ -83,13 +87,16 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE SG_REQUIRE_NOEXCEPT_IN_CPP17
         # FMT_ENFORCE_COMPILE_STRING requires all format strings to use FMT_STRING which enables
         #  compile time checking of the format string against the arguments.
-        PRIVATE FMT_ENFORCE_COMPILE_STRING
+        # Was forced to remove this option when adding spdlog who isn't using it and no way of forcing them to do that.
+        # PRIVATE FMT_ENFORCE_COMPILE_STRING
         # Boost ASIO has not updated it's code for C++20 and the removal of `std::result_of`
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:BOOST_ASIO_HAS_STD_INVOKE_RESULT>
         # By default, enable preserving comments within the toml library
         PRIVATE TOML11_PRESERVE_COMMENTS_BY_DEFAULT
         # When defined the discovery of system properties will be done serially
         #PRIVATE MMOTD_ASYNC_DISABLED
+        # When defined verbose http logging will be enabled
+        #PRIVATE MMOTD_HTTP_VERBOSE_LOGGING
         )
 
     target_compile_options(
@@ -112,7 +119,9 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # On DEBUG builds set '-g3' which enables features to ensure a quality debugging experience
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-g3>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-glldb>
+        PRIVATE $<$<AND:$<BOOL:${ENABLE_SANATIZERS}>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-fsanitize=undefined,implicit-integer-truncation,implicit-integer-arithmetic-value-change,implicit-conversion,integer,nullability>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:GNU>>:-ggdb>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-fno-omit-frame-pointer>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-fdebug-macro>
         PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-gcolumn-info>
         #PRIVATE $<$<AND:$<CONFIG:Debug>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-grecord-command-line>
@@ -259,11 +268,11 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         PRIVATE ${Boost_INCLUDE_DIRS}
         # PRIVATE ${certify_SOURCE_DIR}/include
         PRIVATE ${CURL_INCLUDE_DIR}
+        PRIVATE ${spdlog_SOURCE_DIR}/include
         PRIVATE ${cli11_SOURCE_DIR}/include
         PRIVATE ${date_SOURCE_DIR}/include
         PRIVATE ${fmt_SOURCE_DIR}/include
         PRIVATE ${json_SOURCE_DIR}/single_include
-        PRIVATE ${OPENSSL_INCLUDE_DIR}
         PRIVATE ${random_SOURCE_DIR}/include
         PRIVATE ${scope_guard_SOURCE_DIR}
         PRIVATE ${toml11_SOURCE_DIR}
@@ -275,6 +284,7 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         target_link_options(
             ${MMOTD_TARGET_NAME}
             # PROFILING OPTIONS...
+            PRIVATE $<$<AND:$<BOOL:${ENABLE_SANATIZERS}>,$<CXX_COMPILER_ID:AppleClang,Clang>>:-fsanitize=undefined,implicit-integer-truncation,implicit-integer-arithmetic-value-change,implicit-conversion,integer,nullability>
             PRIVATE $<$<BOOL:${ENABLE_PROFILING}>:-pg>
             # COVERAGE OPTIONS...
             PRIVATE $<$<BOOL:${ENABLE_COVERAGE}>:--coverage>
@@ -299,10 +309,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
             INTERFACE nlohmann_json::nlohmann_json
             PRIVATE fmt::fmt
             PRIVATE date-tz
-            PRIVATE OpenSSL::SSL
-            PRIVATE OpenSSL::Crypto
+            PRIVATE spdlog::spdlog
             PRIVATE ZLIB::ZLIB
-            PRIVATE $<$<CXX_COMPILER_ID:MSVC>:OpenSSL::applink>
             PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++>
             PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-lc++abi>
             PRIVATE $<$<PLATFORM_ID:Darwin>:${FWCoreFoundation}>

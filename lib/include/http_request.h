@@ -1,29 +1,25 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #pragma once
-#include "common/include/big_five_macros.h"
-
-#include <cstdint>
 #include <optional>
 #include <string>
+#include <string_view>
 
 namespace mmotd::networking {
 
 enum class HttpProtocol { HTTP, HTTPS };
 
-std::string to_string(HttpProtocol protocol);
-
 class HttpRequest {
 public:
-    DELETE_CONSTRUCTOR_COPY_MOVE_OPERATORS_DEFAULT_DESTRUCTOR(HttpRequest);
+    static std::optional<std::string> Get(HttpProtocol protocol,
+                                          std::string_view host,
+                                          std::string_view path = std::string_view{},
+                                          std::string_view query = std::string_view{});
 
-    HttpRequest(HttpProtocol protocol, std::string host, std::string port = std::string{});
-
-    std::optional<std::string> MakeRequest(std::string path, std::string path_w_o_auth);
-
-private:
-    HttpProtocol protocol_ = HttpProtocol::HTTPS;
-    std::string host_;
-    std::string port_ = "443";
+    static std::string GetUrl(HttpProtocol protocol,
+                              std::string_view host,
+                              std::string_view path = std::string_view{},
+                              std::string_view query = std::string_view{},
+                              bool url_encode = false);
 };
 
 } // namespace mmotd::networking

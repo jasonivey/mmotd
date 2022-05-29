@@ -1,9 +1,10 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #if defined(__APPLE__)
+#include "lib/include/platform/user_accounting_database.h"
+
 #include "common/include/chrono_io.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
-#include "lib/include/platform/user_accounting_database.h"
 
 #include <cctype>
 #include <cerrno>
@@ -76,7 +77,7 @@ namespace mmotd::platform::user_account_database {
 string DbEntry::to_string() const {
     auto time_point = std::chrono::system_clock::from_time_t(seconds);
     auto time_str = mmotd::chrono::io::to_string(time_point, "%d-%h-%Y %I:%M%p %Z");
-    return format(FMT_STRING("user: {}, device: {}, hostname: {}, time: {}, ip: {}, type: {}"),
+    return format(FMT_STRING("user: {}, device: {}, hostname: '{}', time: {}, ip: {}, type: {}"),
                   user,
                   device_name,
                   hostname,

@@ -1,6 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "apps/mmotd_raw/include/main.h"
 
+#include "common/assertion/include/assertion.h"
 #include "common/assertion/include/throw.h"
 #include "common/include/algorithm.h"
 #include "common/include/global_state.h"
@@ -12,6 +13,8 @@
 #include <cstdlib>
 #include <iostream>
 #include <regex>
+#include <string>
+#include <string_view>
 
 #include <backward.hpp>
 #include <boost/algorithm/string.hpp>
@@ -22,15 +25,14 @@
 #include <fmt/format.h>
 
 using mmotd::algorithms::unused;
-using namespace fmt;
 using namespace std;
 
 namespace {
 
 string GetInformationNameString(const mmotd::information::Information &information) {
     const auto &name = information.GetName();
-    static const auto formatting_color = fg(color::lime_green) | emphasis::bold;
-    return !empty(name) ? format(formatting_color, FMT_STRING("{}: "), name) : string{};
+    static const auto formatting_color = fmt::fg(fmt::color::lime_green) | fmt::emphasis::bold;
+    return !empty(name) ? fmt::format(formatting_color, FMT_STRING("{}: "), name) : string{};
 }
 
 size_t GetInformationNameStringSize(const mmotd::information::Information &information) {
@@ -39,8 +41,8 @@ size_t GetInformationNameStringSize(const mmotd::information::Information &infor
 
 string GetInformationValueString(const mmotd::information::Information &information) {
     const auto &value = information.GetValue();
-    static const auto formatting_color = fg(color::white) | emphasis::bold;
-    return !empty(value) ? format(formatting_color, FMT_STRING("{}"), value) : string{};
+    static const auto formatting_color = fmt::fg(fmt::color::white) | fmt::emphasis::bold;
+    return !empty(value) ? fmt::format(formatting_color, FMT_STRING("{}"), value) : string{};
 }
 
 size_t GetColumnWidth(const vector<mmotd::information::Information> &informations) {
@@ -60,12 +62,12 @@ void PrintMmotdRaw() {
         auto value = GetInformationValueString(information);
         if (!empty(name) && !empty(value)) {
             if (width > 0) {
-                output_lines.push_back(format(FMT_STRING("  {:<{}} {}\n"), name, width, value));
+                output_lines.push_back(fmt::format(FMT_STRING("  {:<{}} {}\n"), name, width, value));
             } else {
-                output_lines.push_back(format(FMT_STRING("  {}{}\n"), name, value));
+                output_lines.push_back(fmt::format(FMT_STRING("  {}{}\n"), name, value));
             }
         } else if (!empty(value)) {
-            output_lines.push_back(format(FMT_STRING("{}\n"), value));
+            output_lines.push_back(fmt::format(FMT_STRING("{}\n"), value));
         }
     }
     sort(begin(output_lines), end(output_lines));
@@ -74,6 +76,10 @@ void PrintMmotdRaw() {
 
 int main_impl(int, char **argv) {
     setlocale(LC_ALL, "en_US.UTF-8");
+    auto program_name = argv != nullptr && *argv != nullptr ? string_view(*argv) : string_view{};
+    auto initilized = mmotd::logging::InitializeLogging(program_name);
+    CHECKS(initilized, "unable to initialize logging");
+
     auto signal_handling = backward::SignalHandling{};
     unused(signal_handling);
 
@@ -101,7 +107,7 @@ int main(int argc, char *argv[]) {
     } catch (...) { exception_message = mmotd::assertion::GetUnknownExceptionMessage(); }
 
     if (!empty(exception_message)) {
-        LOG_FATAL("{}", exception_message);
+        fmt::print(stderr, FMT_STRING("{}\n"), exception_message);
         retval = EXIT_FAILURE;
     }
     return retval;

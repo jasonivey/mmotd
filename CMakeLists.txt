@@ -19,6 +19,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 #  this project is no longer the root project.  (Possible renaming options to something with 'mmotd')
 option(ENABLE_PROFILING "enable code profiling" OFF)
 option(ENABLE_COVERAGE "enable code coverage" OFF)
+option(ENABLE_SANITIZERS "enable sanitizers" OFF)
 option(ENABLE_TESTING "enable building unit-tests" ON)
 
 set_property(GLOBAL PROPERTY ROOT_CMAKE_PROJECT_DIR ${CMAKE_CURRENT_SOURCE_DIR})

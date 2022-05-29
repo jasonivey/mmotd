@@ -6,9 +6,9 @@
 
 #include <istream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <string_view>
-#include <stdexcept>
 
 #include <boost/algorithm/string/split.hpp>
 #include <catch2/catch.hpp>
@@ -157,22 +157,11 @@ state="NM"
 country="USA"
 
 [logging]
-# Which log level (and below) to output:
-#  none, fatal, error, warning, info, debug, verbose
+# Which log level (and higher) to output:
+#  trace, debug, info, warn, err, critical, off
 #  The value can be specified as a string or as a number:
-#  "none" -> 0, "fatal" -> 1, "error" -> 2, "warning" -> 3, "info" -> 4, "debug" -> 5, "verbose" -> 6
-severity="verbose"
-# Control whether to output a colorized log file. This looks strange when
-#  opening the log file in a text editor, but it works well with the following
-#  command:
-#  cat /tmp/mmotd-00007ccf.log | less -RFX
-output_color=true
-# This is mainly used for debugging. This option will flush the contents of the
-#  log file after every line has been written. This provides the opportunity to
-#  see the live status of the application at any given moment. (Especially
-#  handy when debugging an application crash.) As a result though, enabling
-#  this option may have performance reprocussions.
-flush_on_write=false
+#  "trace" -> 0, "debug" -> 1, "info" -> 2, "warn" -> 3, "err" -> 4, "critical" -> 5, "off" -> 6
+severity="trace"
 )"_toml;
     auto &config_options = ConfigOptions::Instance(true);
     auto config_options_str = config_options.to_string();

@@ -1,8 +1,7 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/stack_trace.h"
+
 #include "common/include/algorithm.h"
-#include "common/include/logging.h"
-#include "common/include/source_location_common.h"
 
 #include <algorithm>
 #include <regex>
@@ -12,12 +11,8 @@
 #include <vector>
 
 #include <backward.hpp>
-#include <boost/algorithm/string.hpp>
-#include <fmt/format.h>
 
 using namespace mmotd::algorithms;
-using fmt::format;
-using mmotd::source_location::StripFunctionArgs;
 using namespace std;
 
 namespace {

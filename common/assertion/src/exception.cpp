@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/assertion/include/exception.h"
+
 #include "common/assertion/include/stack_trace.h"
 #include "common/include/logging.h"
 #include "common/include/source_location.h"
@@ -15,7 +16,6 @@
 
 using namespace mmotd::source_location;
 using namespace std;
-using mmotd::logging::Log;
 using mmotd::logging::Severity;
 
 namespace {
@@ -24,12 +24,13 @@ string GetExceptionMessageCommon(const SourceLocation &source_location,
                                  string_view exception_type,
                                  const fmt::string_view &format,
                                  fmt::format_args args) {
+    using mmotd::logging::LogCommon;
     auto input_msg = fmt::vformat(format, args);
     auto msg = fmt::format(FMT_STRING("{}: {} at {}"), exception_type, input_msg, source_location);
     if (auto stacktrace = mmotd::assertion::GetStackTrace(); !empty(stacktrace)) {
         msg += fmt::format(FMT_STRING("\n{}"), stacktrace);
     }
-    LogDirect(source_location, Severity::error, msg);
+    LogCommon(source_location, Severity::err, msg);
     return msg;
 }
 
@@ -39,16 +40,16 @@ namespace mmotd::assertion {
 
 string GetExceptionMessage(const mmotd::source_location::SourceLocation &source_location,
                            string_view exception_type,
-                           const fmt::string_view &format,
+                           const fmt::string_view &format_msg,
                            fmt::format_args args) {
-    return GetExceptionMessageCommon(source_location, exception_type, format, args);
+    return GetExceptionMessageCommon(source_location, exception_type, format_msg, args);
 }
 
 string GetExceptionMessage(const mmotd::source_location::SourceLocation &source_location,
                            string_view exception_type,
-                           const fmt::string_view &format) {
+                           const fmt::string_view &format_msg) {
     auto blank_args = fmt::format_args();
-    return GetExceptionMessageCommon(source_location, exception_type, format, blank_args);
+    return GetExceptionMessageCommon(source_location, exception_type, format_msg, blank_args);
 }
 
 InvalidArgument::InvalidArgument(const char *message) : boost::exception(), std::invalid_argument(message) {}
