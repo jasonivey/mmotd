@@ -1,5 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #include "common/include/algorithm.h"
+#include "common/include/human_size.h"
 
 #include <stdexcept>
 #include <string_view>
@@ -103,6 +104,48 @@ of silica or quartz dust is called
 pneumonoultramicroscopicsilicovolcanoconiosis.)"};
         auto output = split_sentence(fixed_input, 40);
         CATCH_CHECK(output == fixed_output);
+    }
+}
+
+CATCH_TEST_CASE("to_human_size", "[algorithms]") {
+    using mmotd::algorithm::string::to_human_size;
+
+    CATCH_SECTION("integers") {
+        CATCH_CHECK(to_human_size(0) == "0.00 B");
+        CATCH_CHECK(to_human_size(1) == "1.00 B");
+        CATCH_CHECK(to_human_size(10) == "10.00 B");
+        CATCH_CHECK(to_human_size(100) == "100.00 B");
+        CATCH_CHECK(to_human_size(1000) == "1000.00 B");
+        CATCH_CHECK(to_human_size(1024) == "1.00 KB");
+        CATCH_CHECK(to_human_size(1000000) == "976.56 KB");
+        CATCH_CHECK(to_human_size(1024 * 1024) == "1.00 MB");
+        CATCH_CHECK(to_human_size(1000000000) == "953.67 MB");
+        CATCH_CHECK(to_human_size(1024ull * 1024ull * 1024ull) == "1.00 GB");
+        CATCH_CHECK(to_human_size(1000000000000ull) == "931.32 GB");
+        CATCH_CHECK(to_human_size(1024ull * 1024ull * 1024ull * 1024ull) == "1.00 TB");
+        CATCH_CHECK(to_human_size(1000000000000000ull) == "909.49 TB");
+        CATCH_CHECK(to_human_size(1024ull * 1024ull * 1024ull * 1024ull * 1024ull) == "1.00 PB");
+        CATCH_CHECK(to_human_size(1000000000000000000ull) == "888.18 PB");
+        CATCH_CHECK(to_human_size(1024ull * 1024ull * 1024ull * 1024ull * 1024ull * 1024ull) == "1.00 EB");
+    }
+
+    CATCH_SECTION("floating-point") {
+        CATCH_CHECK(to_human_size(0.0) == "0.00 B");
+        CATCH_CHECK(to_human_size(1.0) == "1.00 B");
+        CATCH_CHECK(to_human_size(10.0) == "10.00 B");
+        CATCH_CHECK(to_human_size(100.0) == "100.00 B");
+        CATCH_CHECK(to_human_size(1000.0) == "1000.00 B");
+        CATCH_CHECK(to_human_size(1024.0) == "1.00 KB");
+        CATCH_CHECK(to_human_size(1000000.0) == "976.56 KB");
+        CATCH_CHECK(to_human_size(1024.0 * 1024.0) == "1.00 MB");
+        CATCH_CHECK(to_human_size(1000000000.0) == "953.67 MB");
+        CATCH_CHECK(to_human_size(1024.0 * 1024.0 * 1024.0) == "1.00 GB");
+        CATCH_CHECK(to_human_size(1000000000000.0) == "931.32 GB");
+        CATCH_CHECK(to_human_size(1024.0 * 1024.0 * 1024.0 * 1024.0) == "1.00 TB");
+        CATCH_CHECK(to_human_size(1000000000000000.0) == "909.49 TB");
+        CATCH_CHECK(to_human_size(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0) == "1.00 PB");
+        CATCH_CHECK(to_human_size(1000000000000000000.0) == "888.18 PB");
+        CATCH_CHECK(to_human_size(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0) == "1.00 EB");
     }
 }
 

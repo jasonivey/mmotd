@@ -7,6 +7,7 @@
 #include "common/include/posix_error.h"
 #include "lib/include/platform/memory.h"
 
+#include <array>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -49,10 +50,10 @@ bool GetVmStat(vm_statistics64_t vmstat) {
 }
 
 optional<uint64_t> GetTotalMemory() {
-    int mib[2] = {CTL_HW, HW_MEMSIZE};
+    auto mib = array<int, 2>{CTL_HW, HW_MEMSIZE};
     auto total = uint64_t{0};
     auto len = sizeof(uint64_t);
-    if (sysctl(mib, 2, &total, &len, nullptr, 0) == -1) {
+    if (sysctl(data(mib), 2, &total, &len, nullptr, 0) == -1) {
         auto error_str = string{};
         if (auto errno_str = mmotd::error::posix_error::to_string(); !errno_str.empty()) {
             error_str = format(FMT_STRING(", details: {}"), errno_str);
@@ -75,7 +76,7 @@ optional<mmotd::platform::MemoryDetails> GetMemoryUsage() {
         return nullopt;
     }
 
-    const auto pagesize = getpagesize();
+    const auto pagesize = static_cast<uint64_t>(getpagesize());
 
     LOG_VERBOSE("pagesize: {}", pagesize);
     LOG_VERBOSE("active count: {}, {}", to_human_size(vm_statistics.active_count), vm_statistics.active_count);

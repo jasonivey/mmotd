@@ -1,9 +1,10 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
 #if defined(__linux__)
+#include "lib/include/platform/system_information.h"
+
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
 #include "common/include/posix_error.h"
-#include "lib/include/platform/system_information.h"
 #include "lib/include/system_details.h"
 
 #include <filesystem>
@@ -100,7 +101,7 @@ optional<int> ParseIndividualOsVersion(string version_str) {
         return nullopt;
     }
 
-    auto offset = std::distance(begin(version_str), i);
+    auto offset = static_cast<size_t>(std::distance(begin(version_str), i));
     LOG_DEBUG("found integer offset for '{}' to be {}", version_str, offset);
     version_str = version_str.substr(offset);
 
@@ -112,7 +113,7 @@ optional<int> ParseIndividualOsVersion(string version_str) {
     auto j = find_if(begin(version_str), end(version_str), [](auto version_char) { return !is_digit()(version_char); });
 
     if (j != end(version_str)) {
-        offset = std::distance(begin(version_str), j);
+        offset = static_cast<size_t>(std::distance(begin(version_str), j));
         LOG_DEBUG("found integer offset for '{}' to be {}", version_str, offset);
         version_str = version_str.substr(0, offset);
     }

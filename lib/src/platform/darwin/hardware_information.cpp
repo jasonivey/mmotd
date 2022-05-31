@@ -148,9 +148,8 @@ optional<GpuInformation> GpuInformation::QueryGpuInformation() {
         auto graphics_model = GetJsonStringFromPointer(root, graphics_model_query);
         gpu_information.AddGraphicsModelName(graphics_model.value_or(string{}));
 
-        auto index = static_cast<json::difference_type>(i);
-        auto displays_drivers_iter = displays_data_root[index].find("spdisplays_ndrvs");
-        if (displays_drivers_iter == std::end(displays_data_root[index]) || !displays_drivers_iter->is_array()) {
+        auto displays_drivers_iter = displays_data_root[i].find("spdisplays_ndrvs");
+        if (displays_drivers_iter == std::end(displays_data_root[i]) || !displays_drivers_iter->is_array()) {
             continue;
         }
 
@@ -269,7 +268,7 @@ string GetCpuName() {
         LOG_ERROR("error calling sysctlnametomib with machdep.cpu.brand_string, details: {}", error_str);
         return string{};
     }
-    return string(data(brand_name));
+    return string{data(brand_name)};
 }
 
 } // namespace

@@ -24,7 +24,7 @@ using namespace std;
 
 namespace {
 
-constexpr int KERNEL_INDEX = 2;
+constexpr uint32_t KERNEL_INDEX = 2;
 
 constexpr char READ_BYTES_CMD = 5;
 constexpr char READ_KEYINFO_CMD = 9;
@@ -81,20 +81,16 @@ uint32_t BufferToNum(const KeyBuffer &buffer, int base) {
     auto buf_size = size(buffer) - 1;
     for (size_t i = 0ul; i != buf_size; ++i) {
         if (base == 16) {
-            total += buffer[i] << (buf_size - 1 - i) * 8;
+            total += static_cast<uint32_t>(buffer[i]) << ((buf_size - 1 - i) * 8);
         } else {
-            total += (static_cast<unsigned char>(buffer[i]) << (buf_size - 1 - i) * 8);
+            total += static_cast<uint32_t>(buffer[i]) << ((buf_size - 1 - i) * 8);
         }
     }
     return total;
 }
 
 KeyBuffer NumToBuffer(uint32_t value) {
-    auto str = fmt::format(FMT_STRING("{:c}{:c}{:c}{:c}"),
-                           static_cast<uint32_t>(value) >> 24,
-                           static_cast<uint32_t>(value) >> 16,
-                           static_cast<uint32_t>(value) >> 8,
-                           static_cast<uint32_t>(value));
+    auto str = fmt::format(FMT_STRING("{:c}{:c}{:c}{:c}"), value >> 24, value >> 16, value >> 8, value);
     auto buffer = KeyBuffer{};
     copy(begin(str), end(str), begin(buffer));
     return buffer;
@@ -121,7 +117,7 @@ private:
     void ReadCpuTemperature();
     void ReadGpuTemperature();
 
-    kern_return_t ConnectCall(int index, const KeyData &input, KeyData &output);
+    kern_return_t ConnectCall(uint32_t index, const KeyData &input, KeyData &output);
     kern_return_t GetKeyInfo(uint32_t key, KeyInfo &key_info);
     kern_return_t ReadKey(const KeyBuffer &key, Value &value);
     optional<double> GetSP78Value(const Value &value) const;
@@ -196,7 +192,7 @@ kern_return_t SystemManagementController::GetKeyInfo(uint32_t key, KeyInfo &key_
     return result;
 }
 
-kern_return_t SystemManagementController::ConnectCall(int index, const KeyData &input, KeyData &output) {
+kern_return_t SystemManagementController::ConnectCall(uint32_t index, const KeyData &input, KeyData &output) {
     PRECONDITIONS(service_handle_ != 0, "service handle must be valid");
     size_t input_size = sizeof(KeyData);
     size_t output_size = sizeof(KeyData);

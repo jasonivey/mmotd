@@ -1,4 +1,6 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "lib/include/general.h"
+
 #include "common/assertion/include/assertion.h"
 #include "common/include/algorithm.h"
 #include "common/include/chrono_io.h"
@@ -6,7 +8,6 @@
 #include "common/include/logging.h"
 #include "common/include/user_information.h"
 #include "lib/include/computer_information.h"
-#include "lib/include/general.h"
 
 #include <chrono>
 #include <iterator>
@@ -34,7 +35,10 @@ public:
     Greeting() = default;
 
     Greeting(string_view greet_str, HourType begin_hour, HourType end_hour, initializer_list<string_view> emojis) :
-        greeting_str_(greet_str), begin_hour_(begin_hour), end_hour_(end_hour), emojis_(emojis) {}
+        greeting_str_(greet_str),
+        begin_hour_(begin_hour),
+        end_hour_(end_hour),
+        emojis_(emojis) {}
 
     auto begin() const { return begin_hour_; }
     auto end() const { return end_hour_; }
@@ -62,8 +66,7 @@ public:
     string GetLocalDateTime() const;
 
 private:
-    static constexpr auto MORNING_EMOJIS =
-        {"🌤"sv, "⛅"sv, "🌦️"sv, "🌤️"sv, "🌥️"sv, "🌈"sv, "🌦"sv};
+    static constexpr auto MORNING_EMOJIS = {"🌤"sv, "⛅"sv, "🌦️"sv, "🌤️"sv, "🌥️"sv, "🌈"sv, "🌦"sv};
     static constexpr auto AFTERNOON_EMOJIS = {"🌎"sv, "🌎"sv, "🌍"sv, "🌏"sv, "⛱"sv, "🏖"sv};
     static constexpr auto EVENING_EMOJIS =
         {"🌙"sv, "🌖"sv, "🌕"sv, "🌓"sv, "🌛"sv, "🌝"sv, "🌗"sv, "🌜"sv, "🌑"sv, "🌚"sv, "🌘"sv, "🌒"sv, "🌔"sv};
