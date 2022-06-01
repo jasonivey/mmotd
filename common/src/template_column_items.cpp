@@ -1,9 +1,10 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/template_column_items.h"
+
 #include "common/assertion/include/assertion.h"
 #include "common/assertion/include/precondition.h"
 #include "common/include/algorithm.h"
 #include "common/include/logging.h"
-#include "common/include/template_column_items.h"
 
 #include <algorithm>
 #include <array>
@@ -441,7 +442,7 @@ string to_string(fmt::text_style txt_style) {
             terminal_color += "strikethrough_";
         }
     }
-    auto terminal_value = static_cast<uint8_t>(txt_style.get_foreground().value.term_color);
+    auto terminal_value = txt_style.get_foreground().value.term_color;
     if (terminal_value >= static_cast<uint8_t>(fmt::terminal_color::bright_black)) {
         terminal_color += "bright_";
     }

@@ -18,7 +18,7 @@ using namespace std;
 
 namespace {
 
-optional<size_t> GetProcessesInfoSize(int retry) {
+optional<size_t> GetProcessesInfoSize(size_t retry) {
     using namespace mmotd::error;
     auto mib = array<int, 3>{CTL_KERN, KERN_PROC, KERN_PROC_ALL};
     auto buffer_size = size_t{0};
@@ -50,9 +50,9 @@ bool GetProcessesInfoBuffer(size_t buffer_size, vector<uint8_t> &buffer) {
 }
 
 optional<vector<int32_t>> GetProcessesInfo() {
-    static constexpr int RETRY_COUNT = 6; // arbitrary retry count 1-5
+    static constexpr size_t RETRY_COUNT = 6; // arbitrary retry count 1-5
     auto process_infos = vector<kinfo_proc>{};
-    for (int i = 1; i != RETRY_COUNT && empty(process_infos); ++i) {
+    for (auto i = size_t{1}; i != RETRY_COUNT && empty(process_infos); ++i) {
         LOG_VERBOSE("getting process list #{}", i);
         auto buffer_size_wrapper = GetProcessesInfoSize(i);
         if (!buffer_size_wrapper) {

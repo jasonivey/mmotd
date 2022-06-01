@@ -166,11 +166,9 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # warn if you overload (not override) a virtual function
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Woverloaded-virtual>
         # warn on type conversions that may lose data
-        # TODO: fix_jasoni... re-enable
-        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wconversion>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wconversion>
         # warn on sign conversions
-        # TODO: fix_jasoni... re-enable
-        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wsign-conversion>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wsign-conversion>
         # warn if float is implicit promoted to double
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wdouble-promotion>
         # warn on security issues around functions that format output (ie `printf`)
@@ -204,10 +202,8 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         # warn if a null dereference is detected
         PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wnull-dereference>
         # warn if you perform a cast to the same type
-        # TODO: fix_jasoni... re-enable
-        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:GNU>>:-Wuseless-cast>
-        # TODO: fix_jasoni... re-enable
-        PRIVATE $<$<AND:$<BOOL:FALSE>,$<CXX_COMPILER_ID:AppleClang,Clang,GNU>>:-Wcast-qual>
+        PRIVATE $<$<CXX_COMPILER_ID:GNU>:-Wuseless-cast>
+        PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang,GNU>:-Wcast-qual>
 
         # disable -- clang
         PRIVATE $<$<CXX_COMPILER_ID:AppleClang,Clang>:-Wno-gnu-zero-variadic-macro-arguments>
@@ -266,7 +262,6 @@ macro (setup_target_properties MMOTD_TARTET_NAME PROJECT_ROOT_INCLUDE_PATH)
         ${MMOTD_TARGET_NAME} SYSTEM
         PRIVATE ${BACKWARD_INCLUDE_DIRS}
         PRIVATE ${Boost_INCLUDE_DIRS}
-        # PRIVATE ${certify_SOURCE_DIR}/include
         PRIVATE ${CURL_INCLUDE_DIR}
         PRIVATE ${spdlog_SOURCE_DIR}/include
         PRIVATE ${cli11_SOURCE_DIR}/include

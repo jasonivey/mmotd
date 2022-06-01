@@ -1,11 +1,12 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "lib/include/fortune.h"
+
 #include "common/include/algorithm.h"
 #include "common/include/config_options.h"
 #include "common/include/iostream_error.h"
 #include "common/include/logging.h"
 #include "common/include/special_files.h"
 #include "lib/include/computer_information.h"
-#include "lib/include/fortune.h"
 
 #include <array>
 #include <bit>
@@ -54,6 +55,8 @@ string_view GetPlatformFortunesPath() {
     return "/usr/local/opt/fortune/share/games/fortunes";
 }
 
+#define FORTUNE_FILE_BYTESWAP(x) ntohll(x)
+
 #elif defined(__linux__)
 
 static constexpr uint32_t STRFILE_VERSION = 2;
@@ -64,6 +67,8 @@ static constexpr bool STRFILE_ENTRY_CONTAINS_NULL_INT = false;
 string_view GetPlatformFortunesPath() {
     return "/usr/share/games/fortunes";
 }
+
+#define FORTUNE_FILE_BYTESWAP(x) ntohl(x)
 
 #endif
 
@@ -124,11 +129,11 @@ struct StrFileHeader {
     }
 
     void update() {
-        version = ntohl(version);
-        count = ntohl(count);
-        longest_str = ntohl(longest_str);
-        shortest_str = ntohl(shortest_str);
-        flags = static_cast<Flags>(ntohl(static_cast<StrFileIntType>(flags)));
+        version = FORTUNE_FILE_BYTESWAP(version);
+        count = FORTUNE_FILE_BYTESWAP(count);
+        longest_str = FORTUNE_FILE_BYTESWAP(longest_str);
+        shortest_str = FORTUNE_FILE_BYTESWAP(shortest_str);
+        flags = static_cast<Flags>(FORTUNE_FILE_BYTESWAP(static_cast<StrFileIntType>(flags)));
         LOG_VERBOSE("STRFILE: {}", to_string());
     }
 };

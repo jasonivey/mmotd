@@ -5,6 +5,7 @@
 
 #include <array>
 #include <string>
+#include <string_view>
 #include <type_traits>
 
 #include <fmt/format.h>
@@ -12,26 +13,34 @@
 namespace mmotd::algorithm::string {
 
 // Algorithm and code modified from https://gist.github.com/dgoguerra/7194777 thanks @dgoguerra
-template<class T,
-         typename = std::enable_if_t<(std::is_integral<T>::value && !mmotd::type_traits::is_bool<T>::value) ||
-                                     std::is_floating_point<T>::value>>
+template<typename T,
+         typename std::enable_if<std::is_integral<T>{} && !mmotd::type_traits::is_bool<T>{}, bool>::type = true>
 inline std::string to_human_size(T number) {
-    const auto suffixes = std::array<std::string, 5>{"B", "KB", "MB", "GB", "TB"};
-
-    auto bytes = number;
-    auto floating_point_bytes = static_cast<double>(bytes);
-    constexpr auto KILO_BYTE = T{1024};
-
-    auto suffix = suffixes.front();
+    constexpr auto KILO_BYTE = double{1024.0};
+    const auto suffixes = std::array<std::string_view, 9>{"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+    auto bytes = static_cast<double>(number);
     for (auto i : suffixes) {
         if (bytes < KILO_BYTE) {
-            suffix = i;
-            break;
+            return fmt::format(FMT_STRING("{:.02f} {}"), bytes, i);
         }
-        floating_point_bytes = bytes / static_cast<double>(KILO_BYTE);
         bytes /= KILO_BYTE;
     }
-    return fmt::format(FMT_STRING("{:.02f} {}"), floating_point_bytes, suffix);
+    return fmt::format(FMT_STRING("{:.02f} {}"), bytes, suffixes.back());
+}
+
+// template<typename T>
+template<typename T, typename std::enable_if<std::is_floating_point<T>{}, bool>::type = true>
+inline std::string to_human_size(T number) {
+    constexpr auto KILO_BYTE = T{1024};
+    const auto suffixes = std::array<std::string_view, 9>{"B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"};
+    auto bytes = number;
+    for (auto i : suffixes) {
+        if (bytes < KILO_BYTE) {
+            return fmt::format(FMT_STRING("{:.02f} {}"), bytes, i);
+        }
+        bytes /= KILO_BYTE;
+    }
+    return fmt::format(FMT_STRING("{:.02f} {}"), bytes, suffixes.back());
 }
 
 } // namespace mmotd::algorithm::string
@@ -53,6 +62,7 @@ public:
     T value() const noexcept { return value_; }
 
     std::string to_string() const noexcept { return mmotd::algorithm::string::to_human_size(value_); }
+    friend std::ostream &operator<<(std::ostream &os, const HumanNumber &number) { return os << number.to_string(); }
 
 private:
     T value_ = T{};

@@ -1,7 +1,8 @@
 // vim: awa:sts=4:ts=4:sw=4:et:cin:fdm=manual:tw=120:ft=cpp
+#include "common/include/special_files.h"
+
 #include "common/assertion/include/assertion.h"
 #include "common/include/logging.h"
-#include "common/include/special_files.h"
 #include "common/include/user_information.h"
 
 #include <filesystem>
@@ -160,12 +161,13 @@ string ExpandEnvironmentVariables(string input) {
     auto envvar_begin = std::sregex_iterator(begin(input), end(input), env_pattern);
     auto envvar_end = std::sregex_iterator();
     auto output = string{};
-    auto index = std::smatch::difference_type{0};
+    auto index = size_t{0};
     for (std::sregex_iterator i = envvar_begin; i != envvar_end; ++i) {
         auto match = *i;
-        if (match.position() > index) {
-            output += input.substr(index, match.position() - index);
-            index = static_cast<std::smatch::difference_type>(match.position() + size(match.str()));
+        auto offset = static_cast<size_t>(match.position());
+        if (offset > index) {
+            output += input.substr(index, offset - index);
+            index = offset + size(match.str());
         }
 
         output += GetEnvironmentValue(match.str());

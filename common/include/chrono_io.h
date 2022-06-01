@@ -94,7 +94,7 @@ inline auto time_from_string(std::string_view input, const char *chrono_format) 
     return time_from_string(std::string(input), chrono_format);
 }
 
-inline std::optional<std::size_t> get_current_hour() {
+inline std::optional<std::chrono::hours::rep> get_current_hour() {
     auto now_time_point = date::make_zoned(GetTimeZone(), std::chrono::system_clock::now());
     auto hour_str = date::format("%H", now_time_point);
     const auto &loc = std::locale();
@@ -110,16 +110,16 @@ inline std::optional<std::size_t> get_current_hour() {
         if (hour > 23) {
             hour = std::size_t{23};
         }
-        return {hour};
+        return std::make_optional(static_cast<std::chrono::hours::rep>(hour));
     }
 }
 
 } // namespace detail
 
 using detail::date_time_from_string;
-using detail::time_from_string;
 using detail::get_current_hour;
 using detail::GetTimeZone;
+using detail::time_from_string;
 using detail::to_string;
 
 } // namespace mmotd::chrono::io

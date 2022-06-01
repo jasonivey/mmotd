@@ -45,7 +45,8 @@ inline size_t GetUtf8DisplayLength(string input) {
         LOG_ERROR("invalid utf8: {}, at offset: {}", input, i);
         input = utf8::replace_invalid(input);
     }
-    return utf8::distance(input.begin(), input.end());
+    auto utf8_length = utf8::distance(input.begin(), input.end());
+    return static_cast<size_t>(utf8_length);
 }
 
 struct ColorSpecification {
@@ -545,9 +546,10 @@ size_t OutputRows::GetColumnCount(int column) const noexcept {
     if (column == output_template::ENTIRE_LINE) {
         column_count = size_t{1};
     } else {
-        column_count = count_if(begin(column_indexes), end(column_indexes), [](int index) {
+        auto entire_line_count = count_if(begin(column_indexes), end(column_indexes), [](int index) {
             return index != output_template::ENTIRE_LINE;
         });
+        column_count = static_cast<size_t>(entire_line_count);
     }
     return column_count;
 }
